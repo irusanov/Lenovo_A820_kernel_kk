@@ -1,0 +1,8 @@
+on init
+    mkdir /preload 0771 system system
+
+on fs_property:ro.mount.fs=EXT4
+    write /proc/bootprof "INIT:eMMC:Mount_preload_START"
+    exec /sbin/e2fsck -p /emmc@preload
+    mount ext4 /emmc@preload /preload wait commit=1,noauto_da_alloc
+    mount ext4 /emmc@preload /preload noatime ro remount wait
