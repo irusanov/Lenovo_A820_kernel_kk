@@ -15,5 +15,5 @@ export KBUILD_BUILD_HOST=proton
 
 DEVICE_TREE="`cat DEVICE_TREE`"
 
-./mk -t "$DEVICE_TREE" n k
+./mk -t -o=TARGET_BUILD_VARIANT=user "$DEVICE_TREE" n k
 

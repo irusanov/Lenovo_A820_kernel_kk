@@ -9,5 +9,7 @@ export TARGET_BUILD_VARIANT=user
 export KBUILD_BUILD_USER=I.nfraR.ed
 export KBUILD_BUILD_HOST=proton
 
-./mk lenovo_a820 n k
+DEVICE_TREE="`cat ../DEVICE_TREE`"
+
+./mk "$DEVICE_TREE" n k
 

@@ -1433,7 +1433,7 @@ MTK_FM_SUPPORT=yes
 
 # FM transmitter switch: If "no" FM TX related features will be removed
 #   if "yes", FM TX feature will be built in system.
-MTK_FM_TX_SUPPORT=yes
+MTK_FM_TX_SUPPORT=no
 
 # Support GEMINI or not
 GEMINI=yes
