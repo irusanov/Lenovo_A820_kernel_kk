@@ -22,12 +22,7 @@ static struct headset_mode_settings cust_headset_settings = {
 };
 #endif
 
-struct headset_mode_settings{
-    int pwm_width;	//pwm frequence
-    int pwm_thresh;	//pwm duty 
-    int fall_delay;	//falling stable time
-    int rise_delay;	//rising stable time
-    int debounce0;	//hook switch or double check debounce
-    int debounce1;	//mic bias debounce
-    int debounce3;	//plug out debounce
-};
+struct headset_mode_settings* get_cust_headset_settings(void)
+{
+	return &cust_headset_settings;
+}

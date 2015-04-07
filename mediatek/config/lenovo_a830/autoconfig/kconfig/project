@@ -7,9 +7,6 @@ CONFIG_POWER_EXT=n
 CONFIG_MTK_VIDEOCODEC_DRIVER=y
 CONFIG_SOUND=y
 
-# enable battery life extender
-CONFIG_BLX=y
-
 # enable dynamic read ahead
 CONFIG_DYNAMIC_READ_AHEAD=y
 

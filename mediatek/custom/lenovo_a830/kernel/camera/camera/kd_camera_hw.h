@@ -41,7 +41,7 @@
 #endif 
 //
 #ifndef GPIO_CAMERA_CMRST1_PIN
-#define GPIO_CAMERA_CMRST1_PIN GPIO124
+#define GPIO_CAMERA_CMRST1_PIN GPIO32  //modify 
 #endif
 //
 #ifndef GPIO_CAMERA_CMRST1_PIN_M_GPIO
@@ -49,7 +49,7 @@
 #endif
 //
 #ifndef GPIO_CAMERA_CMPDN1_PIN
-#define GPIO_CAMERA_CMPDN1_PIN GPIO34
+#define GPIO_CAMERA_CMPDN1_PIN GPIO31 //modify
 #endif
 //
 #ifndef GPIO_CAMERA_CMPDN1_PIN_M_GPIO

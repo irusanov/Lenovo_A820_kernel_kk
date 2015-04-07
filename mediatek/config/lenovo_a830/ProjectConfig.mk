@@ -51,7 +51,7 @@ CUSTOM_HAL_FLASHLIGHT=dummy_flashlight
 CUSTOM_HAL_FMRADIO = mt6628
 
 # User space image sensor driver. Define  project used all image sensors. The value is combination of CUSTOM_HAL_MAIN_IMGSENSOR, CUSTOM_HAL_MAIN_BACKUP_IMGSENSOR, CUSTOM_HAL_SUB_IMGSENSOR, and CUSTOM_HAL_SUB_BACKUP_IMGSENSOR
-CUSTOM_HAL_IMGSENSOR=ov8825_mipi_raw
+CUSTOM_HAL_IMGSENSOR = ov8825_mipi_raw mt9v113_yuv
 
 # = CUSTOM_HAL_MAIN_LENS +CUSTOM_HAL_MAIN_BACKUP_LENS + CUSTOM_HAL_SUB_LENS + CUSTOM_HAL_SUB_BACKUP_LENS
 CUSTOM_HAL_LENS=fm50af sensordrive dummy_lens
@@ -78,16 +78,16 @@ CUSTOM_HAL_SUB_BACKUP_IMGSENSOR=
 CUSTOM_HAL_SUB_BACKUP_LENS=
 
 # User space driver: Sub camera (front camera )used sensor related tuning, setting and calibration information. Value is used sub sensor name.
-CUSTOM_HAL_SUB_IMGSENSOR=
+CUSTOM_HAL_SUB_IMGSENSOR = mt9v113_yuv
 
 # lens driver config for video telephony camera
 CUSTOM_HAL_SUB_LENS=dummy_lens
 
 # accelerometer sensor to detect accelerometer from x y z axis.
-CUSTOM_KERNEL_ACCELEROMETER=bma222E
+CUSTOM_KERNEL_ACCELEROMETER = kxtik1004
 
 # ALSPS sensor driverto detect ambint light and the object is close or far awary from device
-CUSTOM_KERNEL_ALSPS=APDS9930
+CUSTOM_KERNEL_ALSPS = APDS9930_rpr400
 
 # Pressure sensor driver to detect pressure
 #CUSTOM_KERNEL_BAROMETER=
@@ -115,10 +115,11 @@ CUSTOM_KERNEL_FLASHLIGHT=dummy_flashlight
 CUSTOM_KERNEL_HEADSET=accdet
 
 # Kernel space image sensor driver. Define  project used all image sensors .The value is combination of CUSTOM_KERNEL_MAIN_IMGSENSOR, CUSTOM_KERNEL_MAIN_BACKUP_IMGSENSOR, CUSTOM_KERNEL_SUB_IMGSENSOR, and CUSTOM_KERNEL_SUB_BACKUP_IMGSENSOR
-CUSTOM_KERNEL_IMGSENSOR=ov8825_mipi_raw
+CUSTOM_KERNEL_IMGSENSOR = ov8825_mipi_raw mt9v113_yuv
 
 # key pad driver to report key event
 CUSTOM_KERNEL_KPD=kpd
+CUSTOM_KERNEL_LCM = nt35516_qhd_dsi_cmd_ipsboe otm9608a_qhd_cmd
 
 # leds driver including green/red/blue
 CUSTOM_KERNEL_LEDS=mt65xx
@@ -151,10 +152,10 @@ CUSTOM_KERNEL_SSW=ssw_generic
 CUSTOM_KERNEL_SUB_BACKUP_IMGSENSOR=
 
 # lens driver config for video telephony camera (2nd solution)
-CUSTOM_KERNEL_SUB_BACKUP_LENS=dummy_lens
+CUSTOM_KERNEL_SUB_BACKUP_LENS = 
 
 # Kernel space image sensor driver:Sub camera (front camera) used sensor driver.Value is used sub sensor name.
-CUSTOM_KERNEL_SUB_IMGSENSOR=
+CUSTOM_KERNEL_SUB_IMGSENSOR = mt9v113_yuv
 
 # lens driver config for video telephony camera
 CUSTOM_KERNEL_SUB_LENS=dummy_lens
@@ -169,7 +170,7 @@ CUSTOM_KERNEL_USB=mt6577
 CUSTOM_KERNEL_VIBRATOR=vibrator
 
 # To choose LK LCM driver name
-CUSTOM_LK_LCM=nt35516_qhd_dsi_cmd_ipsboe
+CUSTOM_LK_LCM = nt35516_qhd_dsi_cmd_ipsboe otm9608a_qhd_cmd
 
 # Support customer to implement and apply their own RSA security functions
 CUSTOM_SEC_AUTH_SUPPORT=no
@@ -326,7 +327,7 @@ MTK_AUTORAMA_SUPPORT=yes
 
 # one load to support different accelerometer sensor
 MTK_AUTO_DETECT_ACCELEROMETER=no
-MTK_AUTO_DETECT_ALSPS=no
+MTK_AUTO_DETECT_ALSPS=yes
 
 # one load to support different magnetometer sensor
 MTK_AUTO_DETECT_MAGNETOMETER=no

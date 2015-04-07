@@ -4,7 +4,7 @@ set -e
 
 DEVICE_TREE="`cat ../DEVICE_TREE`"
 
-./mkbootfs ./boot.img-ramdisk/ | gzip > ramdisk.gz
+./mkbootfs ./"$DEVICE_TREE"/boot.img-ramdisk/ | gzip > ramdisk.gz
 ./mkimage ramdisk.gz ROOTFS > ramdisk.img
 ./mkbootimg --kernel ../out/target/product/"$DEVICE_TREE"/kernel_"$DEVICE_TREE".bin --ramdisk ramdisk.img -o boot.img
 

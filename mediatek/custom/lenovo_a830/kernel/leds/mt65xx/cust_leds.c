@@ -1,8 +1,11 @@
 #include <cust_leds.h>
 #include <cust_leds_def.h>
 #include <mach/mt_pwm.h>
+#include <mach/mt_gpio.h>
 
 #include <linux/kernel.h>
+#include <linux/delay.h>
+#include <asm/delay.h>
 #include <mach/pmic_mt6329_hw_bank1.h> 
 #include <mach/pmic_mt6329_sw_bank1.h> 
 #include <mach/pmic_mt6329_hw.h>
@@ -113,16 +116,39 @@ unsigned int Cust_SetBacklight(int level, int div)
  *By default, clock_source = 0 and div = 0 => PWM freq. = 26 KHz 
  *-------------------------------------------------------------------------------------------
  */
+#ifdef LENOVO_LCD_BACKLIGHT_CONTROL_BY_LCM//lenovo add by jixu@lenovo.com
+extern int mtkfb_set_backlight_level(unsigned int level);
+unsigned int Cust_SetBacklight(int level, int div)
+{
+    mtkfb_set_backlight_level(level);
+    return 0;
+}
+#endif
+#if 1//def CONFIG_LENOVO //lenovo modify by jixu@lenovo.com
 static struct cust_mt65xx_led cust_led_list[MT65XX_LED_TYPE_TOTAL] = {
 	{"red",               MT65XX_LED_MODE_NONE, -1,{0}},
 	{"green",             MT65XX_LED_MODE_NONE, -1,{0}},
 	{"blue",              MT65XX_LED_MODE_NONE, -1,{0}},
 	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1,{0}},
 	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1,{0}},
-	{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_NLED_ISINK01,{0}},
+	{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_BUTTON,{0}},
+	#ifdef LENOVO_LCD_BACKLIGHT_CONTROL_BY_LCM//lenovo jixu modify
+	{"lcd-backlight",     MT65XX_LED_MODE_CUST_LCM, (int)Cust_SetBacklight,{0}},//control by cabc
+	#else
+	{"lcd-backlight",     MT65XX_LED_MODE_CUST_BLS_PWM, (int)disp_bls_set_backlight,{0}},
+	#endif
+};
+#else
+static struct cust_mt65xx_led cust_led_list[MT65XX_LED_TYPE_TOTAL] = {
+	{"red",               MT65XX_LED_MODE_NONE, -1,{0}},
+	{"green",             MT65XX_LED_MODE_NONE, -1,{0}},
+	{"blue",              MT65XX_LED_MODE_NONE, -1,{0}},
+	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1,{0}},
+	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1,{0}},
+	{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_BUTTON,{0}},
 	{"lcd-backlight",     MT65XX_LED_MODE_CUST_BLS_PWM, (int)disp_bls_set_backlight,{0}},
 };
-
+#endif
 struct cust_mt65xx_led *get_cust_led_list(void)
 {
 	return cust_led_list;
