@@ -2676,7 +2676,7 @@ static int APDS9930_local_init(void)
 /*----------------------------------------------------------------------------*/
 static int __init APDS9930_init(void)
 {
-	APS_FUN();
+	//APS_FUN();
 	struct alsps_hw *hw = get_cust_alsps_hw();
 	APS_LOG("%s: i2c_number=%d\n", __func__,hw->i2c_num); 
 	i2c_register_board_info(hw->i2c_num, &i2c_APDS9930, 1);
