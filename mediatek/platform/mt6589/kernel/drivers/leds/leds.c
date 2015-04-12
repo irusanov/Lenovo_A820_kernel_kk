@@ -30,7 +30,6 @@
 #include <mach/upmu_common_sw.h>
 #include <mach/upmu_hw.h>
 #include "leds_sw.h"
-#include <linux/aee.h>
 //#include <linux/leds_sw.h>
 //#include <mach/mt_pmic_feature_api.h>
 //#include <mach/mt_boot.h>
@@ -818,7 +817,6 @@ void mt_mt65xx_led_set(struct led_classdev *led_cdev, enum led_brightness level)
 		}
 	}
 	//spin_unlock_irqrestore(&leds_lock, flags);
-	aee_kernel_wdt_kick_Powkey_api("mt_mt65xx_led_set",WDT_SETBY_Backlight); 
 }
 
 int  mt_mt65xx_blink_set(struct led_classdev *led_cdev,

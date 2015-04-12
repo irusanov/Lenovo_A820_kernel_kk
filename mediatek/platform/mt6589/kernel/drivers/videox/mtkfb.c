@@ -50,10 +50,6 @@
 unsigned int EnableVSyncLog = 0;
 extern unsigned int isAEEEnabled;
 
-#ifdef CONFIG_MTK_AEE_POWERKEY_HANG_DETECT
-unsigned int screen_update_cnt = 0;
-#endif
-
 #define INIT_FB_AS_COLOR_BAR    (0)
 
 static u32 MTK_FB_XRES  = 0;
@@ -1173,9 +1169,6 @@ static int mtkfb_pan_display_impl(struct fb_var_screeninfo *var, struct fb_info 
 		first_enable_esd = false;
 	}
     MMProfileLogEx(MTKFB_MMP_Events.PanDisplay, MMProfileFlagEnd, wait_ret, 0);
-#ifdef CONFIG_MTK_AEE_POWERKEY_HANG_DETECT
-		screen_update_cnt++;
-#endif
     return ret;
 }
 
@@ -2462,9 +2455,6 @@ static int mtkfb_ioctl(struct file *file, struct fb_info *info, unsigned int cmd
             atomic_set(&OverlaySettingDirtyFlag, 1);
             atomic_set(&OverlaySettingApplied, 0);
             mutex_unlock(&OverlaySettingMutex);
-#ifdef CONFIG_MTK_AEE_POWERKEY_HANG_DETECT
-						screen_update_cnt++;
-#endif
         }
         return (r);
     }
@@ -2527,9 +2517,6 @@ static int mtkfb_ioctl(struct file *file, struct fb_info *info, unsigned int cmd
             atomic_set(&OverlaySettingApplied, 0);
             mutex_unlock(&OverlaySettingMutex);
             MMProfileLogStructure(MTKFB_MMP_Events.SetVideoLayers, MMProfileFlagEnd, layerInfo, struct mmp_fb_overlay_layers);
-#ifdef CONFIG_MTK_AEE_POWERKEY_HANG_DETECT
-						screen_update_cnt++;
-#endif
         }
 
         return (r);
@@ -2583,9 +2570,6 @@ static int mtkfb_ioctl(struct file *file, struct fb_info *info, unsigned int cmd
     		mutex_unlock(&OverlaySettingMutex);
     		is_ipoh_bootup = false;
     		MMProfileLogStructure(MTKFB_MMP_Events.SetMultipleLayers, MMProfileFlagEnd, layerInfo, struct mmp_fb_overlay_layers);
-#ifdef CONFIG_MTK_AEE_POWERKEY_HANG_DETECT
-				screen_update_cnt++;
-#endif
     	}
 
     	return (r);
@@ -4150,7 +4134,6 @@ static void mtkfb_early_suspend(struct early_suspend *h)
 	sem_early_suspend_cnt++;
     up(&sem_early_suspend);
     mutex_unlock(&ScreenCaptureMutex);
-	aee_kernel_wdt_kick_Powkey_api("mtkfb_early_suspend",WDT_SETBY_Display); 
     printk("[FB Driver] leave early_suspend\n");
     
     MSG_FUNC_LEAVE();
@@ -4227,7 +4210,6 @@ static void mtkfb_late_resume(struct early_suspend *h)
 		}
 
     printk("[FB Driver] leave late_resume\n");
-	aee_kernel_wdt_kick_Powkey_api("mtkfb_late_resume",WDT_SETBY_Display); 
     MSG_FUNC_LEAVE();
 }
 #endif

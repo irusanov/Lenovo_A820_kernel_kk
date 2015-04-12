@@ -32,7 +32,6 @@
 #include "mtkfb_info.h"
 #include <linux/dma-mapping.h>
 #include <linux/rtpm_prio.h>
-#include <linux/aee.h>
 extern unsigned int lcd_fps;
 extern BOOL is_early_suspended;
 extern struct semaphore sem_early_suspend;
@@ -78,9 +77,6 @@ static struct task_struct *detect_alive_task = NULL;
 unsigned long long disp_thread_start_time,disp_thread_cost_time;
 #define DISP_THREAD_TIMEOUT (1000 * 1000)
 unsigned int disp_memout_timeout_cnt = 0;
-#ifdef CONFIG_MTK_AEE_POWERKEY_HANG_DETECT
-extern unsigned int screen_update_cnt;
-#endif
 static int config_update_task_wakeup = 0;
 extern atomic_t OverlaySettingDirtyFlag;
 extern atomic_t OverlaySettingApplied;
@@ -2108,13 +2104,6 @@ static int _DISP_DetectAliveKThread(void *data)
 		msleep(5000);
 		if (!is_early_suspended){
 			//return update cnt to power monitor
-#ifdef CONFIG_MTK_AEE_POWERKEY_HANG_DETECT
-			if(screen_update_cnt > 0){
-				if(aee_kernel_Powerkey_is_press())
-					aee_kernel_wdt_kick_Powkey_api("DISP_StartOverlayTransfer",WDT_SETBY_Display); 
-				screen_update_cnt = 0;
-		}
-#endif
 			
 			////get merge&trigger cost time to check if display SW thread is running normal?
 			disp_thread_cost_time = sched_clock() - disp_thread_start_time;
@@ -2138,7 +2127,7 @@ static int _DISP_DetectAliveKThread(void *data)
 
 			if(disp_memout_timeout_cnt >3 || vsync_timeout_cnt>3 || disp_thread_timeout_cnt>3){
 				printk("[ERROR, display detect hang], MEM timeout cnt = %d, vsync timeout = %d, SW thread timeout = %d\n",disp_memout_timeout_cnt,vsync_timeout_cnt,disp_thread_timeout_cnt);	
-				aee_kernel_warning("[Hang Detect]", "Display hang, we triger HWT");
+				//aee_kernel_warning("[Hang Detect]", "Display hang, we triger HWT");
 				msleep(20*1000);
 				BUG();
 			}				

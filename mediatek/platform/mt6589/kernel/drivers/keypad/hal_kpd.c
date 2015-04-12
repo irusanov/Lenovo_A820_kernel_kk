@@ -5,9 +5,6 @@
 
 #include <mach/upmu_common.h>
 #include <mach/upmu_hw.h>
-#ifdef CONFIG_MTK_AEE_POWERKEY_HANG_DETECT
-#include <linux/aee.h>
-#endif
 
 
 #define KPD_DEBUG	KPD_YES
@@ -598,9 +595,6 @@ void kpd_pmic_pwrkey_hal(unsigned long pressed){
 			printk(KPD_SAY "(%s) HW keycode =%d using PMIC\n",
 			       pressed ? "pressed" : "released", KPD_PWRKEY_MAP);
 		}
-		#ifdef CONFIG_MTK_AEE_POWERKEY_HANG_DETECT
-		aee_powerkey_notify_press(pressed);
-		#endif
 	}
 #endif
 }

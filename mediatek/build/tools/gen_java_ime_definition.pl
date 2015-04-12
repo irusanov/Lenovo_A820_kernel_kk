@@ -19,7 +19,9 @@
 ###############################################################
 
 my %ime_dependency = (
+	'MTK_IME_ENGLISH_SUPPORT' => 'en',
 	'MTK_IME_PINYIN_SUPPORT'  => 'zh',
+	'MTK_IME_ZHUYIN_SUPPORT'  => 'zh',
 	'MTK_IME_STROKE_SUPPORT'  => 'zh',
 	'MTK_IME_HANDWRITING_SUPPORT'=>'zh',);
 
@@ -175,6 +177,22 @@ if ($ENV{MTK_IME_RUSSIAN_SUPPORT} eq "no")
 {
        push @ime_opt_arr, "MTK_IME_RUSSIAN_SUPPORT = false";
 }
+if ($ENV{MTK_IME_SUPPORT} eq "yes")
+{
+	push @ime_opt_arr, "MTK_IME_SUPPORT = true";
+}
+if ($ENV{MTK_IME_SUPPORT} eq "no")
+{
+	push @ime_opt_arr, "MTK_IME_SUPPORT = false";
+}
+if ($ENV{MTK_IME_ENGLISH_SUPPORT} eq "yes")
+{
+	push @ime_opt_arr, "MTK_IME_ENGLISH_SUPPORT = true";
+}
+if ($ENV{MTK_IME_ENGLISH_SUPPORT} eq "no")
+{
+	push @ime_opt_arr, "MTK_IME_ENGLISH_SUPPORT = false";
+}
 if ($ENV{MTK_IME_PINYIN_SUPPORT} eq "yes")
 {
 	push @ime_opt_arr, "MTK_IME_PINYIN_SUPPORT = true";
@@ -198,6 +216,24 @@ if ($ENV{MTK_IME_HANDWRITING_SUPPORT} eq "yes")
 if ($ENV{MTK_IME_HANDWRITING_SUPPORT} eq "no")
 { 
 	push @ime_opt_arr, "MTK_IME_HANDWRITING_SUPPORT = false";
+}
+ 
+if ($ENV{MTK_IME_ZHUYIN_SUPPORT} eq "yes")
+{ 
+	push @ime_opt_arr, "MTK_IME_ZHUYIN_SUPPORT = true";
+}
+if ($ENV{MTK_IME_ZHUYIN_SUPPORT} eq "no")
+{ 
+	push @ime_opt_arr, "MTK_IME_ZHUYIN_SUPPORT = false";
+}
+
+if ($ENV{MTK_IME_FRENCH_SUPPORT} eq "yes")
+{
+        push @ime_opt_arr, "MTK_IME_FRENCH_SUPPORT = true";
+}
+if ($ENV{MTK_IME_FRENCH_SUPPORT} eq "no")
+{
+        push @ime_opt_arr, "MTK_IME_FRENCH_SUPPORT = false";
 }
 if ($ENV{MTK_IME_GERMAN_SUPPORT} eq "yes")
 {
@@ -230,6 +266,14 @@ if ($ENV{MTK_IME_PORTUGUESE_SUPPORT} eq "yes")
 if ($ENV{MTK_IME_PORTUGUESE_SUPPORT} eq "no")
 {
 	push @ime_opt_arr, "MTK_IME_PORTUGUESE_SUPPORT = false";
+}
+if ($ENV{MTK_IME_TURKISH_SUPPORT} eq "yes")
+{
+	push @ime_opt_arr, "MTK_IME_TURKISH_SUPPORT = true";
+}
+if ($ENV{MTK_IME_TURKISH_SUPPORT} eq "no")
+{
+	push @ime_opt_arr, "MTK_IME_TURKISH_SUPPORT = false";
 }
 if ($ENV{MTK_IME_INDONESIAN_SUPPORT} eq "yes")
 {
@@ -270,6 +314,14 @@ if ($ENV{MTK_IME_THAI_SUPPORT} eq "yes")
 if ($ENV{MTK_IME_THAI_SUPPORT} eq "no")
 {
 	push @ime_opt_arr, "MTK_IME_THAI_SUPPORT = false";
+}
+if ($ENV{MTK_IME_VIETNAM_SUPPORT} eq "yes")
+{
+	push @ime_opt_arr, "MTK_IME_VIETNAM_SUPPORT = true";
+}
+if ($ENV{MTK_IME_VIETNAM_SUPPORT} eq "no")
+{
+	push @ime_opt_arr, "MTK_IME_VIETNAM_SUPPORT = false";
 }
 
 #my $MTK_IME_SUPPORT = $ime_opt_arr[1];

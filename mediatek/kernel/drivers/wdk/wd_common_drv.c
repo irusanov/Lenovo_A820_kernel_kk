@@ -369,17 +369,6 @@ static int kwdt_thread(void *arg)
 		}
 		
 		msleep((g_kinterval) * 1000);
-
-		#ifdef CONFIG_MTK_AEE_POWERKEY_HANG_DETECT
-		if( (cpu==0)&&(wk_tsk[cpu]->pid == current->pid))//only effect at cpu0
-		{
-			if(aee_kernel_wdt_kick_api(g_kinterval)==WDT_PWK_HANG_FORCE_HWT)
-			{
-				printk_sched("power key trigger HWT\n");
-				cpus_kick_bit=0xFFFF; //Try to force to HWT
-			}
-		}
-		#endif
 	}
 	printk("[WDK] WDT kicker thread stop, cpu:%d, pid:%d\n", cpu, current->pid);
 	return 0;

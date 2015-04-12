@@ -85,11 +85,6 @@ config MTK_AEE_KDUMP
         tristate "Include memory Dump"
         default y
 
-config MTK_AEE_POWERKEY_HANG_DETECT
-       bool "powerkey monitor"
-       default n
-       depends on MTK_AEE_FEATURE
-
 config ANDROID_VMEM
 	tristate "Virutally continuous memory allocator"
 	default y

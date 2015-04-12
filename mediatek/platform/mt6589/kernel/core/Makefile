@@ -79,7 +79,7 @@ ifeq ($(CONFIG_THERMAL),y)
 endif
 
 obj-y += mt_ptp.o
-obj-y += pftracer.o
+#obj-y += pftracer.o
 
 # Hibernation
 AFLAGS_swsusp.o	:= -DTEXT_OFFSET=$(TEXT_OFFSET)

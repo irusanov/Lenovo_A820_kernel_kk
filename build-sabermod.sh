@@ -1,6 +1,7 @@
-##### https://github.com/Christopher83/arm-cortex_a7-linux-gnueabihf-linaro_4.9
+##### https://gitlab.com/SaberMod/arm-eabi-4.9
+##### http://packages.ubuntu.com/vivid/libisl13
 
-export PATH=$PATH:$(pwd)/../arm-cortex_a7-linux-gnueabihf-linaro_4.9.3-2015.03/bin
+export PATH=$PATH:$(pwd)/../arm-eabi-4.9.sabermod/bin
 
 export ARCH=arm
 export CROSS_COMPILE=arm-eabi-
