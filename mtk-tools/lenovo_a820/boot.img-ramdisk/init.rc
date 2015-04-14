@@ -767,6 +767,8 @@ on boot
     # Hotplug
     mkdir /data/data/hotplug
     write /data/data/hotplug/cmd 0
+    chown system system /data/data/hotplug
+    chown system system /data/data/hotplug/cmd
     chmod 0666 /data/data/hotplug
     chmod 0666 /data/data/hotplug/cmd
 
