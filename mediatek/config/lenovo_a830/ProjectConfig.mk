@@ -1004,7 +1004,7 @@ MTK_OMA_DOWNLOAD_SUPPORT=yes
 
 # Multiuser for 3gdata_sms and Multiuser with External SDcard.
 MTK_ONLY_OWNER_SIM_SUPPORT=no
-MTK_OOBE_APP=yes
+MTK_OOBE_APP=no
 
 # Implement overlay engine for multiple application to share overlay HW.
 MTK_OVERLAY_ENGINE_SUPPORT=no
@@ -1265,7 +1265,7 @@ MTK_TVOUT_SUPPORT=no
 
 # Support share USB DP/DM as UART TX/RX.
 MTK_UART_USB_SWITCH=no
-MTK_UMTS_TDD128_MODE=yes
+MTK_UMTS_TDD128_MODE=no
 
 # USB Audio Function Enable Flag
 MTK_USB_AUDIO_SUPPORT=yes
@@ -1319,13 +1319,13 @@ MTK_WAPPUSH_SUPPORT=yes
 MTK_WB_SPEECH_SUPPORT=yes
 
 # the switcher of turn on /off weather3d  widget
-MTK_WEATHER3D_WIDGET = yes
+MTK_WEATHER3D_WIDGET = no
 
 # The weather information retrieval engine and provider.
-MTK_WEATHER_PROVIDER_APP = yes
+MTK_WEATHER_PROVIDER_APP = no
 
 # A widget shows weather information provided by Yahoo!
-MTK_WEATHER_WIDGET_APP = yes
+MTK_WEATHER_WIDGET_APP = no
 MTK_WEB_NOTIFICATION_SUPPORT=yes
 
 # Define MTK weekly number(internal use only)

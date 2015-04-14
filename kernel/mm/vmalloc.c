@@ -1183,12 +1183,8 @@ void __init vmalloc_init(void)
 	}
 
 	/* Import existing vmlist entries. */
-        /*
-         * apply a kernel patch: dbda591d920b4c7692725b13e3f68ecb251e9080
-         */
 	for (tmp = vmlist; tmp; tmp = tmp->next) {
 		va = kzalloc(sizeof(struct vmap_area), GFP_NOWAIT);
-		//va->flags = tmp->flags | VM_VM_AREA;
 		va->flags = VM_VM_AREA;
 		va->va_start = (unsigned long)tmp->addr;
 		va->va_end = va->va_start + tmp->size;

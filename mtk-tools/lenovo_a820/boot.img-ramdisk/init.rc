@@ -491,8 +491,6 @@ on post-fs-data
 
     #Accdet
     chown root radio /sys/devices/platform/Accdet_Driver/driver/accdet_call_state
-    #VideoCodec
-    #insmod /system/lib/modules/vcodec_kernel_driver.ko
     mknod /dev/Vcodec c 160 0
     chmod 0660 /dev/Vcodec
     chown system media /dev/Vcodec
@@ -765,6 +763,12 @@ on boot
     chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/input_boost
     chown system system /sys/devices/system/cpu/cpufreq/hotplug/cpu_num_base
     chmod 0660 /sys/devices/system/cpu/cpufreq/hotplug/cpu_num_base
+    
+    # Hotplug
+    mkdir /data/data/hotplug
+    write /data/data/hotplug/cmd 0
+    chmod 0666 /data/data/hotplug
+    chmod 0666 /data/data/hotplug/cmd
 
     # Assume SMP uses shared cpufreq policy for all CPUs
     chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
@@ -1309,9 +1313,11 @@ service dpfd /system/bin/dpfd
 service emd_daemon /system/bin/emd_daemon
     user root
     oneshot
-
-
-
+    
+#init.d support
+service initd /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
+    class main
+    oneshot 
 
 service installd /system/bin/installd
     class main
