@@ -683,7 +683,7 @@ MTK_ENGINEERMODE_APP=yes
 
 # yes: support ETWS feature, and  the Application CellBroadcastReceiver should be build in the system.
 # no: not support ETWS feature, and CellBroadcastReceiver application will not be build in the system.
-MTK_ETWS_SUPPORT=no
+MTK_ETWS_SUPPORT=yes
 MTK_EXTERNAL_LDO=no
 
 # Enable face beautify
@@ -1209,7 +1209,7 @@ MTK_SWIP_VORBIS=yes
 
 # Support tablet wma-pro playback
 MTK_SWIP_WMAPRO=yes
-MTK_SYSTEM_UPDATE_SUPPORT=yes
+MTK_SYSTEM_UPDATE_SUPPORT=no
 
 # enable/disable tablet plug-in build in or not
 MTK_TABLET_PLUGIN_BUILD=no
@@ -1244,7 +1244,7 @@ MTK_TETHERINGIPV6_SUPPORT=yes
 MTK_TETHERING_EEM_SUPPORT=no
 
 # Whether to enable/disable ThemeManager feature, ThemeManager is a feature which maintains themes exist in device, and make it possible for user to change the current skin of device.
-MTK_THEMEMANAGER_APP=yes
+MTK_THEMEMANAGER_APP=no
 MTK_THERMAL_PA_VIA_ATCMD=no
 MTK_TINY_UTIL=no
 MTK_TLR_SUPPORT=no
@@ -1477,7 +1477,7 @@ LCM_HEIGHT=960
 LCM_WIDTH=540
 
 # To control resource build. The value would be assigned to PRODUCT_LOCALES under build/target/product/XXX.mk (XXX is each project's name)
-MTK_PRODUCT_LOCALES=en_US es_ES zh_CN zh_TW ru_RU pt_BR fr_FR de_DE tr_TR it_IT in_ID ms_MY vi_VN ar_EG  th_TH  pt_PT   nl_NL el_GR hu_HU tl_PH ro_RO cs_CZ ko_KR iw_IL my_MM km_KH hdpi
+MTK_PRODUCT_LOCALES=en_US es_ES zh_CN zh_TW ru_RU bg_BG pt_BR fr_FR de_DE tr_TR it_IT in_ID ms_MY vi_VN ar_EG th_TH pt_PT pl_PL nl_NL el_GR hu_HU tl_PH ro_RO cs_CZ ko_KR iw_IL my_MM km_KH hdpi
 
 # mATV feature control option which is used for swithing on/off mATV feature: switch on:  HAVE_MATV_FEATURE = yes switch off: HAVE_MATV_FEATURE = no
 HAVE_MATV_FEATURE=no

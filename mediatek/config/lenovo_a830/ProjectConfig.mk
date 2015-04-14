@@ -645,7 +645,7 @@ MTK_DSPIRDBG=no
 MTK_DT_SUPPORT=no
 
 # For MTK's dual mic configuration.
-MTK_DUAL_MIC_SUPPORT=no
+MTK_DUAL_MIC_SUPPORT = yes
 MTK_DVFS_DISABLE_LOW_VOLTAGE_SUPPORT=no
 MTK_DX_HDCP_SUPPORT=no
 
@@ -684,7 +684,7 @@ MTK_ENGINEERMODE_APP=yes
 
 # yes: support ETWS feature, and  the Application CellBroadcastReceiver should be build in the system.
 # no: not support ETWS feature, and CellBroadcastReceiver application will not be build in the system.
-MTK_ETWS_SUPPORT=no
+MTK_ETWS_SUPPORT = yes
 MTK_EXTERNAL_LDO=no
 
 # Enable face beautify
