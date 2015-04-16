@@ -5,8 +5,6 @@ export PATH=$PATH:$(pwd)/../arm-cortex_a7-linux-gnueabihf-linaro_4.9.3-2015.03/b
 export ARCH=arm
 export CROSS_COMPILE=arm-eabi-
 
-export LOCALVERSION=-Proton-Kernel-2.0-UV286
-
 # this is essential to build a working kernel!
 export TARGET_BUILD_VARIANT=user
 

@@ -6,8 +6,6 @@ export PATH=$PATH:$(pwd)/../arm-eabi-4.9.sabermod/bin
 export ARCH=arm
 export CROSS_COMPILE=arm-eabi-
 
-export LOCALVERSION=-Proton-Kernel-2.0-beta
-
 # this is essential to build a working kernel!
 export TARGET_BUILD_VARIANT=user
 
