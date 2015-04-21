@@ -269,7 +269,7 @@ MTK_3GDONGLE_SUPPORT=no
 
 # yes: enable this feature
 # no: disable this feature
-MTK_AAL_SUPPORT=no
+MTK_AAL_SUPPORT=yes
 
 # For ACMT DEUG use
 MTK_ACMT_DEBUG=no
@@ -1500,7 +1500,7 @@ MTK_RESOURCE_OPTIMIZATION=hdpi
 # The Wlan switch for the wlan feature in the Android(app, framework, native, kernel).
 MTK_WLAN_SUPPORT=yes
 #CREATE_PROJECT_INFO=20140326971
-MTK_BUILD_VERNO = ALPS.KK1.MP5.V1.3
+MTK_BUILD_VERNO = PROTON.KK.V2.1
 
 LENOVO_PRODUCT_DEVICE = A830
 LENOVO_FLASH_ADP1650=yes
