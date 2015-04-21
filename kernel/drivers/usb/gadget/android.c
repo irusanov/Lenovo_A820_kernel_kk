@@ -85,7 +85,7 @@ static const char longname[] = "Gadget Android";
 /*Lenovo-sw yexh1 modified 2013-5-23 begin*/
 #if defined(LENOVO_PRODUCT_DEVICE)
 #define MANUFACTURER_STRING "Lenovo"
-#define PRODUCT_STRING MANUFACTURER_STRING "A820"
+#define PRODUCT_STRING MANUFACTURER_STRING " " LENOVO_PRODUCT_DEVICE
 #else
 #define MANUFACTURER_STRING "MediaTek"
 #define PRODUCT_STRING "MT65xx Android Phone"
