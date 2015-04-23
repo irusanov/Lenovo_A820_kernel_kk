@@ -5,25 +5,10 @@
 #include <mach/sync_write.h>
 
 static bool mt_keep_freq_non_od_set = false;
+extern int proton_gpu_frequency;
+extern int proton_gpu_voltage;
 
 #define MTK_GPU_DVFS 0
-
-/* SGX544 GPU overclock overrides */
-#if 0
-	#define MTK_GPU_OC_476MHz
-#endif
-#if 0
-	#define MTK_GPU_OC_403MHz
-#endif
-#if 0
-	#define MTK_FORCE_T /* 357MHz */
-#endif
-#if 0
-	#define MTK_FORCE_312MHz
-#endif
-#if 1
-	#define MTK_FORCE_6589 /* 286MHz - force 6589M to 6589 GPU clock */
-#endif
 
 #if MTK_GPU_DVFS
 static struct mt_gpufreq_info freqs_special_vrf18_2[] = {
@@ -70,49 +55,94 @@ void MtkInitSetFreqTbl(unsigned int tbltype)
 
 PVRSRV_ERROR MTKSetFreqInfo(unsigned int freq, unsigned int tbltype)
 {
-	tbltype = TBLTYPE0;
 	
-    printk(" freq= %d", freq);
-#if defined(MTK_GPU_OC_476MHz)
+	static int voltage;
+	static unsigned int pll;
+	
+	// Select GPU frequency (in MHz)
+	switch (proton_gpu_frequency)
+	{
+		case 476:
     freq = GPU_DVFS_F1;
     tbltype = TBLTYPE3;
-#endif      
-#if defined(MTK_GPU_OC_403MHz)
+    		break;
+    	case 403:
     freq = GPU_DVFS_F2;
     tbltype = TBLTYPE2;
-#endif    
-#if defined(MTK_FORCE_T)
+    		break;
+    	case 357:
     freq = GPU_DVFS_F3;
     tbltype = TBLTYPE1;
-#endif
-#if defined(MTK_FORCE_312MHz)
+    		break;
+    	case 312:
     freq = GPU_DVFS_F4;
     tbltype = TBLTYPE0;
-#endif
-#if defined(MTK_FORCE_6589)
+    		break;
+    	default:
+    	case 286:
     freq = GPU_DVFS_F5;
     tbltype = TBLTYPE0;
-#endif
-#if defined(MTK_FORCE_M)
+    		break;
+    	case 268:
     freq = GPU_DVFS_F7;
     tbltype = TBLTYPE0;
-#endif
+	}
+	
+	// Select GPU voltage (in mV)
+	switch (proton_gpu_voltage)
+	{
+		case 1200:
+			voltage = GPU_POWER_VRF18_1_20V;
+			break;
+		case 1175:
+			voltage = GPU_POWER_VRF18_1_175V;
+			break;
+		case 1150:
+			voltage = GPU_POWER_VRF18_1_15V;
+			break;
+		case 1125:
+			voltage = GPU_POWER_VRF18_1_125V;
+			break;
+		case 1100:
+			voltage = GPU_POWER_VRF18_1_10V;
+			break;
+		case 1075:
+			voltage = GPU_POWER_VRF18_1_075V;
+			break;
+		default:
+		case 1050:
+			voltage = GPU_POWER_VRF18_1_05V;
+			break;
+	}
 
 
 //#if defined(MTK_FREQ_OD_INIT)
-    if (freq > GPU_DVFS_F5)
+    if (freq > GPU_DVFS_F7)
     {
         mt_gpufreq_set_initial(freq, GPU_POWER_VRF18_1_05V);
         mt65xx_reg_sync_writel((readl(CLK_CFG_8)&0xffcffff)|0x30000, CLK_CFG_8);
-        #if defined(MTK_GPU_OC_476MHz)
-			mt_gpufreq_keep_frequency_non_OD_init(GPU_MMPLL_D3, GPU_POWER_VRF18_1_05V);
-		#endif
-		#if defined(MTK_GPU_OC_403MHz)
-			mt_gpufreq_keep_frequency_non_OD_init(GPU_SYSPLL_D2, GPU_POWER_VRF18_1_05V);
-		#endif
-		#if defined(MTK_FORCE_T)
-			mt_gpufreq_keep_frequency_non_OD_init(GPU_MMPLL_D4, GPU_POWER_VRF18_1_05V);
-		#endif
+        
+        switch (freq)
+        {
+        	case GPU_DVFS_F1: // 476MHz
+        		pll = GPU_MMPLL_D3;
+        		break;
+        	case GPU_DVFS_F2: // 403MHz
+        		pll = GPU_SYSPLL_D2;
+        		break;
+        	case GPU_DVFS_F3: // 357MHz
+        		pll = GPU_MMPLL_D4;
+        		break;
+        	case GPU_DVFS_F4: // 312MHz
+        		pll = GPU_UNIVPLL1_D2;
+        		break;
+        	default: // set in the default parameter initialization anyway
+        	case GPU_DVFS_F5: // 286MHz
+        		pll = GPU_MMPLL_D5;
+        		break;
+        }
+		
+		mt_gpufreq_keep_frequency_non_OD_init(pll, voltage);
     }
     else
 //#endif
