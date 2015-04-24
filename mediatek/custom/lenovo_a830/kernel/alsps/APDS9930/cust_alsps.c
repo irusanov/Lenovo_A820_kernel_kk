@@ -28,6 +28,6 @@ static struct alsps_hw cust_alsps_hw = {
 struct alsps_hw *get_cust_alsps_hw(void) {
     return &cust_alsps_hw;
 }
-int APDS9930_CMM_PPCOUNT_VALUE = 0x06;//0x06;
-int APDS9930_CMM_CONTROL_VALUE = 0x68;//0xE4;
+int APDS9930_CMM_PPCOUNT_VALUE = 0x08;//0x06;
+int APDS9930_CMM_CONTROL_VALUE = 0xE4;//0x68;
 int ZOOM_TIME = 4;
