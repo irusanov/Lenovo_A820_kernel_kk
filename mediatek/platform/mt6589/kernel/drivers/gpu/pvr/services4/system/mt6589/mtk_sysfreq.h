@@ -34,5 +34,9 @@ PVRSRV_ERROR MtkInitSetFreq(void);
 void MtkInitSetFreqTbl(unsigned int tbltype);
 void MtkSetKeepFreq(void);
 
+extern unsigned int proton_gpu_frequency_get(void);
+extern unsigned int proton_gpu_tbltype_get(void);
+extern unsigned int proton_gpu_voltage_get(void);
+extern int proton_gpu_dvfs;
 
 #endif // MTK_SYSFREQ_H
