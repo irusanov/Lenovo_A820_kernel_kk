@@ -99,8 +99,8 @@ static OVL_CONFIG_STRUCT dal_layer_context;
 static void *dal_fb_addr = NULL;  
 static UINT32 dal_fb_pa = 0;
 unsigned int isAEEEnabled = 0;
-extern BOOL is_early_suspended;
-extern struct semaphore sem_early_suspend;
+extern BOOL is_power_suspended;
+extern struct semaphore sem_power_suspend;
 
 //static BOOL  dal_shown   = FALSE;
 BOOL  dal_shown   = FALSE;
@@ -261,19 +261,19 @@ DAL_STATUS DAL_Clean(void)
         goto End;
     }
     */
-    if (down_interruptible(&sem_early_suspend)) {
+    if (down_interruptible(&sem_power_suspend)) {
         DISP_LOG_PRINT(ANDROID_LOG_INFO, "DAL", "can't get semaphore in DAL_Clean()\n");
         goto End;
     }
 		//xuecheng, for debug
 #if 0
-	if(is_early_suspended){
-		up(&sem_early_suspend);
+	if(is_power_suspended){
+		up(&sem_power_suspend);
 		DISP_LOG_PRINT(ANDROID_LOG_INFO, "DAL", "dal_clean in power off\n");
 		goto End;
 	}
 	#endif
-    up(&sem_early_suspend);
+    up(&sem_power_suspend);
 
     mutex_lock(&OverlaySettingMutex);
 
@@ -421,19 +421,19 @@ DAL_STATUS DAL_Printf(const char *fmt, ...)
         goto End;
     }
     */
-    if (down_interruptible(&sem_early_suspend)) {
+    if (down_interruptible(&sem_power_suspend)) {
         DISP_LOG_PRINT(ANDROID_LOG_INFO, "DAL", "can't get semaphore in DAL_Printf()\n");
         goto End;
     }
 
 #if 0
-	if(is_early_suspended){
-		up(&sem_early_suspend);
+	if(is_power_suspended){
+		up(&sem_power_suspend);
 		DISP_LOG_PRINT(ANDROID_LOG_INFO, "DAL", "DAL_Printf in power off\n");
 		goto End;
 	}
 #endif
-    up(&sem_early_suspend);
+    up(&sem_power_suspend);
 
     if (!dal_shown) {
         dal_shown = TRUE;

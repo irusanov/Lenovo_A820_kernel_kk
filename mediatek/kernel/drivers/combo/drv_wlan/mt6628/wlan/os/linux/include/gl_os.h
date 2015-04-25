@@ -96,7 +96,7 @@
  *
  * 02 16 2011 jeffrey.chang
  * NULL
- * Add query ipv4 and ipv6 address during early suspend and late resume
+ * Add query ipv4 and ipv6 address during power suspend and power resume
  *
  * 02 10 2011 chinghwa.yu
  * [WCXRP00000065] Update BoW design and settings

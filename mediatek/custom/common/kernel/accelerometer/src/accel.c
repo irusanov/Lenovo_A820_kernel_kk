@@ -4,8 +4,8 @@ static struct acc_context *acc_context_obj = NULL;
 
 
 static struct acc_init_info* gsensor_init_list[MAX_CHOOSE_G_NUM]= {0}; //modified
-static void acc_early_suspend(struct early_suspend *h);
-static void acc_late_resume(struct early_suspend *h);
+static void acc_power_suspend(struct power_suspend *h);
+static void acc_power_resume(struct power_suspend *h);
 
 static void acc_work_func(struct work_struct *work)
 {
@@ -616,11 +616,10 @@ static int acc_probe(struct platform_device *pdev)
 		goto exit_alloc_input_dev_failed;
 	}
 
-    atomic_set(&(acc_context_obj->early_suspend), 0);
-	acc_context_obj->early_drv.level    = EARLY_SUSPEND_LEVEL_STOP_DRAWING - 1,
-	acc_context_obj->early_drv.suspend  = acc_early_suspend,
-	acc_context_obj->early_drv.resume   = acc_late_resume,    
-	register_early_suspend(&acc_context_obj->early_drv);
+    atomic_set(&(acc_context_obj->power_suspend), 0);
+	acc_context_obj->power_drv.suspend  = acc_power_suspend,
+	acc_context_obj->power_drv.resume   = acc_power_resume,    
+	register_power_suspend(&acc_context_obj->power_drv);
 
 	wake_lock_init(&(acc_context_obj->read_data_wake_lock),WAKE_LOCK_SUSPEND,"read_data_wake_lock");
    
@@ -668,17 +667,15 @@ static int acc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static void acc_early_suspend(struct early_suspend *h) 
+static void acc_power_suspend(struct power_suspend *h) 
 {
-   atomic_set(&(acc_context_obj->early_suspend), 1);
-   ACC_LOG(" acc_early_suspend ok------->hwm_obj->early_suspend=%d \n",atomic_read(&(acc_context_obj->early_suspend)));
+   atomic_set(&(acc_context_obj->power_suspend), 1);
    return ;
 }
 /*----------------------------------------------------------------------------*/
-static void acc_late_resume(struct early_suspend *h)
+static void acc_power_resume(struct power_suspend *h)
 {
-   atomic_set(&(acc_context_obj->early_suspend), 0);
-   ACC_LOG(" acc_late_resume ok------->hwm_obj->early_suspend=%d \n",atomic_read(&(acc_context_obj->early_suspend)));
+   atomic_set(&(acc_context_obj->power_suspend), 0);
    return ;
 }
 

@@ -16,8 +16,8 @@
 #include <linux/sysfs.h>
 #include "internal.h"
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-#include <linux/earlysuspend.h>
+#ifdef CONFIG_POWERSUSPEND
+#include <linux/powersuspend.h>
 #endif
 
 #define CREATE_TRACE_POINTS
@@ -811,10 +811,10 @@ void compaction_unregister_node(struct node *node)
 }
 #endif /* CONFIG_SYSFS && CONFIG_NUMA */
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#ifdef CONFIG_POWERSUSPEND
 extern void drop_pagecache(void);
 //extern void kick_lmk_from_compaction(gfp_t);
-static void kick_compaction_early_suspend(struct early_suspend *h)
+static void kick_compaction_power_suspend(struct power_suspend *h)
 {
 	struct zone *z = &NODE_DATA(0)->node_zones[ZONE_NORMAL];
 	int status;
@@ -839,31 +839,30 @@ static void kick_compaction_early_suspend(struct early_suspend *h)
 }
 
 #ifdef CONFIG_MTKPASR
-extern void shrink_mtkpasr_late_resume(void);
+extern void shrink_mtkpasr_power_resume(void);
 #endif
-static void kick_compaction_late_resume(struct early_suspend *h)
+static void kick_compaction_power_resume(struct power_suspend *h)
 {
 #ifdef CONFIG_MTKPASR
-	shrink_mtkpasr_late_resume();
+	shrink_mtkpasr_power_resume();
 #endif
 }
 
-static struct early_suspend kick_compaction_early_suspend_desc = {
-	.level = EARLY_SUSPEND_LEVEL_DISABLE_FB + 1,
-	.suspend = kick_compaction_early_suspend,
-	.resume = kick_compaction_late_resume,
+static struct power_suspend kick_compaction_power_suspend_desc = {
+	.suspend = kick_compaction_power_suspend,
+	.resume = kick_compaction_power_resume,
 };
 
 static int __init compaction_init(void)
 {
-	printk("@@@@@@ [%s] Register early suspend callback @@@@@@\n",__FUNCTION__);
-	register_early_suspend(&kick_compaction_early_suspend_desc);
+	printk("@@@@@@ [%s] Register power suspend callback @@@@@@\n",__FUNCTION__);
+	register_power_suspend(&kick_compaction_power_suspend_desc);
 	return 0;
 }
 static void __exit compaction_exit(void)
 {
-	printk("@@@@@@ [%s] Unregister early suspend callback @@@@@@\n",__FUNCTION__);
-	unregister_early_suspend(&kick_compaction_early_suspend_desc);
+	printk("@@@@@@ [%s] Unregister power suspend callback @@@@@@\n",__FUNCTION__);
+	unregister_power_suspend(&kick_compaction_power_suspend_desc);
 }
 
 module_init(compaction_init);

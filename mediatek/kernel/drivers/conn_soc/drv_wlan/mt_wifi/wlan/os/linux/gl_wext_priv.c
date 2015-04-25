@@ -931,7 +931,7 @@ priv_set_int (
 			/* move out to caller to avoid kalIoctrl & suspend/resume deadlock problem ALPS00844864 */
 			/*
 				Scenario:
-					1. System enters suspend/resume but not yet enter wlanearlysuspend()
+					1. System enters suspend/resume but not yet enter wlanpowersuspend()
 						or wlanlateresume();
 
 					2. System switches to do PRIV_CMD_P2P_MODE and execute kalIoctl()
@@ -943,7 +943,7 @@ priv_set_int (
 
 					3. System switches back to do suspend/resume procedure and execute
 						kalIoctl(). But driver does not yet release g_halt_sem so system
-						suspend in wlanearlysuspend() or wlanlateresume();
+						suspend in wlanpowersuspend() or wlanlateresume();
 
 						==> deadlock occurs.
 			*/

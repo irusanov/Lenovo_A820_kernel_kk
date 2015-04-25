@@ -1698,7 +1698,6 @@ long do_io_submit(aio_context_t ctx_id, long nr,
 	}
 
 	kiocb_batch_init(&batch, nr);
-;
 
 	/*
 	 * AKPM: should this return a partial result if some of the IOs were

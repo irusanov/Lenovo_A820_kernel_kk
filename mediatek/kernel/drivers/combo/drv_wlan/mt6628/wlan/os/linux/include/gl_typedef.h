@@ -23,7 +23,7 @@
  *
  * 02 15 2011 jeffrey.chang
  * NULL
- * to support early suspend in android
+ * to support power suspend in android
  *
  * 07 08 2010 cp.wu
  * 
@@ -57,8 +57,8 @@
 #ifndef _GL_TYPEDEF_H
 #define _GL_TYPEDEF_H
 
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-#include <linux/earlysuspend.h>
+#ifdef CONFIG_POWERSUSPEND
+#include <linux/powersuspend.h>
 #endif
 
 /*******************************************************************************
@@ -92,9 +92,9 @@
     #endif
 #endif
 
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-typedef void (*early_suspend_callback)(struct early_suspend *h);
-typedef void (*late_resume_callback) (struct early_suspend *h);
+#ifdef CONFIG_POWERSUSPEND
+typedef void (*power_suspend_callback)(struct power_suspend *h);
+typedef void (*power_resume_callback) (struct power_suspend *h);
 #endif
 
 

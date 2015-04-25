@@ -993,10 +993,10 @@ static int tz_suspend(struct device *pdev)
     return (tzret != TZ_RESULT_SUCCESS)?(-EBUSY):(0);
 }
 
-static int tz_suspend_late(struct device *pdev)
+static int tz_suspend_power(struct device *pdev)
 {
     TZ_RESULT tzret;
-    tzret = kree_pm_device_ops(MTEE_SUSPEND_LATE);
+    tzret = kree_pm_device_ops(MTEE_SUSPEND_POWER);
     return (tzret != TZ_RESULT_SUCCESS)?(-EBUSY):(0);
 }
 
@@ -1007,18 +1007,18 @@ static int tz_resume(struct device *pdev)
     return (tzret != TZ_RESULT_SUCCESS)?(-EBUSY):(0);
 }
 
-static int tz_resume_early(struct device *pdev)
+static int tz_resume_power(struct device *pdev)
 {
     TZ_RESULT tzret;
-    tzret = kree_pm_device_ops(MTEE_RESUME_EARLY);
+    tzret = kree_pm_device_ops(MTEE_RESUME_POWER);
     return (tzret != TZ_RESULT_SUCCESS)?(-EBUSY):(0);
 }
 
 static struct dev_pm_ops tz_pm_ops = {
-        .suspend_late   = tz_suspend_late,
-        .freeze_late    = tz_suspend_late,
-        .resume_early   = tz_resume_early,
-        .thaw_early     = tz_resume_early,
+        .suspend_power   = tz_suspend_power,
+        .freeze_late    = tz_suspend_power,
+        .resume_power   = tz_resume_power,
+        .thaw_early     = tz_resume_power,
         SET_SYSTEM_SLEEP_PM_OPS(tz_suspend, tz_resume)
 };
 

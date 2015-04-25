@@ -1,7 +1,7 @@
 /*
  * Linux cfg80211 driver - Android related functions
  *
- * Copyright (C) 1999-2013, Broadcom Corporation
+ * Copyright (C) 1999-2014, Broadcom Corporation
  * 
  *      Unless you and Broadcom execute a separate written software license
  * agreement governing use of this software, this software is licensed to you
@@ -21,7 +21,7 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: wl_android.c 420671 2013-08-28 11:37:19Z $
+ * $Id: wl_android.c 445702 2013-12-30 03:11:51Z $
  */
 
 #include <linux/module.h>
@@ -258,7 +258,7 @@ static int wl_android_set_suspendmode(struct net_device *dev, char *command, int
 {
 	int ret = 0;
 
-#if !defined(CONFIG_HAS_EARLYSUSPEND) || !defined(DHD_USE_EARLYSUSPEND)
+#if !defined(CONFIG_POWERSUSPEND) || !defined(DHD_USE_POWERSUSPEND)
 	int suspend_flag;
 
 	suspend_flag = *(command + strlen(CMD_SETSUSPENDMODE) + 1) - '0';

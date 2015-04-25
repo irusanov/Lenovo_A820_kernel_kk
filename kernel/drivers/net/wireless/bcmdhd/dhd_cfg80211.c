@@ -585,7 +585,7 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, char *command)
 #ifdef PKT_FILTER_SUPPORT
 		dhd->dhcp_in_progress = 1;
 
-		if (dhd->early_suspended) {
+		if (dhd->power_suspended) {
 			WL_TRACE_HW4(("DHCP in progressing , disable packet filter!!!\n"));
 			dhd_enable_packet_filter(0, dhd);
 		}
@@ -640,7 +640,7 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, char *command)
 		WL_TRACE_HW4(("DHCP is complete \n"));
 
 		/* Enable packet filtering */
-		if (dhd->early_suspended) {
+		if (dhd->power_suspended) {
 			WL_TRACE_HW4(("DHCP is complete , enable packet filter!!!\n"));
 			dhd_enable_packet_filter(1, dhd);
 		}

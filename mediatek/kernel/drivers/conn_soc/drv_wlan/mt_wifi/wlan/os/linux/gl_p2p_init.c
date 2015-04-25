@@ -71,13 +71,13 @@ static UINT_16 mode = RUNNING_P2P_MODE;
 *                   F U N C T I O N   D E C L A R A T I O N S
 ********************************************************************************
 */
-#if defined(CONFIG_HAS_EARLYSUSPEND)
+#if defined(CONFIG_POWERSUSPEND)
 extern int glRegisterEarlySuspend(
-    struct early_suspend        *prDesc,
-    early_suspend_callback      wlanSuspend,
-    late_resume_callback        wlanResume);
+    struct power_suspend        *prDesc,
+    power_suspend_callback      wlanSuspend,
+    power_resume_callback        wlanResume);
 
-extern int glUnregisterEarlySuspend(struct early_suspend *prDesc);
+extern int glUnregisterEarlySuspend(struct power_suspend *prDesc);
 #endif
 
 /*******************************************************************************
@@ -343,20 +343,20 @@ static void wlanP2PLateResume(void)
     }
 }
 
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-static struct early_suspend mt6620_p2p_early_suspend_desc = {
+#if defined(CONFIG_POWERSUSPEND)
+static struct power_suspend mt6620_p2p_power_suspend_desc = {
     .level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN,
 };
 
-static void p2p_early_suspend(struct early_suspend *h)
+static void p2p_power_suspend(struct power_suspend *h)
 {
-    printk(KERN_INFO "*********wlanP2P_early_suspend************\n");
+    printk(KERN_INFO "*********wlanP2P_power_suspend************\n");
     wlanP2PEarlySuspend();
 }
 
-static void p2p_late_resume(struct early_suspend *h)
+static void p2p_power_resume(struct power_suspend *h)
 {
-    printk(KERN_INFO "*********wlanP2P_late_resume************\n");
+    printk(KERN_INFO "*********wlanP2P_power_resume************\n");
     wlanP2PLateResume();
 }
 #endif
@@ -388,9 +388,9 @@ p2pLaunch(
         printk("Launch success, fgIsP2PRegistered TRUE.\n");
 
 #if 0 /* move out to caller to avoid kalIoctrl & suspend/resume deadlock problem ALPS00844864 */
-#if defined(CONFIG_HAS_EARLYSUSPEND)
+#if defined(CONFIG_POWERSUSPEND)
         /* Here, we register the early suspend and resume callback  */
-        glRegisterEarlySuspend(&mt6620_p2p_early_suspend_desc, p2p_early_suspend, p2p_late_resume);
+        glRegisterEarlySuspend(&mt6620_p2p_power_suspend_desc, p2p_power_suspend, p2p_power_resume);
 #endif
 #endif
 
@@ -444,8 +444,8 @@ p2pRemove(
     else {
 
 #if 0 /* move out to caller to avoid kalIoctrl & suspend/resume deadlock problem ALPS00844864 */
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-        glUnregisterEarlySuspend(&mt6620_p2p_early_suspend_desc);
+#if defined(CONFIG_POWERSUSPEND)
+        glUnregisterEarlySuspend(&mt6620_p2p_power_suspend_desc);
 #endif
 #endif
         /*Check p2p fsm is stop or not. If not then stop now*/
@@ -468,15 +468,15 @@ p2pEalySuspendReg (
 	BOOLEAN fgIsEnable
 	)
 {
-#if defined(CONFIG_HAS_EARLYSUSPEND)
+#if defined(CONFIG_POWERSUSPEND)
 	if (prGlueInfo->prAdapter->fgIsP2PRegistered == TRUE)
 	{
 		if(fgIsEnable) {
 			/* Here, we register the early suspend and resume callback  */
-			glRegisterEarlySuspend(&mt6620_p2p_early_suspend_desc, p2p_early_suspend, p2p_late_resume);
+			glRegisterEarlySuspend(&mt6620_p2p_power_suspend_desc, p2p_power_suspend, p2p_power_resume);
 		}
 		else {
-			glUnregisterEarlySuspend(&mt6620_p2p_early_suspend_desc);
+			glUnregisterEarlySuspend(&mt6620_p2p_power_suspend_desc);
 		}
 	}
 #endif

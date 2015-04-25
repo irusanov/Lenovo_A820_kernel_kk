@@ -113,8 +113,8 @@
 #include "gl_os.h"
 
 #ifndef CONFIG_X86
-#if defined(CONFIG_HAS_EARLY_SUSPEND)
-    #include <linux/earlysuspend.h>
+#if defined(CONFIG_POWERSUSPEND)
+    #include <linux/powersuspend.h>
 #endif
 #endif
 
@@ -396,7 +396,7 @@ void wlanUnregisterNotifier(void)
 //EXPORT_SYMBOL(wlanUnregisterNotifier);
 
 #ifndef CONFIG_X86
-#if defined(CONFIG_HAS_EARLYSUSPEND)
+#if defined(CONFIG_POWERSUSPEND)
 
 
 /*----------------------------------------------------------------------------*/
@@ -406,14 +406,14 @@ void wlanUnregisterNotifier(void)
 * \param[in] wlanSuspend    Function pointer to platform suspend function
 * \param[in] wlanResume   Function pointer to platform resume   function
 *
-* \return The result of registering earlysuspend
+* \return The result of registering powersuspend
 */
 /*----------------------------------------------------------------------------*/
 
 int glRegisterEarlySuspend(
-    struct early_suspend        *prDesc,
-    early_suspend_callback      wlanSuspend,
-    late_resume_callback        wlanResume)
+    struct power_suspend        *prDesc,
+    power_suspend_callback      wlanSuspend,
+    power_resume_callback        wlanResume)
 {
     int ret = 0;
 
@@ -431,7 +431,7 @@ int glRegisterEarlySuspend(
         ret = -1;
     }
 
-    register_early_suspend(prDesc);
+    register_power_suspend(prDesc);
     return ret;
 }
 
@@ -441,11 +441,11 @@ int glRegisterEarlySuspend(
 /*!
 * \brief This function will un-register platform driver to os
 *
-* \return The result of un-registering earlysuspend
+* \return The result of un-registering powersuspend
 */
 /*----------------------------------------------------------------------------*/
 
-int glUnregisterEarlySuspend(struct early_suspend *prDesc)
+int glUnregisterEarlySuspend(struct power_suspend *prDesc)
 {
     int ret = 0;
 
@@ -454,12 +454,12 @@ int glUnregisterEarlySuspend(struct early_suspend *prDesc)
 		/*
 			sometimes upper layer does not issue PRIV_CMD_P2P_MODE command,
 			so we will not glRegisterEarlySuspend then suspend & resume will be NULL.
-			If we call unregister_early_suspend, kernel will crash.
+			If we call unregister_power_suspend, kernel will crash.
 		*/
 		return 0;
 	}
 
-    unregister_early_suspend(prDesc);
+    unregister_power_suspend(prDesc);
 
     prDesc->suspend = NULL;
     prDesc->resume = NULL;

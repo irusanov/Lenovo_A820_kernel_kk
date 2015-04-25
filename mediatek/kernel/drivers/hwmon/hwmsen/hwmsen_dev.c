@@ -34,7 +34,7 @@
 #include <linux/hwmsen_helper.h>
 #include <linux/hwmsen_dev.h>
 //add for fix resume issue
-#include <linux/earlysuspend.h> 
+#include <linux/powersuspend.h> 
 #include <linux/wakelock.h>
 //add for fix resume issue end
 
@@ -44,8 +44,8 @@
 #define MAX_CHOOSE_G_NUM 5
 #define MAX_CHOOSE_M_NUM 5
 
-static void hwmsen_early_suspend(struct early_suspend *h);
-static void hwmsen_late_resume(struct early_suspend *h);
+static void hwmsen_power_suspend(struct power_suspend *h);
+static void hwmsen_power_resume(struct power_suspend *h);
 static void update_workqueue_polling_rate(int newDelay);
 
 static struct workqueue_struct * sensor_workqueue = NULL;
@@ -114,9 +114,9 @@ struct hwmdev_object {
 	uint32_t			active_sensor;			// Active, but hwmsen don't need data sensor. Maybe other need it's data.
 	uint32_t			active_data_sensor;		// Active and hwmsen need data sensor.
 	//add for fix resume issue
-	struct early_suspend    early_drv;
+	struct power_suspend    power_drv;
 	struct wake_lock        read_data_wake_lock;
-	atomic_t                early_suspend;
+	atomic_t                power_suspend;
 	//add for fix resume end
 };
 
@@ -1203,11 +1203,10 @@ static int hwmsen_probe(struct platform_device *pdev)
 		goto exit_hwmsen_create_attr_failed;
 	}
 	// add for fix resume bug
-    atomic_set(&(hwm_obj->early_suspend), 0);
-	hwm_obj->early_drv.level    = EARLY_SUSPEND_LEVEL_STOP_DRAWING - 1,
-	hwm_obj->early_drv.suspend  = hwmsen_early_suspend,
-	hwm_obj->early_drv.resume   = hwmsen_late_resume,    
-	register_early_suspend(&hwm_obj->early_drv);
+    atomic_set(&(hwm_obj->power_suspend), 0);
+	hwm_obj->power_drv.suspend  = hwmsen_power_suspend,
+	hwm_obj->power_drv.resume   = hwmsen_power_resume,    
+	register_power_suspend(&hwm_obj->power_drv);
 	wake_lock_init(&(hwm_obj->read_data_wake_lock),WAKE_LOCK_SUSPEND,"read_data_wake_lock");
 	// add for fix resume bug end
 	return 0;
@@ -1236,19 +1235,19 @@ static int hwmsen_remove(struct platform_device *pdev)
 
 	return 0;
 }
-static void hwmsen_early_suspend(struct early_suspend *h) 
+static void hwmsen_power_suspend(struct power_suspend *h) 
 {
    //HWM_FUN(f);
-   atomic_set(&(hwm_obj->early_suspend), 1);
-   HWM_LOG(" hwmsen_early_suspend ok------->hwm_obj->early_suspend=%d \n",atomic_read(&hwm_obj->early_suspend));
+   atomic_set(&(hwm_obj->power_suspend), 1);
+   HWM_LOG(" hwmsen_power_suspend ok------->hwm_obj->power_suspend=%d \n",atomic_read(&hwm_obj->power_suspend));
    return ;
 }
 /*----------------------------------------------------------------------------*/
-static void hwmsen_late_resume(struct early_suspend *h)
+static void hwmsen_power_resume(struct power_suspend *h)
 {
    //HWM_FUN(f);
-   atomic_set(&(hwm_obj->early_suspend), 0);
-   HWM_LOG(" hwmsen_late_resume ok------->hwm_obj->early_suspend=%d \n",atomic_read(&hwm_obj->early_suspend));
+   atomic_set(&(hwm_obj->power_suspend), 0);
+   HWM_LOG(" hwmsen_power_resume ok------->hwm_obj->power_suspend=%d \n",atomic_read(&hwm_obj->power_suspend));
    return ;
 }
 /*----------------------------------------------------------------------------*/

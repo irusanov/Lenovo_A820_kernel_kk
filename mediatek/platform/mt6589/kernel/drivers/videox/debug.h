@@ -53,7 +53,7 @@ extern struct MTKFB_MMP_Events_t
     MMP_Event CaptureFramebuffer;
     MMP_Event TrigOverlayOut;
     MMP_Event RegUpdate;
-    MMP_Event EarlySuspend;
+    MMP_Event PowerSuspend;
     MMP_Event DispDone;
     MMP_Event DSICmd;
     MMP_Event DSIIRQ;

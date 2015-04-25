@@ -19,7 +19,7 @@
 #include <linux/fs.h>
 #include <linux/miscdevice.h>
 #include <linux/platform_device.h>
-#include <linux/earlysuspend.h>
+#include <linux/powersuspend.h>
 #include <linux/autoconf.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>

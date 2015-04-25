@@ -2,7 +2,7 @@
  * Broadcom Dongle Host Driver (DHD), Linux-specific network interface
  * Basically selected code segments from usb-cdc.c and usb-rndis.c
  *
- * Copyright (C) 1999-2013, Broadcom Corporation
+ * Copyright (C) 1999-2014, Broadcom Corporation
  * 
  *      Unless you and Broadcom execute a separate written software license
  * agreement governing use of this software, this software is licensed to you
@@ -22,7 +22,7 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: dhd_linux.c 419821 2013-08-22 21:43:26Z $
+ * $Id: dhd_linux.c 446907 2014-01-07 17:58:28Z $
  */
 
 #include <typedefs.h>
@@ -182,9 +182,9 @@ print_tainted()
 extern wl_iw_extra_params_t  g_wl_iw_params;
 #endif /* defined(WL_WIRELESS_EXT) */
 
-#if defined(CONFIG_HAS_EARLYSUSPEND) && defined(DHD_USE_EARLYSUSPEND)
-#include <linux/earlysuspend.h>
-#endif /* defined(CONFIG_HAS_EARLYSUSPEND) && defined(DHD_USE_EARLYSUSPEND) */
+#if defined(CONFIG_POWERSUSPEND) && defined(DHD_USE_POWERSUSPEND)
+#include <linux/powersuspend.h>
+#endif /* defined(CONFIG_POWERSUSPEND) && defined(DHD_USE_POWERSUSPEND) */
 
 extern int dhd_get_suspend_bcn_li_dtim(dhd_pub_t *dhd);
 
@@ -332,9 +332,9 @@ typedef struct dhd_info {
 	atomic_t pend_8021x_cnt;
 	dhd_attach_states_t dhd_state;
 
-#if defined(CONFIG_HAS_EARLYSUSPEND) && defined(DHD_USE_EARLYSUSPEND)
-	struct early_suspend early_suspend;
-#endif /* CONFIG_HAS_EARLYSUSPEND && DHD_USE_EARLYSUSPEND */
+#if defined(CONFIG_POWERSUSPEND) && defined(DHD_USE_POWERSUSPEND)
+	struct power_suspend power_suspend;
+#endif /* defined(CONFIG_POWERSUSPEND) && defined(DHD_USE_POWERSUSPEND) */
 
 #ifdef ARP_OFFLOAD_SUPPORT
 	u32 pend_ipaddr;
@@ -761,7 +761,7 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 	if (dhd->up) {
 		if (value && dhd->in_suspend) {
 #ifdef PKT_FILTER_SUPPORT
-				dhd->early_suspended = 1;
+				dhd->power_suspended = 1;
 #endif
 				/* Kernel suspended */
 				DHD_ERROR(("%s: force extra Suspend setting \n", __FUNCTION__));
@@ -794,7 +794,7 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 #endif /* ENABLE_FW_ROAM_SUSPEND */
 			} else {
 #ifdef PKT_FILTER_SUPPORT
-				dhd->early_suspended = 0;
+				dhd->power_suspended = 0;
 #endif
 				/* Kernel resumed  */
 				DHD_ERROR(("%s: Remove extra suspend setting \n", __FUNCTION__));
@@ -833,7 +833,7 @@ static int dhd_suspend_resume_helper(struct dhd_info *dhd, int val, int force)
 	int ret = 0;
 
 	DHD_OS_WAKE_LOCK(dhdp);
-	/* Set flag when early suspend was called */
+	/* Set flag when power suspend was called */
 	dhdp->in_suspend = val;
 	if ((force || !dhdp->suspend_disable_flag) &&
 		dhd_support_sta_mode(dhdp))
@@ -845,25 +845,25 @@ static int dhd_suspend_resume_helper(struct dhd_info *dhd, int val, int force)
 	return ret;
 }
 
-#if defined(CONFIG_HAS_EARLYSUSPEND) && defined(DHD_USE_EARLYSUSPEND)
-static void dhd_early_suspend(struct early_suspend *h)
+#if defined(CONFIG_POWERSUSPEND) && defined(DHD_USE_POWERSUSPEND)
+static void dhd_power_suspend(struct power_suspend *h)
 {
-	struct dhd_info *dhd = container_of(h, struct dhd_info, early_suspend);
+	struct dhd_info *dhd = container_of(h, struct dhd_info, power_suspend);
 	DHD_TRACE_HW4(("%s: enter\n", __FUNCTION__));
 
 	if (dhd)
 		dhd_suspend_resume_helper(dhd, 1, 0);
 }
 
-static void dhd_late_resume(struct early_suspend *h)
+static void dhd_power_resume(struct power_suspend *h)
 {
-	struct dhd_info *dhd = container_of(h, struct dhd_info, early_suspend);
+	struct dhd_info *dhd = container_of(h, struct dhd_info, power_suspend);
 	DHD_TRACE_HW4(("%s: enter\n", __FUNCTION__));
 
 	if (dhd)
 		dhd_suspend_resume_helper(dhd, 0, 0);
 }
-#endif /* CONFIG_HAS_EARLYSUSPEND && DHD_USE_EARLYSUSPEND */
+#endif /* CONFIG_POWERSUSPEND && DHD_USE_POWERSUSPEND */
 
 /*
  * Generalized timeout mechanism.  Uses spin sleep with exponential back-off until
@@ -3355,13 +3355,12 @@ dhd_attach(osl_t *osh, struct dhd_bus *bus, uint bus_hdrlen)
 	register_pm_notifier(&dhd_sleep_pm_notifier);
 #endif /* (LINUX_VERSION >= 2.6.27 && LINUX_VERSION <= 2.6.39 && CONFIG_PM_SLEEP */
 
-#if defined(CONFIG_HAS_EARLYSUSPEND) && defined(DHD_USE_EARLYSUSPEND)
-	dhd->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN + 20;
-	dhd->early_suspend.suspend = dhd_early_suspend;
-	dhd->early_suspend.resume = dhd_late_resume;
-	register_early_suspend(&dhd->early_suspend);
-	dhd_state |= DHD_ATTACH_STATE_EARLYSUSPEND_DONE;
-#endif /* CONFIG_HAS_EARLYSUSPEND && DHD_USE_EARLYSUSPEND */
+#if defined(CONFIG_POWERSUSPEND) && defined(DHD_USE_POWERSUSPEND)
+	dhd->power_suspend.suspend = dhd_power_suspend;
+	dhd->power_suspend.resume = dhd_power_resume;
+	register_power_suspend(&dhd->power_suspend);
+	dhd_state |= DHD_ATTACH_STATE_POWERSUSPEND_DONE;
+#endif /* CONFIG_POWERSUSPEND && DHD_USE_POWERSUSPEND */
 
 #ifdef ARP_OFFLOAD_SUPPORT
 	dhd->pend_ipaddr = 0;
@@ -4576,12 +4575,12 @@ void dhd_detach(dhd_pub_t *dhdp)
 		if (dhdp->prot)
 			dhd_prot_detach(dhdp);
 	}
-#if defined(CONFIG_HAS_EARLYSUSPEND) && defined(DHD_USE_EARLYSUSPEND)
-	if (dhd->dhd_state & DHD_ATTACH_STATE_EARLYSUSPEND_DONE) {
-		if (dhd->early_suspend.suspend)
-			unregister_early_suspend(&dhd->early_suspend);
+#if defined(CONFIG_POWERSUSPEND) && defined(DHD_USE_POWERSUSPEND)
+	if (dhd->dhd_state & DHD_ATTACH_STATE_POWERSUSPEND_DONE) {
+		if (dhd->power_suspend.suspend)
+			unregister_power_suspend(&dhd->power_suspend);
 	}
-#endif /* CONFIG_HAS_EARLYSUSPEND && DHD_USE_EARLYSUSPEND */
+#endif /* CONFIG_POWERSUSPEND && DHD_USE_POWERSUSPEND */
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 27))
 	cancel_work_sync(&dhd->work_hang);
@@ -5358,7 +5357,7 @@ int net_os_set_suspend(struct net_device *dev, int val, int force)
 	dhd_info_t *dhd = *(dhd_info_t **)netdev_priv(dev);
 
 	if (dhd) {
-#if defined(CONFIG_HAS_EARLYSUSPEND) && defined(DHD_USE_EARLYSUSPEND)
+#if defined(CONFIG_POWERSUSPEND) && defined(DHD_USE_POWERSUSPEND)
 		ret = dhd_set_suspend(val, &dhd->pub);
 #else
 		ret = dhd_suspend_resume_helper(dhd, val, force);
@@ -5425,9 +5424,9 @@ int dhd_os_enable_packet_filter(dhd_pub_t *dhdp, int val)
 {
 	int ret = 0;
 
-	/* Packet filtering is set only if we still in early-suspend and
+	/* Packet filtering is set only if we still in power-suspend and
 	 * we need either to turn it ON or turn it OFF
-	 * We can always turn it OFF in case of early-suspend, but we turn it
+	 * We can always turn it OFF in case of power-suspend, but we turn it
 	 * back ON only if suspend_disable_flag was not set
 	*/
 	if (dhdp && dhdp->up) {

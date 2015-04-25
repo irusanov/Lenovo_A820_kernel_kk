@@ -17,9 +17,9 @@ enum eMTEE_PM_State
 {
     MTEE_NONE,
     MTEE_SUSPEND,
-    MTEE_SUSPEND_LATE,
+    MTEE_SUSPEND_POWER,
     MTEE_RESUME,
-    MTEE_RESUME_EARLY,
+    MTEE_RESUME_POWER,
 };
 typedef enum eMTEE_PM_State MTEE_PM_State;
 

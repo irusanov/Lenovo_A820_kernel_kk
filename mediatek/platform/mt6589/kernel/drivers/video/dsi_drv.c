@@ -79,7 +79,7 @@ extern LCM_DRIVER *lcm_drv;
 static bool dsi_log_on = false;
 static bool glitch_log_on = false;
 static bool force_transfer = false;
-extern BOOL is_early_suspended;
+extern BOOL is_power_suspended;
 
 typedef struct
 {
@@ -334,7 +334,7 @@ static irqreturn_t _DSI_InterruptHandler(int irq, void *dev_id)
 		wake_up_interruptible(&_dsi_wait_vm_done_queue);
 		if(dsi_glitch_enable){
 	  		MMProfileLogEx(MTKFB_MMP_Events.Debug, MMProfileFlagPulse, 1, 22);
-			if(!is_early_suspended && !wait_vm_done_irq){
+			if(!is_power_suspended && !wait_vm_done_irq){
 				if(1 == DSI_Detect_CLK_Glitch()){
 					printk("VM Done detect glitch fail!!,%d\n",__LINE__);
 				}

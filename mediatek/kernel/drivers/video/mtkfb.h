@@ -14,7 +14,7 @@
 #define FBCAPS_PANEL_MASK                (0xff000000)
 #define FBCAPS_MANUAL_UPDATE             (0x00001000)
 #define FBCAPS_SET_BACKLIGHT             (0x01000000)
-#define MTKFB_ERROR_IS_EARLY_SUSPEND     (0x12000000)
+#define MTKFB_ERROR_IS_POWER_SUSPEND     (0x12000000)
 //---------------------------------------------------------------------------
 /* IOCTL commands. */
 #define MTK_IOW(num, dtype)     _IOW('O', num, dtype)

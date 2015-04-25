@@ -23,7 +23,7 @@
 #include <linux/input.h>
 #include <linux/workqueue.h>
 #include <linux/kobject.h>
-#include <linux/earlysuspend.h>
+#include <linux/powersuspend.h>
 #include <linux/platform_device.h>
 #include <asm/atomic.h>
 
@@ -191,9 +191,9 @@ struct APDS9930_priv {
 	u16          als_ch0;       /* for ps sunlight issue */
 	u16          als_ch1;       /* for ps sunlight issue */
 /*  update lux convert algo from avago FAE --liaoxl.lenovo end */
-    /*early suspend*/
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-    struct early_suspend    early_drv;
+    /*power suspend*/
+#if defined(CONFIG_POWERSUSPEND)
+    struct power_suspend    power_drv;
 #endif     
 };
 /*----------------------------------------------------------------------------*/
@@ -2117,9 +2117,9 @@ static int APDS9930_i2c_resume(struct i2c_client *client)
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-static void APDS9930_early_suspend(struct early_suspend *h) 
-{   /*early_suspend is only applied for ALS*/
-	struct APDS9930_priv *obj = container_of(h, struct APDS9930_priv, early_drv);   
+static void APDS9930_power_suspend(struct power_suspend *h) 
+{   /*power_suspend is only applied for ALS*/
+	struct APDS9930_priv *obj = container_of(h, struct APDS9930_priv, power_drv);   
 	int err;
 	APS_FUN();    
 
@@ -2144,9 +2144,9 @@ static void APDS9930_early_suspend(struct early_suspend *h)
 	#endif
 }
 /*----------------------------------------------------------------------------*/
-static void APDS9930_late_resume(struct early_suspend *h)
-{   /*early_suspend is only applied for ALS*/
-	struct APDS9930_priv *obj = container_of(h, struct APDS9930_priv, early_drv);         
+static void APDS9930_power_resume(struct power_suspend *h)
+{   /*power_suspend is only applied for ALS*/
+	struct APDS9930_priv *obj = container_of(h, struct APDS9930_priv, power_drv);         
 	int err;
 	APS_FUN();
 
@@ -2164,16 +2164,16 @@ static void APDS9930_late_resume(struct early_suspend *h)
 			apds_esd_check(obj->client);
 			mt_eint_unmask(CUST_EINT_ALS_NUM);
 
-			APS_ERR("APDS9930_late_resume start wq!!\n");
+			APS_ERR("APDS9930_power_resume start wq!!\n");
 		}
 		else
 		{
-			APS_DBG("APDS9930_late_resume skip 2!!\n");
+			APS_DBG("APDS9930_power_resume skip 2!!\n");
 		}
 	}
 	else
 	{
-		APS_DBG("APDS9930_late_resume skip 1!!\n");
+		APS_DBG("APDS9930_power_resume skip 1!!\n");
 	}
 /* add for esd check func end -- by liaoxl.lenovo 4.11.2013  */
         #if 0
@@ -2557,11 +2557,10 @@ static int APDS9930_i2c_probe(struct i2c_client *client, const struct i2c_device
 	}
 
 
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-	obj->early_drv.level    = EARLY_SUSPEND_LEVEL_DISABLE_FB - 1,
-	obj->early_drv.suspend  = APDS9930_early_suspend,
-	obj->early_drv.resume   = APDS9930_late_resume,    
-	register_early_suspend(&obj->early_drv);
+#if defined(CONFIG_POWERSUSPEND)
+	obj->power_drv.suspend  = APDS9930_power_suspend,
+	obj->power_drv.resume   = APDS9930_power_resume,    
+	register_power_suspend(&obj->power_drv);
 #endif
 
 	APS_LOG("%s: OK\n", __func__);

@@ -271,13 +271,13 @@ typedef struct dhd_pub {
 
 	/* Suspend disable flag and "in suspend" flag */
 	int suspend_disable_flag; /* "1" to disable all extra powersaving during suspend */
-	int in_suspend;			/* flag set to 1 when early suspend called */
+	int in_suspend;			/* flag set to 1 when power suspend called */
 	/* DTIM skip value, default 0(or 1) means wake each DTIM
 	 * 3 means skip 2 DTIMs and wake up 3rd DTIM(9th beacon when AP DTIM is 3)
 	 */
 	int suspend_bcn_li_dtim;         /* bcn_li_dtim value in suspend mode */
 #ifdef PKT_FILTER_SUPPORT
-	int early_suspended;	/* Early suspend status */
+	int power_suspended;	/* Power suspend status */
 	int dhcp_in_progress;	/* DHCP period */
 #endif
 
@@ -479,7 +479,7 @@ typedef enum dhd_attach_states
 	DHD_ATTACH_STATE_THREADS_CREATED = 0x20,
 	DHD_ATTACH_STATE_WAKELOCKS_INIT = 0x40,
 	DHD_ATTACH_STATE_CFG80211 = 0x80,
-	DHD_ATTACH_STATE_EARLYSUSPEND_DONE = 0x100,
+	DHD_ATTACH_STATE_POWERSUSPEND_DONE = 0x100,
 	DHD_ATTACH_STATE_DONE = 0x200
 } dhd_attach_states_t;
 

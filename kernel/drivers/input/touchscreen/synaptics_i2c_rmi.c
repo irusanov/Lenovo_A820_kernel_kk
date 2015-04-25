@@ -15,7 +15,7 @@
 
 #include <linux/module.h>
 #include <linux/delay.h>
-#include <linux/earlysuspend.h>
+#include <linux/powersuspend.h>
 #include <linux/hrtimer.h>
 #include <linux/i2c.h>
 #include <linux/input.h>
@@ -47,12 +47,12 @@ struct synaptics_ts_data {
 	int reported_finger_count;
 	int8_t sensitivity_adjust;
 	int (*power)(int on);
-	struct early_suspend early_suspend;
+	struct power_suspend power_suspend;
 };
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void synaptics_ts_early_suspend(struct early_suspend *h);
-static void synaptics_ts_late_resume(struct early_suspend *h);
+#ifdef CONFIG_POWERSUSPEND
+static void synaptics_ts_power_suspend(struct power_suspend *h);
+static void synaptics_ts_power_resume(struct power_suspend *h);
 #endif
 
 static int synaptics_init_panel(struct synaptics_ts_data *ts)
@@ -532,11 +532,10 @@ static int synaptics_ts_probe(
 		ts->timer.function = synaptics_ts_timer_func;
 		hrtimer_start(&ts->timer, ktime_set(1, 0), HRTIMER_MODE_REL);
 	}
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	ts->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN + 1;
-	ts->early_suspend.suspend = synaptics_ts_early_suspend;
-	ts->early_suspend.resume = synaptics_ts_late_resume;
-	register_early_suspend(&ts->early_suspend);
+#ifdef CONFIG_POWERSUSPEND
+	ts->power_suspend.suspend = synaptics_ts_power_suspend;
+	ts->power_suspend.resume = synaptics_ts_power_resume;
+	register_power_suspend(&ts->power_suspend);
 #endif
 
 	printk(KERN_INFO "synaptics_ts_probe: Start touchscreen %s in %s mode\n", ts->input_dev->name, ts->use_irq ? "interrupt" : "polling");
@@ -558,7 +557,7 @@ err_check_functionality_failed:
 static int synaptics_ts_remove(struct i2c_client *client)
 {
 	struct synaptics_ts_data *ts = i2c_get_clientdata(client);
-	unregister_early_suspend(&ts->early_suspend);
+	unregister_power_suspend(&ts->power_suspend);
 	if (ts->use_irq)
 		free_irq(client->irq, ts);
 	else
@@ -619,18 +618,18 @@ static int synaptics_ts_resume(struct i2c_client *client)
 	return 0;
 }
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void synaptics_ts_early_suspend(struct early_suspend *h)
+#ifdef CONFIG_POWERSUSPEND
+static void synaptics_ts_power_suspend(struct power_suspend *h)
 {
 	struct synaptics_ts_data *ts;
-	ts = container_of(h, struct synaptics_ts_data, early_suspend);
+	ts = container_of(h, struct synaptics_ts_data, power_suspend);
 	synaptics_ts_suspend(ts->client, PMSG_SUSPEND);
 }
 
-static void synaptics_ts_late_resume(struct early_suspend *h)
+static void synaptics_ts_power_resume(struct power_suspend *h)
 {
 	struct synaptics_ts_data *ts;
-	ts = container_of(h, struct synaptics_ts_data, early_suspend);
+	ts = container_of(h, struct synaptics_ts_data, power_suspend);
 	synaptics_ts_resume(ts->client);
 }
 #endif
@@ -643,7 +642,7 @@ static const struct i2c_device_id synaptics_ts_id[] = {
 static struct i2c_driver synaptics_ts_driver = {
 	.probe		= synaptics_ts_probe,
 	.remove		= synaptics_ts_remove,
-#ifndef CONFIG_HAS_EARLYSUSPEND
+#ifndef CONFIG_POWERSUSPEND
 	.suspend	= synaptics_ts_suspend,
 	.resume		= synaptics_ts_resume,
 #endif

@@ -245,7 +245,7 @@ static int early_resume_init(void)
 	return 0;
 }
 
-static int late_resume_init(void)
+static int power_resume_init(void)
 {
 	unsigned int val = hash_value_early_read;
 	unsigned int user, file, dev;
@@ -263,4 +263,4 @@ static int late_resume_init(void)
 }
 
 core_initcall(early_resume_init);
-late_initcall(late_resume_init);
+late_initcall(power_resume_init);

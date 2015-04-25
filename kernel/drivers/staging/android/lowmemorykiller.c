@@ -1070,8 +1070,8 @@ static const struct kparam_array __param_arr_adj = {
 };
 #endif
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-/* Called by routine in earlysuspend to recycle memory */
+#ifdef CONFIG_POWERSUSPEND
+/* Called by routine in powersuspend to recycle memory */
 void kick_lmk_from_compaction(gfp_t gfp_mask)
 {
 	long recycled;

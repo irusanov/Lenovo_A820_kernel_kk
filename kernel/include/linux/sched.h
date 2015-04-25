@@ -2238,6 +2238,7 @@ extern int sched_setscheduler(struct task_struct *, int,
 extern int sched_setscheduler_nocheck(struct task_struct *, int,
 				      const struct sched_param *);
 extern struct task_struct *idle_task(int cpu);
+
 /**
  * is_idle_task - is the specified task an idle task?
  * @p: the task in question.

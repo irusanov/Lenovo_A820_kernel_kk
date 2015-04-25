@@ -23,7 +23,7 @@
 #include <linux/input.h>
 #include <linux/workqueue.h>
 #include <linux/kobject.h>
-#include <linux/earlysuspend.h>
+#include <linux/powersuspend.h>
 #include <linux/platform_device.h>
 #include <asm/atomic.h>
 
@@ -69,7 +69,7 @@ static struct i2c_board_info __initdata i2c_kxtik1004={ I2C_BOARD_INFO(KXTIK1004
 static int kxtik1004_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id); 
 static int kxtik1004_i2c_remove(struct i2c_client *client);
 static int kxtik1004_i2c_detect(struct i2c_client *client, struct i2c_board_info *info);
-#ifndef USE_EARLY_SUSPEND
+#ifndef USE_POWERSUSPEND
 static int kxtik1004_suspend(struct i2c_client *client, pm_message_t msg);
 static int kxtik1004_resume(struct i2c_client *client);
 #endif
@@ -123,9 +123,9 @@ struct kxtik1004_i2c_data {
     atomic_t                fir_en;
     struct data_filter      fir;
 #endif 
-    /*early suspend*/
-#ifdef USE_EARLY_SUSPEND
-    struct early_suspend    early_drv;
+    /*power suspend*/
+#ifdef CONFIG_POWERSUSPEND
+    struct power_suspend    power_drv;
 #endif     
 };
 /*----------------------------------------------------------------------------*/
@@ -137,7 +137,7 @@ static struct i2c_driver kxtik1004_i2c_driver = {
 	.probe      		= kxtik1004_i2c_probe,
 	.remove    			= kxtik1004_i2c_remove,
 	.detect				= kxtik1004_i2c_detect,
-#if !defined(USE_EARLY_SUSPEND)    
+#if !defined(CONFIG_POWERSUSPEND)    
     .suspend            = kxtik1004_suspend,
     .resume             = kxtik1004_resume,
 #endif
@@ -1748,7 +1748,7 @@ static struct miscdevice kxtik1004_device = {
 	.fops = &kxtik1004_fops,
 };
 /*----------------------------------------------------------------------------*/
-#ifndef USE_EARLY_SUSPEND
+#ifndef CONFIG_POWERSUSPEND
 /*----------------------------------------------------------------------------*/
 static int kxtik1004_suspend(struct i2c_client *client, pm_message_t msg) 
 {
@@ -1805,11 +1805,11 @@ static int kxtik1004_resume(struct i2c_client *client)
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-#else /*CONFIG_HAS_EARLY_SUSPEND is defined*/
+#else /*CONFIG_HAS_power_SUSPEND is defined*/
 /*----------------------------------------------------------------------------*/
-static void kxtik1004_early_suspend(struct early_suspend *h) 
+static void kxtik1004_power_suspend(struct power_suspend *h) 
 {
-	struct kxtik1004_i2c_data *obj = container_of(h, struct kxtik1004_i2c_data, early_drv);   
+	struct kxtik1004_i2c_data *obj = container_of(h, struct kxtik1004_i2c_data, power_drv);   
 	int err;
 	GSE_FUN();    
 
@@ -1833,9 +1833,9 @@ static void kxtik1004_early_suspend(struct early_suspend *h)
 	KXTIK1004_power(obj->hw, 0);
 }
 /*----------------------------------------------------------------------------*/
-static void kxtik1004_late_resume(struct early_suspend *h)
+static void kxtik1004_power_resume(struct power_suspend *h)
 {
-	struct kxtik1004_i2c_data *obj = container_of(h, struct kxtik1004_i2c_data, early_drv);         
+	struct kxtik1004_i2c_data *obj = container_of(h, struct kxtik1004_i2c_data, power_drv);         
 	int err;
 	GSE_FUN();
 
@@ -1951,11 +1951,10 @@ static int kxtik1004_i2c_probe(struct i2c_client *client, const struct i2c_devic
 		goto exit_kfree;
 	}
 
-#ifdef USE_EARLY_SUSPEND
-	obj->early_drv.level    = EARLY_SUSPEND_LEVEL_STOP_DRAWING - 2,
-	obj->early_drv.suspend  = kxtik1004_early_suspend,
-	obj->early_drv.resume   = kxtik1004_late_resume,    
-	register_early_suspend(&obj->early_drv);
+#ifdef CONFIG_POWERSUSPEND
+	obj->power_drv.suspend  = kxtik1004_power_suspend,
+	obj->power_drv.resume   = kxtik1004_power_resume,    
+	register_power_suspend(&obj->power_drv);
 #endif 
 
 	GSE_LOG("%s: OK\n", __func__);    

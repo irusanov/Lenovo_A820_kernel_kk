@@ -36,7 +36,7 @@
  *
  * 04 27 2011 george.huang
  * [WCXRP00000684] [MT6620 Wi-Fi][Driver] Support P2P setting ARP filter
- * Support P2P ARP filter setting on early suspend/ late resume
+ * Support P2P ARP filter setting on power suspend/ power resume
  *
  * 04 08 2011 george.huang
  * [WCXRP00000621] [MT6620 Wi-Fi][Driver] Support P2P supplicant to set power mode

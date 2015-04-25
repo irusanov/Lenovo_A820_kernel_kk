@@ -482,7 +482,7 @@ static int socket_early_resume(struct pcmcia_socket *skt)
 	return 0;
 }
 
-static int socket_late_resume(struct pcmcia_socket *skt)
+static int socket_power_resume(struct pcmcia_socket *skt)
 {
 	int ret;
 
@@ -537,7 +537,7 @@ static int socket_resume(struct pcmcia_socket *skt)
 		return -EBUSY;
 
 	socket_early_resume(skt);
-	return socket_late_resume(skt);
+	return socket_power_resume(skt);
 }
 
 static void socket_remove(struct pcmcia_socket *skt)
@@ -845,7 +845,7 @@ static int pcmcia_socket_dev_resume_noirq(struct device *dev)
 
 static int __used pcmcia_socket_dev_resume(struct device *dev)
 {
-	return __pcmcia_pm_op(dev, socket_late_resume);
+	return __pcmcia_pm_op(dev, socket_power_resume);
 }
 
 static const struct dev_pm_ops pcmcia_socket_pm_ops = {

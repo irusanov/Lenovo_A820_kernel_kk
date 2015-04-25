@@ -927,7 +927,7 @@ void disp_power_on(DISP_MODULE_ENUM eModule , unsigned int * pu4Record)
     if(DISP_REG_GET(DISP_REG_CONFIG_MUTEX_INTEN)!= DDP_MUTEX_INTR_ENABLE_BIT)
     {
         // restore mutex intr_en reg, because this reg will be reset if power is off
-        // but rot->scl>wdma path may still work in early suspend mode, need this reg value
+        // but rot->scl>wdma path may still work in power suspend mode, need this reg value
         DISP_REG_SET(DISP_REG_CONFIG_MUTEX_INTEN, DDP_MUTEX_INTR_ENABLE_BIT);
     }
 

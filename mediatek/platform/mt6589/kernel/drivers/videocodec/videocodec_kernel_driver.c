@@ -24,7 +24,7 @@
 #include <linux/android_pmem.h>
 #include <mach/dma.h>
 #include <linux/delay.h>
-#include <linux/earlysuspend.h>
+#include <linux/powersuspend.h>
 #include "mach/sync_write.h"
 #include "mach/mt_reg_base.h"
 #include "mach/mt_clkmgr.h"
@@ -2009,48 +2009,47 @@ static int vcodec_mmap(struct file* file, struct vm_area_struct* vma)
     return 0;
 }
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void vcodec_early_suspend(struct early_suspend *h)
+#ifdef CONFIG_POWERSUSPEND
+static void vcodec_power_suspend(struct power_suspend *h)
 {
     mutex_lock(&PWRLock);
-    MFV_LOGE("vcodec_early_suspend, tid = %d, PWR_USER = %d\n", current->pid, gu4PWRCounter);
+    MFV_LOGE("vcodec_power_suspend, tid = %d, PWR_USER = %d\n", current->pid, gu4PWRCounter);
     mutex_unlock(&PWRLock);
 /*
     if (gu4PWRCounter != 0)
     {
-        MFV_LOGE("[MT6589_VCodec_early_suspend] Someone Use HW, Disable Power!\n");
+        MFV_LOGE("[MT6589_VCodec_power_suspend] Someone Use HW, Disable Power!\n");
         disable_clock(MT65XX_PDN_MM_VBUF, "Video_VBUF");
         disable_clock(MT_CG_VDEC0_VDE, "VideoDec");
         disable_clock(MT_CG_VENC_VEN, "VideoEnc");
         disable_clock(MT65XX_PDN_MM_GDC_SHARE_MACRO, "VideoEnc");
     }
 */
-    MFV_LOGD("vcodec_early_suspend - tid = %d\n", current->pid);
+    MFV_LOGD("vcodec_power_suspend - tid = %d\n", current->pid);
 }
 
-static void vcodec_late_resume(struct early_suspend *h)
+static void vcodec_power_resume(struct power_suspend *h)
 {
     mutex_lock(&PWRLock);
-    MFV_LOGE("vcodec_late_resume, tid = %d, PWR_USER = %d\n", current->pid, gu4PWRCounter);
+    MFV_LOGE("vcodec_power_resume, tid = %d, PWR_USER = %d\n", current->pid, gu4PWRCounter);
     mutex_unlock(&PWRLock);
 /*
     if (gu4PWRCounter != 0)
     {
-        MFV_LOGE("[vcodec_late_resume] Someone Use HW, Enable Power!\n");
+        MFV_LOGE("[vcodec_power_resume] Someone Use HW, Enable Power!\n");
         enable_clock(MT65XX_PDN_MM_VBUF, "Video_VBUF");
         enable_clock(MT_CG_VDEC0_VDE, "VideoDec");
         enable_clock(MT_CG_VENC_VEN, "VideoEnc");
         enable_clock(MT65XX_PDN_MM_GDC_SHARE_MACRO, "VideoEnc");
     }
 */
-    MFV_LOGD("vcodec_late_resume - tid = %d\n", current->pid);
+    MFV_LOGD("vcodec_power_resume - tid = %d\n", current->pid);
 }
 
-static struct early_suspend vcodec_early_suspend_handler =
+static struct power_suspend vcodec_power_suspend_handler =
 {
-    .level = (EARLY_SUSPEND_LEVEL_DISABLE_FB - 1),
-    .suspend = vcodec_early_suspend,
-    .resume = vcodec_late_resume,
+    .suspend = vcodec_power_suspend,
+    .resume = vcodec_power_resume,
 };
 #endif
 
@@ -2297,8 +2296,8 @@ static int __init vcodec_driver_init(void)
 
     MFV_LOGD("[MFV_DEBUG] mflexvideo_driver_init Done\n");
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-    register_early_suspend(&vcodec_early_suspend_handler);
+#ifdef CONFIG_POWERSUSPEND
+    register_power_suspend(&vcodec_power_suspend_handler);
 #endif
 
 #ifdef CONFIG_MTK_HIBERNATION
@@ -2374,8 +2373,8 @@ static void __exit vcodec_driver_exit(void)
 
 
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-    unregister_early_suspend(&vcodec_early_suspend_handler);
+#ifdef CONFIG_POWERSUSPEND
+    unregister_power_suspend(&vcodec_power_suspend_handler);
 #endif
 
 #ifdef CONFIG_MTK_HIBERNATION

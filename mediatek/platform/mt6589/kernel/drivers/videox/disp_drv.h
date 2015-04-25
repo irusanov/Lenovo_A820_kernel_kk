@@ -262,7 +262,7 @@ BOOL DISP_SelectDevice(const char* lcm_name);
 BOOL DISP_DetectDevice(void);
 BOOL DISP_SelectDeviceBoot(const char* lcm_name);
 UINT32 DISP_GetVRamSizeBoot(char *cmdline);
-DISP_STATUS DISP_Capture_Framebuffer(unsigned int pvbuf, unsigned int bpp, unsigned int is_early_suspended);
+DISP_STATUS DISP_Capture_Framebuffer(unsigned int pvbuf, unsigned int bpp, unsigned int is_power_suspended);
 BOOL DISP_IsContextInited(void);
 
 DISP_STATUS DISP_Capture_Videobuffer(unsigned int pvbuf, unsigned int bpp, unsigned int video_rotation);

@@ -59,7 +59,7 @@
  *
  * 03 18 2011 jeffrey.chang
  * [WCXRP00000512] [MT6620 Wi-Fi][Driver] modify the net device relative functions to support the H/W multiple queue
- * remove early suspend functions
+ * remove power suspend functions
  *
  * 03 03 2011 jeffrey.chang
  * NULL
@@ -67,7 +67,7 @@
  *
  * 02 15 2011 jeffrey.chang
  * NULL
- * to support early suspend in android
+ * to support power suspend in android
  *
  * 02 01 2011 cp.wu
  * [WCXRP00000413] [MT6620 Wi-Fi][Driver] Merge 1103 changes on NVRAM file path change to DaVinci main trunk and V1.1 branch
@@ -113,8 +113,8 @@
 #include "gl_os.h"
 
 #ifndef CONFIG_X86
-#if defined(CONFIG_HAS_EARLY_SUSPEND)
-    #include <linux/earlysuspend.h>
+#ifdef CONFIG_POWERSUSPEND
+    #include <linux/powersuspend.h>
 #endif
 #endif
 
@@ -337,7 +337,7 @@ void wlanUnregisterNotifier(void)
 //EXPORT_SYMBOL(wlanUnregisterNotifier);
 
 #ifndef CONFIG_X86
-#if defined(CONFIG_HAS_EARLYSUSPEND)
+#ifdef CONFIG_POWERSUSPEND
 
 
 /*----------------------------------------------------------------------------*/
@@ -347,50 +347,50 @@ void wlanUnregisterNotifier(void)
 * \param[in] wlanSuspend    Function pointer to platform suspend function
 * \param[in] wlanResume   Function pointer to platform resume   function
 *
-* \return The result of registering earlysuspend
+* \return The result of registering powersuspend
 */
 /*----------------------------------------------------------------------------*/
 
-int glRegisterEarlySuspend(
-    struct early_suspend        *prDesc,
-    early_suspend_callback      wlanSuspend,
-    late_resume_callback        wlanResume)
+int glRegisterPowerSuspend(
+    struct power_suspend        *prDesc,
+    power_suspend_callback      wlanSuspend,
+    power_resume_callback        wlanResume)
 {
     int ret = 0;
 
     if(NULL != wlanSuspend)
         prDesc->suspend = wlanSuspend;
     else{
-        DBGLOG(REQ, INFO, ("glRegisterEarlySuspend wlanSuspend ERROR.\n"));
+        DBGLOG(REQ, INFO, ("glRegisterPowerSuspend wlanSuspend ERROR.\n"));
         ret = -1;
     }
 
     if(NULL != wlanResume)
         prDesc->resume = wlanResume;
     else{
-        DBGLOG(REQ, INFO, ("glRegisterEarlySuspend wlanResume ERROR.\n"));
+        DBGLOG(REQ, INFO, ("glRegisterPowerSuspend wlanResume ERROR.\n"));
         ret = -1;
     }
 
-    register_early_suspend(prDesc);
+    register_power_suspend(prDesc);
     return ret;
 }
 
-//EXPORT_SYMBOL(glRegisterEarlySuspend);
+//EXPORT_SYMBOL(glRegisterPowerSuspend);
 
 /*----------------------------------------------------------------------------*/
 /*!
 * \brief This function will un-register platform driver to os
 *
-* \return The result of un-registering earlysuspend
+* \return The result of un-registering powersuspend
 */
 /*----------------------------------------------------------------------------*/
 
-int glUnregisterEarlySuspend(struct early_suspend *prDesc)
+int glUnregisterPowerSuspend(struct power_suspend *prDesc)
 {
     int ret = 0;
 
-    unregister_early_suspend(prDesc);
+    unregister_power_suspend(prDesc);
 
     prDesc->suspend = NULL;
     prDesc->resume = NULL;
@@ -398,7 +398,7 @@ int glUnregisterEarlySuspend(struct early_suspend *prDesc)
     return ret;
 }
 
-//EXPORT_SYMBOL(glUnregisterEarlySuspend);
+//EXPORT_SYMBOL(glUnregisterPowerSuspend);
 #endif
 #endif // !CONFIG_X86
 

@@ -553,7 +553,6 @@ do_DataAbort(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
 		thread->cpu_excp++;
 		if (thread->cpu_excp == 1) {
 			thread->regs_on_excp = (void *)regs;
-			aee_excp_regs = (void*)regs;
 		}
 		/*
 		 * NoteXXX: The data abort exception may happen twice

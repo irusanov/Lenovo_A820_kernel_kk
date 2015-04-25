@@ -117,8 +117,8 @@ static inline MTKLFB_BOOL DontWaitForVSync(MTKLFB_DEVINFO *psDevInfo)
 	bDontWait = MTKLFBAtomicBoolRead(&psDevInfo->sBlanked) ||
 			MTKLFBAtomicBoolRead(&psDevInfo->sFlushCommands);
 
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-	bDontWait = bDontWait || MTKLFBAtomicBoolRead(&psDevInfo->sEarlySuspendFlag);
+#ifdef CONFIG_POWERSUSPEND
+	bDontWait = bDontWait || MTKLFBAtomicBoolRead(&psDevInfo->sPowerSuspendFlag);
 #endif
 #if defined(SUPPORT_DRI_DRM)
 	bDontWait = bDontWait || MTKLFBAtomicBoolRead(&psDevInfo->sLeaveVT);
@@ -1148,8 +1148,8 @@ static MTKLFB_DEVINFO *MTKLFBInitDev(unsigned uiFBDevID)
 	MTKLFBAtomicBoolInit(&psDevInfo->sBlanked, MTKLFB_FALSE);
 	MTKLFBAtomicIntInit(&psDevInfo->sBlankEvents, 0);
 	MTKLFBAtomicBoolInit(&psDevInfo->sFlushCommands, MTKLFB_FALSE);
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-	MTKLFBAtomicBoolInit(&psDevInfo->sEarlySuspendFlag, MTKLFB_FALSE);
+#ifdef CONFIG_POWERSUSPEND
+	MTKLFBAtomicBoolInit(&psDevInfo->sPowerSuspendFlag, MTKLFB_FALSE);
 #endif
 #if defined(SUPPORT_DRI_DRM)
 	MTKLFBAtomicBoolInit(&psDevInfo->sLeaveVT, MTKLFB_FALSE);
@@ -1202,8 +1202,8 @@ static MTKLFB_BOOL MTKLFBDeInitDev(MTKLFB_DEVINFO *psDevInfo)
 	MTKLFBAtomicBoolDeInit(&psDevInfo->sBlanked);
 	MTKLFBAtomicIntDeInit(&psDevInfo->sBlankEvents);
 	MTKLFBAtomicBoolDeInit(&psDevInfo->sFlushCommands);
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-	MTKLFBAtomicBoolDeInit(&psDevInfo->sEarlySuspendFlag);
+#ifdef CONFIG_POWERSUSPEND
+	MTKLFBAtomicBoolDeInit(&psDevInfo->sPowerSuspendFlag);
 #endif
 #if defined(SUPPORT_DRI_DRM)
 	MTKLFBAtomicBoolDeInit(&psDevInfo->sLeaveVT);

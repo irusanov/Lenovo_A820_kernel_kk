@@ -922,13 +922,13 @@ mtk_cfg80211_ais_default_mgmt_stypes[NUM_NL80211_IFTYPES] = {
 ********************************************************************************
 */
 
-#if defined(CONFIG_HAS_EARLYSUSPEND)
+#if defined(CONFIG_POWERSUSPEND)
 extern int glRegisterEarlySuspend(
-    struct early_suspend        *prDesc,
-    early_suspend_callback      wlanSuspend,
-    late_resume_callback        wlanResume);
+    struct power_suspend        *prDesc,
+    power_suspend_callback      wlanSuspend,
+    power_resume_callback        wlanResume);
 
-extern int glUnregisterEarlySuspend(struct early_suspend *prDesc);
+extern int glUnregisterEarlySuspend(struct power_suspend *prDesc);
 #endif
 
 /*******************************************************************************
@@ -2676,23 +2676,23 @@ fgIsUnderEarlierSuspend = false;
     }
 }
 
-#if defined(CONFIG_HAS_EARLYSUSPEND)
-static struct early_suspend mt6620_early_suspend_desc = {
+#if defined(CONFIG_POWERSUSPEND)
+static struct power_suspend mt6620_power_suspend_desc = {
     .level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN,
 };
 
-static void wlan_early_suspend(struct early_suspend *h)
+static void wlan_power_suspend(struct power_suspend *h)
 {
-    DBGLOG(INIT, INFO, ("*********wlan_early_suspend************\n"));
+    DBGLOG(INIT, INFO, ("*********wlan_power_suspend************\n"));
     wlanEarlySuspend();
 }
 
-static void wlan_late_resume(struct early_suspend *h)
+static void wlan_power_resume(struct power_suspend *h)
 {
-    DBGLOG(INIT, INFO, ("*********wlan_late_resume************\n"));
+    DBGLOG(INIT, INFO, ("*********wlan_power_resume************\n"));
     wlanLateResume();
 }
-#endif //defined(CONFIG_HAS_EARLYSUSPEND)
+#endif //defined(CONFIG_POWERSUSPEND)
 #endif //! CONFIG_X86
 
 extern void wlanRegisterNotifier(void);
@@ -2782,7 +2782,7 @@ set_p2p_mode_handler(
 	/* move out to caller to avoid kalIoctrl & suspend/resume deadlock problem ALPS00844864 */
 	/*
 		Scenario:
-			1. System enters suspend/resume but not yet enter wlanearlysuspend()
+			1. System enters suspend/resume but not yet enter wlanpowersuspend()
 				or wlanlateresume();
 
 			2. System switches to do PRIV_CMD_P2P_MODE and execute kalIoctl()
@@ -2794,7 +2794,7 @@ set_p2p_mode_handler(
 
 			3. System switches back to do suspend/resume procedure and execute
 				kalIoctl(). But driver does not yet release g_halt_sem so system
-				suspend in wlanearlysuspend() or wlanlateresume();
+				suspend in wlanpowersuspend() or wlanlateresume();
 
 				==> deadlock occurs.
 	*/
@@ -3098,9 +3098,9 @@ bailout:
             DBGLOG(INIT, ERROR, ("wlanProbe: Cannot register the net_device context to the kernel\n"));
             break;
         }
-#if defined(CONFIG_HAS_EARLYSUSPEND)
+#if defined(CONFIG_POWERSUSPEND)
         DBGLOG(INIT, TRACE, ("glRegisterEarlySuspend...\n"));
-        glRegisterEarlySuspend(&mt6620_early_suspend_desc, wlan_early_suspend, wlan_late_resume);
+        glRegisterEarlySuspend(&mt6620_power_suspend_desc, wlan_power_suspend, wlan_power_resume);
         wlanRegisterNotifier();
 #endif
 
@@ -3360,9 +3360,9 @@ wlanRemove(
     wlanNetDestroy(prDev->ieee80211_ptr);
     prDev = NULL;
 
-#if defined(CONFIG_HAS_EARLYSUSPEND)
+#if defined(CONFIG_POWERSUSPEND)
     DBGLOG(INIT, INFO, ("glUnregisterEarlySuspend...\n"));
-    glUnregisterEarlySuspend(&mt6620_early_suspend_desc);
+    glUnregisterEarlySuspend(&mt6620_power_suspend_desc);
 #endif
 
     DBGLOG(INIT, INFO, ("wlanUnregisterNotifier...\n"));

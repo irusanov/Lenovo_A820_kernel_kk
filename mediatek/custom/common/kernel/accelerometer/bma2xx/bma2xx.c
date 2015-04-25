@@ -11,7 +11,7 @@
  *
  * History: V1.0 --- [2013.01.10]Driver creation
  *			V1.1 --- [2013.02.18]Remove power mode setting in resume function.
- *          V1.2 --- [2013.03.14]Instead late_resume, use resume to make sure
+ *          V1.2 --- [2013.03.14]Instead power_resume, use resume to make sure
  *                               driver resume is ealier than processes resume.
  */
 

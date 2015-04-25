@@ -23,7 +23,7 @@
 #include <linux/platform_device.h>
 #include <generated/autoconf.h>
 #include <linux/kobject.h>
-#include <linux/earlysuspend.h>
+#include <linux/powersuspend.h>
 //#include "tpd_custom.h"
 
 /* debug macros */
@@ -98,8 +98,8 @@ struct tpd_driver_t
 {
 		char *tpd_device_name;
 		int (*tpd_local_init)(void);
- 		void (*suspend)(struct early_suspend *h);
- 		void (*resume)(struct early_suspend *h);
+ 		void (*suspend)(struct power_suspend *h);
+ 		void (*resume)(struct power_suspend *h);
  		int tpd_have_button;
 		struct tpd_attrs attrs;
 };

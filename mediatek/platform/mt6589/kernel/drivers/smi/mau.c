@@ -8,7 +8,7 @@
 #include <linux/wait.h>
 #include <linux/spinlock.h>
 #include <linux/delay.h>
-#include <linux/earlysuspend.h>
+#include <linux/powersuspend.h>
 #include <linux/mm.h>
 #include <linux/slab.h>
 #include <linux/sched.h>   //wake_up_process()

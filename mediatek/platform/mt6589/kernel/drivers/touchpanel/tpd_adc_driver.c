@@ -556,8 +556,8 @@ void tpd_tasklet(unsigned long unused) {
     return;
 }
 
-//#ifdef CONFIG_HAS_EARLYSUSPEND
-void tpd_driver_suspend(struct early_suspend *h) {
+//#ifdef CONFIG_POWERSUSPEND
+void tpd_driver_suspend(struct power_suspend *h) {
     disable_irq_nosync(MT65XX_TOUCH_IRQ_LINE);
     disable_irq_nosync(MT65XX_TOUCH_BATCH_LINE);
 	tpd_fav_switch(0);
@@ -568,7 +568,7 @@ void tpd_driver_suspend(struct early_suspend *h) {
         TPD_DMESG("entering suspend mode - hwDisableClock failed.");
 #endif
 }
-void tpd_driver_resume(struct early_suspend *h) {
+void tpd_driver_resume(struct power_suspend *h) {
 #if 0
     if(enable_clock(MT65XX_PDN_PERI_AUXADC,"Touch")==FALSE)
         TPD_DMESG("resume from suspend mode - hwEnableClock TP failed.");

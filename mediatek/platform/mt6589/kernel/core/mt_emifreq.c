@@ -14,7 +14,7 @@
 #include <linux/proc_fs.h>
 #include <linux/miscdevice.h>
 #include <linux/platform_device.h>
-#include <linux/earlysuspend.h>
+#include <linux/powersuspend.h>
 #include <linux/spinlock.h>
 #include <linux/kthread.h>
 #include <linux/hrtimer.h>
@@ -40,10 +40,9 @@ do {                                                                    \
     }                                                                   \
 } while(0)
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static struct early_suspend mt_emifreq_early_suspend_handler =
+#ifdef CONFIG_POWERSUSPEND
+static struct power_suspend mt_emifreq_power_suspend_handler =
 {
-    .level = EARLY_SUSPEND_LEVEL_DISABLE_FB + 200,
     .suspend = NULL,
     .resume  = NULL,
 };
@@ -158,26 +157,26 @@ static ssize_t mt_emifreq_debug_write(struct file *file, const char *buffer, uns
 
 
 /*********************************
-* early suspend callback function
+* power suspend callback function
 **********************************/
-void mt_emifreq_early_suspend(struct early_suspend *h)
+void mt_emifreq_power_suspend(struct power_suspend *h)
 {
     if(mt_emifreq_pause == false)
     {
         mt_h2l_mempll();
-        dprintk("mt_emifreq_early_suspend\n");
+        dprintk("mt_emifreq_power_suspend\n");
     }
 }
 
 /*******************************
-* late resume callback function
+* power resume callback function
 ********************************/
-void mt_emifreq_late_resume(struct early_suspend *h)
+void mt_emifreq_power_resume(struct power_suspend *h)
 {
     if(mt_emifreq_pause == false)
     {
         mt_l2h_mempll();
-        dprintk("mt_emifreq_late_resume\n");
+        dprintk("mt_emifreq_power_resume\n");
     }
 }
 
@@ -189,10 +188,10 @@ static int __init mt_emifreq_init(void)
     struct proc_dir_entry *mt_entry = NULL;
     struct proc_dir_entry *mt_emifreq_dir = NULL;
 	
-    #ifdef CONFIG_HAS_EARLYSUSPEND
-    mt_emifreq_early_suspend_handler.suspend = mt_emifreq_early_suspend;
-    mt_emifreq_early_suspend_handler.resume = mt_emifreq_late_resume;
-    register_early_suspend(&mt_emifreq_early_suspend_handler);
+    #ifdef CONFIG_POWERSUSPEND
+    mt_emifreq_power_suspend_handler.suspend = mt_emifreq_power_suspend;
+    mt_emifreq_power_suspend_handler.resume = mt_emifreq_power_resume;
+    register_power_suspend(&mt_emifreq_power_suspend_handler);
     #endif
 
         mt_emifreq_dir = proc_mkdir("emifreq", NULL);

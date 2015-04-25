@@ -204,7 +204,7 @@ void init_mtkfb_mmp_events(void)
         MTKFB_MMP_Events.CaptureFramebuffer = MMProfileRegisterEvent(MTKFB_MMP_Events.MTKFB, "CaptureFB");
         MTKFB_MMP_Events.TrigOverlayOut = MMProfileRegisterEvent(MTKFB_MMP_Events.MTKFB, "TrigOverlayOut");
         MTKFB_MMP_Events.RegUpdate = MMProfileRegisterEvent(MTKFB_MMP_Events.MTKFB, "RegUpdate");
-        MTKFB_MMP_Events.EarlySuspend = MMProfileRegisterEvent(MTKFB_MMP_Events.MTKFB, "EarlySuspend");
+        MTKFB_MMP_Events.PowerSuspend = MMProfileRegisterEvent(MTKFB_MMP_Events.MTKFB, "PowerSuspend");
         MTKFB_MMP_Events.DispDone = MMProfileRegisterEvent(MTKFB_MMP_Events.MTKFB, "DispDone");
         MTKFB_MMP_Events.DSICmd = MMProfileRegisterEvent(MTKFB_MMP_Events.MTKFB, "DSICmd");
         MTKFB_MMP_Events.DSIIRQ = MMProfileRegisterEvent(MTKFB_MMP_Events.MTKFB, "DSIIrq");
@@ -1142,14 +1142,14 @@ static ssize_t layer_debug_read(struct file *file,
     if(*ppos == 0)
     {
         extern struct semaphore sem_flipping;
-        extern struct semaphore sem_early_suspend;
+        extern struct semaphore sem_power_suspend;
         extern struct semaphore sem_update_screen;
-        extern BOOL is_early_suspended;
+        extern BOOL is_power_suspended;
         
         ret = down_interruptible(&sem_flipping);
-        ret = down_interruptible(&sem_early_suspend);
-        if (is_early_suspended) {
-              up(&sem_early_suspend);
+        ret = down_interruptible(&sem_power_suspend);
+        if (is_power_suspended) {
+              up(&sem_power_suspend);
               up(&sem_flipping);
               return 0;
         }
@@ -1172,7 +1172,7 @@ static ssize_t layer_debug_read(struct file *file,
         }
 
         up(&sem_update_screen);
-        up(&sem_early_suspend);
+        up(&sem_power_suspend);
         up(&sem_flipping);    
     }
     
