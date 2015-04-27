@@ -6,31 +6,30 @@
 
 static bool mt_keep_freq_non_od_set = false;
 
-//#define MTK_GPU_DVFS 0
+#define MTK_GPU_DVFS 0
+
+#if MTK_GPU_DVFS
+static struct mt_gpufreq_info freqs_special_vrf18_2[] = {
+    {GPU_DVFS_F3, 40, 100, GPU_POWER_VRF18_1_05V, 100},
+    {GPU_DVFS_F5, 0,  40, GPU_POWER_VRF18_1_05V,  80},
+};
+static struct mt_gpufreq_info freqs_special2_vrf18_2[] = {
+    {GPU_DVFS_F2, 60, 100, GPU_POWER_VRF18_1_05V, 100},
+    {GPU_DVFS_F3, 30,  60, GPU_POWER_VRF18_1_05V,  90},
+    {GPU_DVFS_F5, 0,  30, GPU_POWER_VRF18_1_05V,  75},
+};
+static struct mt_gpufreq_info freqs_special3_vrf18_2[] = {
+    {GPU_DVFS_F1, 60, 100, GPU_POWER_VRF18_1_05V, 100},
+    {GPU_DVFS_F3, 30,  60, GPU_POWER_VRF18_1_05V,  90},
+    {GPU_DVFS_F5, 0,  30, GPU_POWER_VRF18_1_05V,  75},
+};
+#endif
 
 void MtkInitSetFreqTbl(unsigned int tbltype)
 {
-
-	//#if MTK_GPU_DVFS
-	static struct mt_gpufreq_info freqs_special_vrf18_2[] = {
-		{GPU_DVFS_F3, 40, 100, GPU_POWER_VRF18_1_05V, 100},
-		{GPU_DVFS_F5, 0,  40, GPU_POWER_VRF18_1_05V,  80},
-	};
-	static struct mt_gpufreq_info freqs_special2_vrf18_2[] = {
-		{GPU_DVFS_F2, 60, 100, GPU_POWER_VRF18_1_05V, 100},
-		{GPU_DVFS_F3, 30,  60, GPU_POWER_VRF18_1_05V,  90},
-		{GPU_DVFS_F5, 0,  30, GPU_POWER_VRF18_1_05V,  75},
-	};
-	static struct mt_gpufreq_info freqs_special3_vrf18_2[] = {
-		{GPU_DVFS_F1, 60, 100, GPU_POWER_VRF18_1_05V, 100},
-		{GPU_DVFS_F3, 30,  60, GPU_POWER_VRF18_1_05V,  90},
-		{GPU_DVFS_F5, 0,  30, GPU_POWER_VRF18_1_05V,  75},
-	};
-	//#endif
-
     switch (tbltype)
     {
-//#if MTK_GPU_DVFS
+#if MTK_GPU_DVFS
     case TBLTYPE1:
 //        printk("[GPU DVFS] register vrf18_2 special table ...\n");
         mt_gpufreq_register(freqs_special_vrf18_2, 2);
@@ -43,7 +42,7 @@ void MtkInitSetFreqTbl(unsigned int tbltype)
 //        printk("[GPU DVFS] register vrf18_2 special3 table ...\n");
         mt_gpufreq_register(freqs_special3_vrf18_2, 3);
         break;
-//#endif
+#endif
     default:
     case TBLTYPE0:
         mt_gpufreq_non_register();
@@ -54,14 +53,13 @@ void MtkInitSetFreqTbl(unsigned int tbltype)
 
 PVRSRV_ERROR MTKSetFreqInfo(unsigned int freq, unsigned int tbltype)
 {
+	
 	static unsigned int voltage;
 	static unsigned int pll;
-	static int dvfs_on;
 	
 	freq = proton_gpu_frequency_get();
 	tbltype = proton_gpu_tbltype_get();
 	voltage = proton_gpu_voltage_get();
-	dvfs_on = proton_gpu_dvfs_get();
 
 //#if defined(MTK_FREQ_OD_INIT)
     if (freq > GPU_DVFS_F7)
@@ -102,14 +100,11 @@ PVRSRV_ERROR MTKSetFreqInfo(unsigned int freq, unsigned int tbltype)
     }
 //        mt_gpufreq_keep_frequency_non_OD_init(GPU_KEEP_FREQ_NON_OD_BYPASS, GPU_KEEP_VOLT_NON_OD_BYPASS);
 
-	if (dvfs_on = 1) 
-	{
-		MtkInitSetFreqTbl(tbltype);
-	}
-	else 
-	{
-		mt_gpufreq_non_register();
-	}
+#if MTK_GPU_DVFS
+    MtkInitSetFreqTbl(tbltype);
+#else
+	mt_gpufreq_non_register();
+#endif
 
     return PVRSRV_OK;
 }
