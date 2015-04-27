@@ -36,13 +36,13 @@
  ********************************************************************/
 
 // GPU frequency control in MHz
-unsigned int proton_gpu_frequency = 286;
+static int proton_gpu_frequency = 286;
 module_param(proton_gpu_frequency, int, 0664);
 MODULE_PARM_DESC(proton_gpu_frequency, "Sets the GPU frequency");
 
 // GPU voltage control in mV
-unsigned int proton_gpu_voltage = 1050;
-module_param(proton_gpu_voltage, int, 0664);
+static int proton_gpu_voltage[3] = {1050, 1050, 1050};
+module_param_array(proton_gpu_voltage, int, NULL, 0664);
 MODULE_PARM_DESC(proton_gpu_voltage, "Sets the GPU voltage");
 
 // GPU DVFS switch (1: enable, 0: disable)
@@ -124,12 +124,12 @@ unsigned int proton_gpu_tbltype_get(void) {
 }
 EXPORT_SYMBOL_GPL(proton_gpu_tbltype_get);
 
-unsigned int proton_gpu_voltage_get(void) {
-	
+unsigned int proton_gpu_voltage_get(int num) {
+
 	unsigned int voltage;
-	
+
 	// Select GPU voltage (in mV)
-	switch (proton_gpu_voltage)
+	switch (proton_gpu_voltage[num])
 	{
 		case 1200:
 			voltage = GPU_POWER_VRF18_1_20V;

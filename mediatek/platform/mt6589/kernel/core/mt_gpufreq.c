@@ -645,11 +645,14 @@ static void mt_gpu_clock_switch(unsigned int sel)
             mt65xx_reg_sync_writel(clk_cfg_0, CLK_CFG_0);
             dprintk("mt_gpu_clock_switch: switch MFG clock to GPU_SYSPLL_D2\n");
 
-            #ifdef GPU_HYD_CLK_SWITCH_ENABLED
-            clk_cfg_4 = (clk_cfg_4 & 0xFFFFFFF8) | (0x2);
-            mt65xx_reg_sync_writel(clk_cfg_4, CLK_CFG_4);
-            dprintk("mt_gpu_clock_switch: switch HYD clock to GPU_SYSPLL_D2\n");
-            #endif
+            //#ifdef GPU_HYD_CLK_SWITCH_ENABLED
+            if (proton_gpu_dvfs = 1) {
+		        unsigned int clk_cfg_4 = DRV_Reg32(CLK_CFG_4);
+		        clk_cfg_4 = (clk_cfg_4 & 0xFFFFFFF8) | (0x2);
+		        mt65xx_reg_sync_writel(clk_cfg_4, CLK_CFG_4);
+		        dprintk("mt_gpu_clock_switch: switch HYD clock to GPU_SYSPLL_D2\n");
+            }
+            //#endif
 
             #ifdef GPU_CALL_DISABLE_MAIN_MM_PLL				
             if(mt_gpufreq_enable_mmpll == 1)
