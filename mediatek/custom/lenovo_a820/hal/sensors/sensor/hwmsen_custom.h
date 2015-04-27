@@ -24,9 +24,9 @@
 
 #ifdef CUSTOM_KERNEL_ALSPS
 	#define PROXIMITY 		"APDS9930 Proximity Sensor"
-	#define PROXIMITY_VENDER 	"Taos"
+	#define PROXIMITY_VENDER 	"AVAGO"
 	#define LIGHT 			"APDS9930 Light Sensor"
-	#define LIGHT_VENDER 		"Taos"
+	#define LIGHT_VENDER 		"AVAGO"
 #endif
 
 #ifdef CUSTOM_KERNEL_MAGNETOMETER
