@@ -1210,7 +1210,7 @@ MTK_SWIP_VORBIS=yes
 
 # Support tablet wma-pro playback
 MTK_SWIP_WMAPRO=yes
-MTK_SYSTEM_UPDATE_SUPPORT=yes
+MTK_SYSTEM_UPDATE_SUPPORT=no
 
 # enable/disable tablet plug-in build in or not
 MTK_TABLET_PLUGIN_BUILD=no
@@ -1245,7 +1245,7 @@ MTK_TETHERINGIPV6_SUPPORT=yes
 MTK_TETHERING_EEM_SUPPORT=no
 
 # Whether to enable/disable ThemeManager feature, ThemeManager is a feature which maintains themes exist in device, and make it possible for user to change the current skin of device.
-MTK_THEMEMANAGER_APP=yes
+MTK_THEMEMANAGER_APP=no
 MTK_THERMAL_PA_VIA_ATCMD=no
 MTK_TINY_UTIL=no
 MTK_TLR_SUPPORT=no

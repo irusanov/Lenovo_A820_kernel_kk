@@ -45,11 +45,10 @@ unsigned int proton_gpu_voltage = 1050;
 module_param(proton_gpu_voltage, int, 0664);
 MODULE_PARM_DESC(proton_gpu_voltage, "Sets the GPU voltage");
 
-// GPU DVFS switch (1: enable, 0: disable)
+// GPU DVFS switch
 int proton_gpu_dvfs = 0;
 module_param(proton_gpu_dvfs, int, 0664);
 MODULE_PARM_DESC(proton_gpu_dvfs, "Enables or disabled GPU DVFS (Dynamic voltage and frequency)");
-EXPORT_SYMBOL(proton_gpu_dvfs);
 
 /*********************************************************************
  * FUNCTION DEFINITIONS
@@ -158,6 +157,11 @@ unsigned int proton_gpu_voltage_get(void) {
 	return voltage;
 }
 EXPORT_SYMBOL_GPL(proton_gpu_voltage_get);
+
+int proton_gpu_dvfs_get(void) {
+	return proton_gpu_dvfs;
+}
+EXPORT_SYMBOL_GPL(proton_gpu_dvfs_get);
 
 static int __init proton_control_init(void)
 {
