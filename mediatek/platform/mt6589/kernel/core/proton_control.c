@@ -18,6 +18,11 @@
 #define TBLTYPE2        0x2
 #define TBLTYPE3        0x3
 
+#define TBLTYPE0_0      0x4
+#define TBLTYPE0_1      0x5
+#define TBLTYPE0_2      0x6
+#define TBLTYPE0_3      0x7
+
 /******************************
 * MFG Power Voltage Selection
 *******************************/
@@ -114,6 +119,18 @@ unsigned int proton_gpu_tbltype_get(void) {
 			break;
 		case 357:
 		tbltype = TBLTYPE1;
+			break;
+		case 312:
+		tbltype = TBLTYPE0_3;
+			break;
+		case 286:
+		tbltype = TBLTYPE0_2;
+			break;
+		case 268:
+		tbltype = TBLTYPE0_1;
+			break;
+		case 238:
+		tbltype = TBLTYPE0_0;
 			break;
 		default:
 		tbltype = TBLTYPE0;

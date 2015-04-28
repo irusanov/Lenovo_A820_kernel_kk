@@ -11,6 +11,11 @@
 #define TBLTYPE2        0x2
 #define TBLTYPE3        0x3
 
+#define TBLTYPE0_0      0x4
+#define TBLTYPE0_1      0x5
+#define TBLTYPE0_2      0x6
+#define TBLTYPE0_3      0x7
+
 typedef struct PVRSRV_BRIDGE_INPUT_TAG
 {
     unsigned int freq;

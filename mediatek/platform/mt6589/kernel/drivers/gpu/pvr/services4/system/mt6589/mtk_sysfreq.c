@@ -15,15 +15,38 @@ void MtkInitSetFreqTbl(unsigned int tbltype)
 	int volt_min = proton_gpu_voltage_get(2);
 	
 	//#if MTK_GPU_DVFS
+	// 238 - 156MHz
+	struct mt_gpufreq_info freqs_special0_0_vrf18_2[] = {
+		{GPU_DVFS_F7, 40, 100, volt_max, 100},
+		{GPU_DVFS_F8, 0,  40, volt_min,  80},
+	};
+	// 268 - 238MHz
+	struct mt_gpufreq_info freqs_special0_1_vrf18_2[] = {
+		{GPU_DVFS_F6, 40, 100, volt_max, 100},
+		{GPU_DVFS_F7, 0,  40, volt_min,  80},
+	};
+	// 286 - 268MHz
+	struct mt_gpufreq_info freqs_special0_2_vrf18_2[] = {
+		{GPU_DVFS_F5, 40, 100, volt_max, 100},
+		{GPU_DVFS_F6, 0,  40, volt_min,  80},
+	};
+	// 312 - 286MHz
+	struct mt_gpufreq_info freqs_special0_3_vrf18_2[] = {
+		{GPU_DVFS_F5, 40, 100, volt_max, 100},
+		{GPU_DVFS_F6, 0,  40, volt_min,  80},
+	};
+	// 357 - 286MHz
 	struct mt_gpufreq_info freqs_special_vrf18_2[] = {
 		{GPU_DVFS_F3, 40, 100, volt_max, 100},
 		{GPU_DVFS_F5, 0,  40, volt_min,  80},
 	};
+	// 403 - 357 - 286MHz
 	struct mt_gpufreq_info freqs_special2_vrf18_2[] = {
 		{GPU_DVFS_F2, 60, 100, volt_max, 100},
 		{GPU_DVFS_F3, 30,  60, volt_mid,  90},
 		{GPU_DVFS_F5, 0,  30, volt_min,  75},
 	};
+	// 476 - 357 - 286MHz
 	struct mt_gpufreq_info freqs_special3_vrf18_2[] = {
 		{GPU_DVFS_F1, 60, 100, volt_max, 100},
 		{GPU_DVFS_F3, 30,  60, volt_mid, 90},
@@ -34,16 +57,25 @@ void MtkInitSetFreqTbl(unsigned int tbltype)
     switch (tbltype)
     {
 //#if MTK_GPU_DVFS
+	case TBLTYPE0_0:
+        mt_gpufreq_register(freqs_special0_0_vrf18_2, 2);
+        break;
+    case TBLTYPE0_1:
+        mt_gpufreq_register(freqs_special0_1_vrf18_2, 2);
+        break;
+    case TBLTYPE0_2:
+        mt_gpufreq_register(freqs_special0_2_vrf18_2, 2);
+        break;
+    case TBLTYPE0_3:
+        mt_gpufreq_register(freqs_special0_3_vrf18_2, 2);
+        break;
     case TBLTYPE1:
-//        printk("[GPU DVFS] register vrf18_2 special table ...\n");
         mt_gpufreq_register(freqs_special_vrf18_2, 2);
         break;
     case TBLTYPE2:
-//        printk("[GPU DVFS] register vrf18_2 special2 table ...\n");
         mt_gpufreq_register(freqs_special2_vrf18_2, 3);
         break;
     case TBLTYPE3:
-//        printk("[GPU DVFS] register vrf18_2 special3 table ...\n");
         mt_gpufreq_register(freqs_special3_vrf18_2, 3);
         break;
 //#endif
@@ -65,8 +97,8 @@ PVRSRV_ERROR MTKSetFreqInfo(unsigned int freq, unsigned int tbltype)
 	voltage = proton_gpu_voltage_get(0);
 
 //#if defined(MTK_FREQ_OD_INIT)
-    if (freq > GPU_DVFS_F7)
-    {
+//    if (freq > GPU_DVFS_F7)
+//    {
         mt_gpufreq_set_initial(freq, GPU_POWER_VRF18_1_05V);
         mt65xx_reg_sync_writel((readl(CLK_CFG_8)&0xffcffff)|0x30000, CLK_CFG_8);
         
@@ -91,24 +123,27 @@ PVRSRV_ERROR MTKSetFreqInfo(unsigned int freq, unsigned int tbltype)
         	case GPU_DVFS_F6: // 268MHz
         		pll = GPU_SYSPLL_D3;
         		break;
+        	case GPU_DVFS_F7: // 238MHz
+        		pll = GPU_MMPLL_D6;
+        		break;
+        	case GPU_DVFS_F8: // 156MHz
+        		pll = GPU_UNIVPLL1_D4;
+        		break;
         }
 		
 		mt_gpufreq_keep_frequency_non_OD_init(pll, voltage);
-    }
-    else
+//    }
+//    else
 //#endif
-    {
-        mt_gpufreq_set_initial(freq, GPU_POWER_VRF18_1_05V);
-        mt_gpufreq_keep_frequency_non_OD_init(GPU_KEEP_FREQ_NON_OD_BYPASS, GPU_KEEP_VOLT_NON_OD_BYPASS);
-    }
+//    {
+//        mt_gpufreq_set_initial(freq, GPU_POWER_VRF18_1_05V);
 //        mt_gpufreq_keep_frequency_non_OD_init(GPU_KEEP_FREQ_NON_OD_BYPASS, GPU_KEEP_VOLT_NON_OD_BYPASS);
-
-	if (proton_gpu_dvfs = 1) 
-	{
+//    }
+	
+	// No DVFS available for 156MHz
+	if ((proton_gpu_dvfs = 1) && (freq > GPU_DVFS_F8)) {
 		MtkInitSetFreqTbl(tbltype);
-	}
-	else 
-	{
+	} else {
 		mt_gpufreq_non_register();
 	}
 
