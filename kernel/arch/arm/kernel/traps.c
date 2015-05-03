@@ -387,7 +387,6 @@ asmlinkage void __exception do_undefinstr(struct pt_regs *regs)
 		thread->cpu_excp++;
 		if (thread->cpu_excp == 1) {
 			thread->regs_on_excp = (void *)regs;
-			aee_excp_regs = (void*)regs;
 		}
 		if (thread->cpu_excp >= 2) {
 			aee_stop_nested_panic(regs);

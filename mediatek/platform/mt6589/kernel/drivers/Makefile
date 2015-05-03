@@ -50,6 +50,6 @@ obj-y	+= masp/
 obj-y	+= devapc/
 obj-$(CONFIG_THERMAL) += thermal/
 include $(MTK_PATH_BUILD)/common.mk
-obj-y   += $(call all-subdirs-with-makefile,cpu_stress)
+#obj-y   += $(call all-subdirs-with-makefile,cpu_stress)
 
 obj-y   += met/

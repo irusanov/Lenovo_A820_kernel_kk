@@ -5,6 +5,7 @@
 obj-y := core.o irq.o timer.o mt_dbg.o
 obj-y += mt_devs.o mt_gpt.o mt_boot.o board.o mt_pm_init.o
 obj-y += ca7_timer.o dram_overclock.o
+obj-y += proton_control.o
 ifeq ($(CONFIG_SMP),y)
 obj-y += mt-smp.o hotplug.o mt-headsmp.o mt_hotplug.o mt_hotplug_mechanism.o
 endif

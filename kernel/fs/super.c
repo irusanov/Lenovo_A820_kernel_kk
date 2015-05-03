@@ -35,7 +35,6 @@
 #include <linux/fsnotify.h>
 #include "internal.h"
 
-#include <linux/xlog.h>
 
 LIST_HEAD(super_blocks);
 EXPORT_SYMBOL_GPL(super_blocks);
@@ -977,10 +976,7 @@ struct dentry *mount_bdev(struct file_system_type *fs_type,
 
 	bdev = blkdev_get_by_path(dev_name, mode, fs_type);
 	if (IS_ERR(bdev))
-		{
-		xlog_printk(ANDROID_LOG_DEBUG, "MNT_TAG", "blkdev_get_by_path error: %s\n", dev_name); 
 		return ERR_CAST(bdev);
-		}
 
 	/*
 	 * once the super is inserted into the list by sget, s_umount
@@ -996,10 +992,7 @@ struct dentry *mount_bdev(struct file_system_type *fs_type,
 	s = sget(fs_type, test_bdev_super, set_bdev_super, bdev);
 	mutex_unlock(&bdev->bd_fsfreeze_mutex);
 	if (IS_ERR(s))
-		{
-		xlog_printk(ANDROID_LOG_DEBUG, "MNT_TAG", "mount_bdev, sget error\n"); 
 		goto error_s;
-		}
 
 	if (s->s_root) {
 		if ((flags ^ s->s_flags) & MS_RDONLY) {
@@ -1027,7 +1020,6 @@ struct dentry *mount_bdev(struct file_system_type *fs_type,
 		sb_set_blocksize(s, block_size(bdev));
 		error = fill_super(s, data, flags & MS_SILENT ? 1 : 0);
 		if (error) {
-			xlog_printk(ANDROID_LOG_DEBUG, "MNT_TAG", "mount_bdev, fill_super error:%d\n", error); 			
 			deactivate_locked_super(s);
 			goto error;
 		}
@@ -1135,7 +1127,6 @@ mount_fs(struct file_system_type *type, int flags, const char *name, void *data)
 	root = type->mount(type, flags, name, data);
 	if (IS_ERR(root)) {
 		error = PTR_ERR(root);
-		xlog_printk(ANDROID_LOG_DEBUG, "MNT_TAG", "mount_fs, mount error %d\n", error); 
 		goto out_free_secdata;
 	}
 	sb = root->d_sb;

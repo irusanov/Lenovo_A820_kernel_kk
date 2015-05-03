@@ -24,9 +24,10 @@
 
 #ifdef CUSTOM_KERNEL_ALSPS
 	#define PROXIMITY 		"APDS9930 Proximity Sensor"
-	#define PROXIMITY_VENDER 	"Taos"
+	#define PROXIMITY_VENDER 	"AVAGO"
 	#define LIGHT 			"APDS9930 Light Sensor"
-	#define LIGHT_VENDER 		"Taos"
+	#define LIGHT_VENDER 		"AVAGO"
+/* correct vendor name for apds9930  -- liaoxl.lenovo 1.5.2013  end  */
 #endif
 
 #ifdef CUSTOM_KERNEL_MAGNETOMETER

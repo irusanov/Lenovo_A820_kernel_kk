@@ -15,9 +15,9 @@
 
 static void arch_decomp_setup(void)
 {
-    unsigned char tmp;
-
 #if defined(CONFIG_MT6575_FPGA)
+		unsigned char tmp;
+		
         MT6575_UART0_LCR = 0x3;
         tmp = MT6575_UART0_LCR;
         MT6575_UART0_LCR = (tmp | 0x80);

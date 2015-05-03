@@ -124,10 +124,6 @@ ifneq ($(CONFIG_MTK_COMBO),)
 		BUILD_SOC := yes
 	endif
 
-	ifeq ($(BUILD_SOC), yes)
-		obj-y   +=  conn_soc/
-	endif
-
 	obj-y   +=  common_detect/
 
 endif

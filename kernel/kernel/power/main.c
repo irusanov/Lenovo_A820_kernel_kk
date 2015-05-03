@@ -23,12 +23,12 @@ extern bool console_suspend_enabled; // from printk.c
 #define _TAG_HIB_M "HIB/PM"
 #if (HIB_PM_DEBUG)
 #undef hib_log
-#define hib_log(fmt, ...)	pr_warn("[%s][%s]" fmt, _TAG_HIB_M, __func__, ##__VA_ARGS__);
+#define hib_log(fmt, ...)	if (!console_suspend_enabled) pr_warn("[%s][%s]" fmt, _TAG_HIB_M, __func__, ##__VA_ARGS__);
 #else
 #define hib_log(fmt, ...)
 #endif
 #undef hib_warn
-#define hib_warn(fmt, ...)  pr_warn("[%s][%s]" fmt, _TAG_HIB_M, __func__, ##__VA_ARGS__);
+#define hib_warn(fmt, ...)  if (!console_suspend_enabled) pr_warn("[%s][%s]" fmt, _TAG_HIB_M, __func__, ##__VA_ARGS__);
 
 DEFINE_MUTEX(pm_mutex);
 EXPORT_SYMBOL_GPL(pm_mutex);
@@ -369,14 +369,6 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
 #ifdef CONFIG_MTK_HIBERNATION
     state = decode_state(buf, n);
     hib_log("entry (%d)\n", state);
-#endif
-
-#ifdef CONFIG_MTK_HIBERNATION
-    if (len == 8 && !strncmp(buf, "hibabort", len)) {
-        hib_log("abort hibernation...\n");
-        error = mtk_hibernate_abort();
-        goto Exit;
-    }
 #endif
 
     /* First, check if we are requested to hibernate */

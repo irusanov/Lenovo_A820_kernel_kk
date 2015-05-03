@@ -39,7 +39,7 @@ extern int tpd_mode_select(int mode);
 extern void tpd_enable_em_log(int enable);
 extern void tpd_fav_coord_sel(int coord);
 
-#define TS_DEBUG   1
+#define TS_DEBUG   0
 
 #define TS_NAME    "dvt-ts"
 

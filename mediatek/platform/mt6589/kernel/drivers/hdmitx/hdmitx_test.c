@@ -28,42 +28,18 @@
 #include <mach/irqs.h>
 
 #include <linux/miscdevice.h>
-#include <linux/platform_device.h>
 #include <linux/fs.h>
 #include <linux/file.h>
-#include <linux/mm.h>
 #include <linux/cdev.h>
 #include <asm/tlbflush.h>
 #include <asm/page.h>
-#include <asm/io.h>
-#include <asm/uaccess.h>
 #include <linux/slab.h>
 
-#include <linux/autoconf.h>
-#include <linux/module.h>
-#include <linux/mm.h>
-#include <linux/init.h>
-#include <linux/fb.h>
-#include <linux/delay.h>
-#include <linux/device.h>
-#include <linux/platform_device.h>
-#include <linux/dma-mapping.h>
-#include <linux/earlysuspend.h>
-#include <linux/kthread.h>
-#include <linux/rtpm_prio.h>
+
 #include <linux/list.h>
 
-#include <asm/uaccess.h>
-#include <asm/atomic.h>
-#include <asm/mach-types.h>
-#include <asm/cacheflush.h>
-#include <asm/io.h>
 
-#include <mach/dma.h>
-#include <mach/irqs.h>
-#include <linux/vmalloc.h>
 
-#include <asm/uaccess.h>
 
 #include "hdmi_drv.h"
 
