@@ -41,8 +41,8 @@
 
 #include <linux/xlog.h>
 
-#ifdef CONFIG_POWERSUSPEND
-#include <linux/powersuspend.h>
+#ifdef CONFIG_HAS_EARLYSUSPEND
+#include <linux/earlysuspend.h>
 #endif
 
 #if !defined(CONFIG_FRAMEBUFFER_CONSOLE)
@@ -196,11 +196,11 @@ typedef struct MTKLFB_DEVINFO_TAG
 	
 	MTKLFB_ATOMIC_INT	sBlankEvents;
 
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 	
-	MTKLFB_ATOMIC_BOOL	sPowerSuspendFlag;
+	MTKLFB_ATOMIC_BOOL	sEarlySuspendFlag;
 
-	struct power_suspend    sPowerSuspend;
+	struct early_suspend    sEarlySuspend;
 #endif
 
 #if defined(SUPPORT_DRI_DRM)

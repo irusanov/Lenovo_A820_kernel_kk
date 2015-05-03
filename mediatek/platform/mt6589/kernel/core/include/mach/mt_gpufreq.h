@@ -124,7 +124,6 @@ enum mt_gpufreq_clock_ratio {
 /*****************
 * extern function 
 ******************/
-extern int proton_gpu_dvfs;
 extern int mt_gpufreq_state_set(int enabled);
 extern void mt_gpufreq_thermal_protect(unsigned int limited_power);
 extern int mt_gpufreq_register(struct mt_gpufreq_info *freqs, int num);

@@ -142,7 +142,7 @@ BOOL DISP_SelectDevice(const char* lcm_name);
 BOOL DISP_DetectDevice(void);
 BOOL DISP_SelectDeviceBoot(const char* lcm_name);
 UINT32 DISP_GetVRamSizeBoot(char *cmdline);
-DISP_STATUS DISP_Capture_Framebuffer(unsigned int pvbuf, unsigned int bpp, unsigned int is_power_suspended);
+DISP_STATUS DISP_Capture_Framebuffer(unsigned int pvbuf, unsigned int bpp, unsigned int is_early_suspended);
 BOOL DISP_IsContextInited(void);
 
 UINT32 DISP_GetOutputBPPforDithering(void);
@@ -162,7 +162,7 @@ unsigned long DISP_GetLCMIndex(void);
 unsigned int DISP_AutoTest(void);
 unsigned int DISP_BLS_Query(void);
 void DISP_BLS_Enable(BOOL enable);
-DISP_STATUS DISP_Auto_Capture_FB( unsigned int pvbuf, unsigned int wdma_out_fmt,unsigned int bpp, unsigned int is_power_suspended,int wdma_width,int wdma_height);
+DISP_STATUS DISP_Auto_Capture_FB( unsigned int pvbuf, unsigned int wdma_out_fmt,unsigned int bpp, unsigned int is_early_suspended,int wdma_width,int wdma_height);
 // ---------------------------------------------------------------------------
 DISP_STATUS DISP_Change_LCM_Resolution(unsigned int width, unsigned int height);
 // This part is for Display Customization Tool Implementation****************

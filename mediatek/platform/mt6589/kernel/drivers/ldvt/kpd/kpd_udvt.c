@@ -23,7 +23,7 @@
 #include <linux/fs.h>
 #include <linux/miscdevice.h>
 #include <linux/platform_device.h>
-#include <linux/powersuspend.h>
+#include <linux/earlysuspend.h>
 
 #include <asm/atomic.h>
 #include <asm/uaccess.h>

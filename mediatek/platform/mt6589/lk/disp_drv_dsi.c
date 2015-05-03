@@ -439,7 +439,7 @@ static DISP_STATUS dsi_init(UINT32 fbVA, UINT32 fbPA, BOOL isLcmInited)
 }
 
 
-// protected by sem_power_suspend, sem_update_screen
+// protected by sem_early_suspend, sem_update_screen
 DISP_STATUS dsi_enable_power(BOOL enable)
 {	printf("%s,%d\n", __func__, __LINE__);
 	disp_drv_dsi_init_context();
@@ -565,7 +565,7 @@ DISP_STATUS dsi_enable_power(BOOL enable)
 }
 
 
-// protected by sem_flipping, sem_power_suspend, sem_overlay_buffer, sem_update_screen
+// protected by sem_flipping, sem_early_suspend, sem_overlay_buffer, sem_update_screen
 static DISP_STATUS dsi_update_screen(void)
 {
 	disp_drv_dsi_init_context();
@@ -699,7 +699,7 @@ DISP_STATUS dsi_capture_framebuffer(UINT32 pvbuf, UINT32 bpp)
 
 
 // called by "esd_recovery_kthread"
-// protected by sem_power_suspend, sem_update_screen
+// protected by sem_early_suspend, sem_update_screen
 BOOL dsi_esd_check(void)
 {
 	BOOL result = FALSE;
@@ -726,7 +726,7 @@ BOOL dsi_esd_check(void)
 
 
 // called by "esd_recovery_kthread"
-// protected by sem_power_suspend, sem_update_screen
+// protected by sem_early_suspend, sem_update_screen
 void dsi_esd_reset(void)
 {
      /// we assume the power is on here

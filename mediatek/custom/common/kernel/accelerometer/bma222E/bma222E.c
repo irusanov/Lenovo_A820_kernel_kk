@@ -23,7 +23,7 @@
 #include <linux/input.h>
 #include <linux/workqueue.h>
 #include <linux/kobject.h>
-#include <linux/powersuspend.h>
+#include <linux/earlysuspend.h>
 #include <linux/platform_device.h>
 #include <asm/atomic.h>
 //#include <mach/mt_gpio.h>
@@ -71,7 +71,7 @@ static struct i2c_board_info __initdata i2c_BMA222={ I2C_BOARD_INFO("BMA222", 0x
 static int bma222_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id); 
 static int bma222_i2c_remove(struct i2c_client *client);
 static int bma222_i2c_detect(struct i2c_client *client, struct i2c_board_info *info);
-#ifndef CONFIG_POWERSUSPEND
+#ifndef USE_EARLY_SUSPEND
 static int bma222_suspend(struct i2c_client *client, pm_message_t msg);
 static int bma222_resume(struct i2c_client *client);
 #endif
@@ -125,9 +125,9 @@ struct bma222_i2c_data {
     atomic_t                fir_en;
     struct data_filter      fir;
 #endif 
-    /*power suspend*/
-#ifdef CONFIG_POWERSUSPEND
-    struct power_suspend    power_drv;
+    /*early suspend*/
+#ifdef USE_EARLY_SUSPEND
+    struct early_suspend    early_drv;
 #endif     
 };
 /*----------------------------------------------------------------------------*/
@@ -139,7 +139,7 @@ static struct i2c_driver bma222_i2c_driver = {
 	.probe      		= bma222_i2c_probe,
 	.remove    			= bma222_i2c_remove,
 	.detect				= bma222_i2c_detect,
-#if !defined(CONFIG_POWERSUSPEND)    
+#if !defined(USE_EARLY_SUSPEND)    
     .suspend            = bma222_suspend,
     .resume             = bma222_resume,
 #endif
@@ -1563,7 +1563,7 @@ static struct miscdevice bma222_device = {
 	.fops = &bma222_fops,
 };
 /*----------------------------------------------------------------------------*/
-#ifndef CONFIG_POWERSUSPEND
+#ifndef USE_EARLY_SUSPEND
 /*----------------------------------------------------------------------------*/
 static int bma222_suspend(struct i2c_client *client, pm_message_t msg) 
 {
@@ -1617,11 +1617,11 @@ static int bma222_resume(struct i2c_client *client)
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-#else /*CONFIG_POWERSUSPEND is defined*/
+#else /*CONFIG_HAS_EARLY_SUSPEND is defined*/
 /*----------------------------------------------------------------------------*/
-static void bma222_power_suspend(struct power_suspend *h) 
+static void bma222_early_suspend(struct early_suspend *h) 
 {
-	struct bma222_i2c_data *obj = container_of(h, struct bma222_i2c_data, power_drv);   
+	struct bma222_i2c_data *obj = container_of(h, struct bma222_i2c_data, early_drv);   
 	int err;
 		
 	if(obj == NULL)
@@ -1660,9 +1660,9 @@ static void bma222_power_suspend(struct power_suspend *h)
 	BMA222_power(obj->hw, 0);
 }
 /*----------------------------------------------------------------------------*/
-static void bma222_power_resume(struct power_suspend *h)
+static void bma222_late_resume(struct early_suspend *h)
 {
-	struct bma222_i2c_data *obj = container_of(h, struct bma222_i2c_data, power_drv);         
+	struct bma222_i2c_data *obj = container_of(h, struct bma222_i2c_data, early_drv);         
 	int err;
 	
 	if(obj == NULL)
@@ -1703,7 +1703,7 @@ static void bma222_power_resume(struct power_suspend *h)
 	atomic_set(&obj->suspend, 0);    
 }
 /*----------------------------------------------------------------------------*/
-#endif /*CONFIG_POWERSUSPEND*/
+#endif /*USE_EARLY_SUSPEND*/
 /*----------------------------------------------------------------------------*/
 static int bma222_i2c_detect(struct i2c_client *client, struct i2c_board_info *info) 
 {    
@@ -1796,10 +1796,11 @@ static int bma222_i2c_probe(struct i2c_client *client, const struct i2c_device_i
 		goto exit_kfree;
 	}
 
-#ifdef CONFIG_POWERSUSPEND
-	obj->power_drv.suspend  = bma222_power_suspend,
-	obj->power_drv.resume   = bma222_power_resume,    
-	register_power_suspend(&obj->power_drv);
+#ifdef USE_EARLY_SUSPEND
+	obj->early_drv.level    = EARLY_SUSPEND_LEVEL_STOP_DRAWING - 2,
+	obj->early_drv.suspend  = bma222_early_suspend,
+	obj->early_drv.resume   = bma222_late_resume,    
+	register_early_suspend(&obj->early_drv);
 #endif 
 
 	GSE_LOG("%s: OK\n", __func__);    

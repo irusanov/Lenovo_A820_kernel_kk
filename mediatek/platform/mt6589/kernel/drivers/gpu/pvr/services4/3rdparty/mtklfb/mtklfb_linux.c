@@ -412,7 +412,7 @@ MTKLFB_ERROR MTKLFBUnblankDisplay(MTKLFB_DEVINFO *psDevInfo)
 	return (MTKLFB_OK);
 }
 
-#ifdef CONFIG_POWERSUSPEND
+#ifdef CONFIG_HAS_EARLYSUSPEND
 
 static void MTKLFBBlankDisplay(MTKLFB_DEVINFO *psDevInfo)
 {
@@ -421,7 +421,7 @@ static void MTKLFBBlankDisplay(MTKLFB_DEVINFO *psDevInfo)
 	MTKLFB_CONSOLE_UNLOCK();
 }
 
-static void MTKLFBPowerSuspendHandler(struct power_suspend *h)
+static void MTKLFBEarlySuspendHandler(struct early_suspend *h)
 {
 	unsigned uiMaxFBDevIDPlusOne = MTKLFBMaxFBDevIDPlusOne();
 	unsigned i;
@@ -432,13 +432,13 @@ static void MTKLFBPowerSuspendHandler(struct power_suspend *h)
 
 		if (psDevInfo != NULL)
 		{
-			MTKLFBAtomicBoolSet(&psDevInfo->sPowerSuspendFlag, MTKLFB_TRUE);
+			MTKLFBAtomicBoolSet(&psDevInfo->sEarlySuspendFlag, MTKLFB_TRUE);
 			MTKLFBBlankDisplay(psDevInfo);
 		}
 	}
 }
 
-static void MTKLFBPowerResumeHandler(struct power_suspend *h)
+static void MTKLFBEarlyResumeHandler(struct early_suspend *h)
 {
 	unsigned uiMaxFBDevIDPlusOne = MTKLFBMaxFBDevIDPlusOne();
 	unsigned i;
@@ -450,7 +450,7 @@ static void MTKLFBPowerResumeHandler(struct power_suspend *h)
 		if (psDevInfo != NULL)
 		{
 			MTKLFBUnblankDisplay(psDevInfo);
-			MTKLFBAtomicBoolSet(&psDevInfo->sPowerSuspendFlag, MTKLFB_FALSE);
+			MTKLFBAtomicBoolSet(&psDevInfo->sEarlySuspendFlag, MTKLFB_FALSE);
 		}
 	}
 }
@@ -487,10 +487,11 @@ MTKLFB_ERROR MTKLFBEnableLFBEventNotification(MTKLFB_DEVINFO *psDevInfo)
 		return eError;
 	}
 
-#ifdef CONFIG_POWERSUSPEND
-	psDevInfo->sPowerSuspend.suspend = MTKLFBPowerSuspendHandler;
-	psDevInfo->sPowerSuspend.resume = MTKLFBPowerResumeHandler;
-	register_power_suspend(&psDevInfo->sPowerSuspend);
+#ifdef CONFIG_HAS_EARLYSUSPEND
+	psDevInfo->sEarlySuspend.suspend = MTKLFBEarlySuspendHandler;
+	psDevInfo->sEarlySuspend.resume = MTKLFBEarlyResumeHandler;
+	psDevInfo->sEarlySuspend.level = EARLY_SUSPEND_LEVEL_DISABLE_FB + 1;
+	register_early_suspend(&psDevInfo->sEarlySuspend);
 #endif
 
 	return (MTKLFB_OK);
@@ -500,8 +501,8 @@ MTKLFB_ERROR MTKLFBDisableLFBEventNotification(MTKLFB_DEVINFO *psDevInfo)
 {
 	int res;
 
-#ifdef CONFIG_POWERSUSPEND
-	unregister_power_suspend(&psDevInfo->sPowerSuspend);
+#ifdef CONFIG_HAS_EARLYSUSPEND
+	unregister_early_suspend(&psDevInfo->sEarlySuspend);
 #endif
 
 	

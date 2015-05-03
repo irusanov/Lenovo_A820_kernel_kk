@@ -151,7 +151,7 @@ static DEFINE_MUTEX(dbs_mutex);
  */
 static DEFINE_MUTEX(hp_mutex);
 
-DEFINE_MUTEX(hp_onoff_mutex);
+static DEFINE_MUTEX(hp_onoff_mutex);
 
 static struct dbs_tuners {
     unsigned int sampling_rate;

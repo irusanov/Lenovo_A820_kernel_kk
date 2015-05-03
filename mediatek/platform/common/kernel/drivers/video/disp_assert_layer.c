@@ -89,7 +89,7 @@ static MFC_HANDLE mfc_handle = NULL;
 static void *dal_fb_addr = NULL;  
 unsigned int dal_fb_pa = 0;
 unsigned int isAEEEnabled = 0;
-extern BOOL is_power_suspended;
+extern BOOL is_early_suspended;
 
 //static BOOL  dal_shown   = FALSE;
 BOOL  dal_shown   = FALSE;
@@ -428,7 +428,7 @@ DAL_STATUS DAL_OnDispPowerOn(void)
 
     /* Re-enable assertion layer when display resumes */
     
-    if (is_power_suspended)
+    if (is_early_suspended)
     {
 		if(dal_enable_when_resume) 
 		{

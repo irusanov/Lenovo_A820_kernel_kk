@@ -1,4 +1,5 @@
 #include <linux/module.h>
+#include <linux/kernel.h>
 #include <linux/init.h>
 
 /*********************
@@ -41,14 +42,16 @@
  ********************************************************************/
 
 // GPU frequency control in MHz
-static int proton_gpu_frequency = 286;
+int proton_gpu_frequency = 286;
 module_param(proton_gpu_frequency, int, 0664);
 MODULE_PARM_DESC(proton_gpu_frequency, "Sets the GPU frequency");
+EXPORT_SYMBOL(proton_gpu_frequency);
 
 // GPU voltage control in mV
-static int proton_gpu_voltage[3] = {1050, 1050, 1050};
+int proton_gpu_voltage[3] = {1050, 1050, 1050};
 module_param_array(proton_gpu_voltage, int, NULL, 0664);
 MODULE_PARM_DESC(proton_gpu_voltage, "Sets the GPU voltage");
+EXPORT_SYMBOL(proton_gpu_voltage);
 
 // GPU DVFS switch (1: enable, 0: disable)
 int proton_gpu_dvfs = 0;

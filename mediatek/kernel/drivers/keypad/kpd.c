@@ -20,7 +20,6 @@
 
 #define KPD_NAME	"mtk-kpd"
 #define MTK_KP_WAKESOURCE//this is for auto set wake up source
-#define USE_POWERSUSPEND
 
 struct input_dev *kpd_input_dev;
 static bool kpd_suspend = false;
@@ -56,7 +55,7 @@ static void kpd_memory_setting(void);
 /*********************************************************************/
 static int kpd_pdrv_probe(struct platform_device *pdev);
 static int kpd_pdrv_remove(struct platform_device *pdev);
-#ifndef USE_POWERSUSPEND	
+#ifndef USE_EARLY_SUSPEND	
 static int kpd_pdrv_suspend(struct platform_device *pdev, pm_message_t state);
 static int kpd_pdrv_resume(struct platform_device *pdev);
 #endif
@@ -65,7 +64,7 @@ static int kpd_pdrv_resume(struct platform_device *pdev);
 static struct platform_driver kpd_pdrv = {
 	.probe		= kpd_pdrv_probe,
 	.remove		= kpd_pdrv_remove,
-#ifndef USE_POWERSUSPEND	
+#ifndef USE_EARLY_SUSPEND	
 	.suspend	= kpd_pdrv_suspend,
 	.resume		= kpd_pdrv_resume,
 #endif	
@@ -844,7 +843,7 @@ static int kpd_pdrv_remove(struct platform_device *pdev)
 	return 0;
 }
 
-#ifndef USE_POWERSUSPEND
+#ifndef USE_EARLY_SUSPEND
 static int kpd_pdrv_suspend(struct platform_device *pdev, pm_message_t state)
 {
 	kpd_suspend = true;
@@ -881,8 +880,8 @@ static int kpd_pdrv_resume(struct platform_device *pdev)
 #endif
 
 
-#ifdef USE_POWERSUSPEND
-static void kpd_power_suspend(struct power_suspend *h)
+#ifdef USE_EARLY_SUSPEND
+static void kpd_early_suspend(struct early_suspend *h)
 {
 	kpd_suspend = true;
 #ifdef MTK_KP_WAKESOURCE
@@ -894,26 +893,27 @@ static void kpd_power_suspend(struct power_suspend *h)
 	}
 #endif	
 	kpd_disable_backlight();
-	kpd_print("power suspend!! (%d)\n", kpd_suspend);
+	kpd_print("early suspend!! (%d)\n", kpd_suspend);
 }
 
-static void kpd_power_resume(struct power_suspend *h)
+static void kpd_early_resume(struct early_suspend *h)
 {
 	kpd_suspend = false;
 #ifdef MTK_KP_WAKESOURCE
 	if(call_status == 2){
-		kpd_print("kpd_power_resume wake up source resume!! (%d)\n", kpd_suspend);
+		kpd_print("kpd_early_resume wake up source resume!! (%d)\n", kpd_suspend);
 	}else{
-		kpd_print("kpd_power_resume wake up source enable!! (%d)\n", kpd_suspend);
+		kpd_print("kpd_early_resume wake up source enable!! (%d)\n", kpd_suspend);
 		//kpd_wakeup_src_setting(1);
 	}
 #endif	
-	kpd_print("power resume!! (%d)\n", kpd_suspend);
+	kpd_print("early resume!! (%d)\n", kpd_suspend);
 }
 
-static struct power_suspend kpd_power_suspend_desc = {
-	.suspend	= kpd_power_suspend,
-	.resume		= kpd_power_resume,
+static struct early_suspend kpd_early_suspend_desc = {
+	.level		= EARLY_SUSPEND_LEVEL_BLANK_SCREEN + 1,
+	.suspend	= kpd_early_suspend,
+	.resume		= kpd_early_resume,
 };
 #endif
 
@@ -937,8 +937,8 @@ static int __init kpd_mod_init(void)
 		return r;
 	}
 
-#ifdef USE_POWERSUSPEND
-	register_power_suspend(&kpd_power_suspend_desc);
+#ifdef USE_EARLY_SUSPEND
+	register_early_suspend(&kpd_early_suspend_desc);
 #endif
 
 #ifdef MTK_SMARTBOOK_SUPPORT

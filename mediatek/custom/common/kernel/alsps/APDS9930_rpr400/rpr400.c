@@ -23,7 +23,7 @@
 #include <linux/input.h>
 #include <linux/workqueue.h>
 #include <linux/kobject.h>
-#include <linux/powersuspend.h>
+#include <linux/earlysuspend.h>
 #include <linux/platform_device.h>
 #include <asm/atomic.h>
 #include <linux/mutex.h>
@@ -165,9 +165,9 @@ struct rpr400_priv {
     ulong       enable;         /*enable mask*/
     ulong       pending_intr;   /*pending interrupt*/
 
-    /*power suspend*/
-#if defined(CONFIG_POWERSUSPEND)
-    struct power_suspend    power_drv;
+    /*early suspend*/
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+    struct early_suspend    early_drv;
 #endif     
 };
 /*----------------------------------------------------------------------------*/
@@ -2232,9 +2232,9 @@ static int rpr400_i2c_resume(struct i2c_client *client)
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-static void rpr400_power_suspend(struct power_suspend *h) 
-{   /*power_suspend is only applied for ALS*/
-	struct rpr400_priv *obj = container_of(h, struct rpr400_priv, power_drv);   
+static void rpr400_early_suspend(struct early_suspend *h) 
+{   /*early_suspend is only applied for ALS*/
+	struct rpr400_priv *obj = container_of(h, struct rpr400_priv, early_drv);   
 	int err;
 	APS_FUN();    
 
@@ -2263,9 +2263,9 @@ static void rpr400_power_suspend(struct power_suspend *h)
 	#endif
 }
 /*----------------------------------------------------------------------------*/
-static void rpr400_power_resume(struct power_suspend *h)
-{   /*power_suspend is only applied for ALS*/
-	struct rpr400_priv *obj = container_of(h, struct rpr400_priv, power_drv);         
+static void rpr400_late_resume(struct early_suspend *h)
+{   /*early_suspend is only applied for ALS*/
+	struct rpr400_priv *obj = container_of(h, struct rpr400_priv, early_drv);         
 	int err;
 	APS_FUN();
 
@@ -2552,10 +2552,11 @@ static int rpr400_i2c_probe(struct i2c_client *client, const struct i2c_device_i
 	}
 
 
-#if defined(CONFIG_POWERSUSPEND)
-	obj->power_drv.suspend  = rpr400_power_suspend,
-	obj->power_drv.resume   = rpr400_power_resume,    
-	register_power_suspend(&obj->power_drv);
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+	obj->early_drv.level    = EARLY_SUSPEND_LEVEL_STOP_DRAWING - 2,
+	obj->early_drv.suspend  = rpr400_early_suspend,
+	obj->early_drv.resume   = rpr400_late_resume,    
+	register_early_suspend(&obj->early_drv);
 #endif
 
 	APS_LOG("%s: OK\n", __func__);
