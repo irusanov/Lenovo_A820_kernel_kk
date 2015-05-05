@@ -181,7 +181,7 @@ EXPORT_SYMBOL_GPL(proton_gpu_voltage_get);
 
 static int __init proton_control_init(void)
 {
-    return 0;
+	return 0;
 }
 
 arch_initcall(proton_control_init);

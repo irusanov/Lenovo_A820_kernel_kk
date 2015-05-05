@@ -195,9 +195,10 @@ static void PTP_set_ptp_volt(void)
 
     mt_cpufreq_voltage_set_by_ptpod(ptpod_pmic_volt, array_size);
     
-    #endif
+    #else
     // Proton: return default DVS table, Set_PMIC_Volt = 0 in mt_ptp.h
     mt_cpufreq_return_default_DVS_by_ptpod();
+    #endif
 }
 #else
 static void PTP_set_ptp_volt(void)
