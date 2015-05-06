@@ -7,15 +7,15 @@
 #define PROTON_UNDERVOLT 1
 
 #if PROTON_UNDERVOLT
-	#define DVFS_V0 (1050)  // mV  	HEX: 0x38
-	#define DVFS_V1 (1025)  // mV  	HEX: 0x34
-	#define DVFS_V2 ( 950)  // mV	HEX: 0x28
-	#define DVFS_V3 ( 925)  // mV	HEX: 0x24
-	#define DVFS_V4 ( 800)  // mV	HEX: 0x10
+	#define DVFS_V0 (1075)  // mV
+	#define DVFS_V1 (1050)  // mV
+	#define DVFS_V2 ( 950)  // mV
+	#define DVFS_V3 ( 900)  // mV
+	#define DVFS_V4 ( 800)  // mV
 	
 	/* offset values */
-	#define DVFS_PKV0 0x38 // 1.050V
-	#define DVFS_PKV1 0x34 // 1.025V
+	#define DVFS_PKV0 0x3C // 1.075V
+	#define DVFS_PKV1 0x38 // 1.050V
 	#define DVFS_PKV2 0x28 // 0.950V
 	#define DVFS_PKV3 0x24 // 0.925V
 	#define DVFS_PKV4 0x10 // 0.800V

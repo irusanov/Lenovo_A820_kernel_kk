@@ -400,3 +400,12 @@ config DYNAMIC_READ_AHEAD
                 16G             1024k
                 64G             2048k
                256G             4096k
+
+config DYNAMIC_PAGE_WRITEBACK
+	bool "Dynamically manage the dirty page writebacks during suspend/resume"
+	default n
+	help
+	  This feature allows to use different dirty page writeback intervals
+	  when the system is suspended and when the system has been resumed.
+
+	  If unsure, say N to disable this feature
