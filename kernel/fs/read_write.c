@@ -375,12 +375,14 @@ EXPORT_SYMBOL(do_sync_read);
 ssize_t vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos)
 {
 	ssize_t ret;
+
 	if (!(file->f_mode & FMODE_READ))
 		return -EBADF;
 	if (!file->f_op || (!file->f_op->read && !file->f_op->aio_read))
 		return -EINVAL;
 	if (unlikely(!access_ok(VERIFY_WRITE, buf, count)))
 		return -EFAULT;
+
 	ret = rw_verify_area(READ, file, pos, count);
 	if (ret >= 0) {
 		count = ret;
@@ -394,6 +396,7 @@ ssize_t vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos)
 		}
 		inc_syscr(current);
 	}
+
 	return ret;
 }
 
@@ -454,40 +457,6 @@ ssize_t vfs_write(struct file *file, const char __user *buf, size_t count, loff_
 			}
 		}
 	}
-//#ifdef LIMIT_SDCARD_SIZE
-#if 0
-	//if(!memcmp(mount_data->mnt_mountpoint->d_name.name, "emulated", 8)){
-	if(!memcmp(file->f_path.mnt->mnt_sb->s_type->name, "fuse", 5)){	
-		store -= count;
-		if(store <= (data_free_size_th  + CHECK_1TH*2)){		
-			vfs_statfs(&file->f_path, &stat);
-			store = stat.f_bfree * stat.f_bsize + data_free_size_th;
-			//printk("initialize data free size when acess sdcard0 ,%llx\n",store);
-			store -= count;
-			if (store <= data_free_size_th) {
-				//printk("wite sdcard0 over flow, %llx\n",store);
-				store += count;
-				return -ENOSPC;
-			}
-		}
-		store +=count;
-	}
-#endif
-
-#ifdef MTK_IO_PERFORMANCE_DEBUG 
-	if (g_mtk_mmc_clear == 0){
-		//memset(g_req_write_buf, 0, 8*4000*30);
-		//memset(g_mmcqd_buf, 0, 8*400*300);
-		g_dbg_req_count = 0;
-		g_dbg_write_count = 0;
-		g_mtk_mmc_clear = 1;
-	}
-	if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && g_check_read_write == 25){
-		g_dbg_write_count++;
-		g_req_write_count[g_dbg_write_count] = count;
-		g_req_write_buf[g_dbg_write_count][0] = sched_clock(); 
-	}	
-#endif
 
 	if (!(file->f_mode & FMODE_WRITE))
 		return -EBADF;
@@ -510,11 +479,6 @@ ssize_t vfs_write(struct file *file, const char __user *buf, size_t count, loff_
 		inc_syscw(current);
 	}
 
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-	if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && g_check_read_write == 25){
-		g_req_write_buf[g_dbg_write_count][14] = sched_clock(); 
-	}	
-#endif
 	return ret;
 }
 

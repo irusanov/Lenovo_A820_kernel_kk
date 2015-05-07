@@ -632,22 +632,14 @@ static ssize_t proc_info_read(struct file * file, char __user * buf,
 		count = PROC_BLOCK_SIZE;
 
 	length = -ENOMEM;
-#ifndef CONFIG_MTK_PAGERECORDER
 	if (!(page = __get_free_page(GFP_TEMPORARY)))
 		goto out;
-#else
-	if (!(page = __get_free_page_nopagedebug(GFP_TEMPORARY)))
-		goto out;
-#endif
+
 	length = PROC_I(inode)->op.proc_read(task, (char*)page);
 
 	if (length >= 0)
 		length = simple_read_from_buffer(buf, count, ppos, (char *)page, length);
-#ifndef CONFIG_MTK_PAGERECORDER
 	free_page(page);
-#else
-	free_page_nopagedebug(page);
-#endif
 out:
 	put_task_struct(task);
 out_no_task:
@@ -2135,6 +2127,7 @@ static int proc_map_files_get_link(struct dentry *dentry, struct path *path)
 	if (rc)
 		goto out_mmput;
 
+	rc = -ENOENT;
 	down_read(&mm->mmap_sem);
 	vma = find_exact_vma(mm, vm_start, vm_end);
 	if (vma && vma->vm_file) {

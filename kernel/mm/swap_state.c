@@ -18,7 +18,6 @@
 #include <linux/pagevec.h>
 #include <linux/migrate.h>
 #include <linux/page_cgroup.h>
-#include <linux/export.h>
 
 #include <asm/pgtable.h>
 
@@ -300,15 +299,7 @@ struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
 		 * Get a new page to read into from swap.
 		 */
 		if (!new_page) {
-#ifndef CONFIG_MTKPASR
 			new_page = alloc_page_vma(gfp_mask, vma, addr);
-#else
-			if (vma && unlikely(vma->vm_flags & VM_LOCKED)) {
-				new_page = alloc_pages(gfp_mask, 0);
-			} else {
-				new_page = alloc_page_vma(gfp_mask, vma, addr);
-			}
-#endif
 			if (!new_page)
 				break;		/* Out of memory */
 		}

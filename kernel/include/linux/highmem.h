@@ -39,9 +39,16 @@ extern unsigned long totalhigh_pages;
 
 void kmap_flush_unused(void);
 
+struct page *kmap_to_page(void *addr);
+
 #else /* CONFIG_HIGHMEM */
 
 static inline unsigned int nr_free_highpages(void) { return 0; }
+
+static inline struct page *kmap_to_page(void *addr)
+{
+	return virt_to_page(addr);
+}
 
 #define totalhigh_pages 0UL
 
@@ -189,19 +196,9 @@ __alloc_zeroed_user_highpage(gfp_t movableflags,
 			struct vm_area_struct *vma,
 			unsigned long vaddr)
 {
-#ifndef CONFIG_MTKPASR
 	struct page *page = alloc_page_vma(GFP_HIGHUSER | movableflags,
 			vma, vaddr);
-#else	/// Is this needed for MTKPASR?
-	struct page *page;
 
-	/* Test whether it will be an unevictable page! */
-	if (vma && unlikely(vma->vm_flags & VM_LOCKED)) {
-		page = alloc_pages(GFP_HIGHUSER | movableflags, 0);
-	} else {
-		page = alloc_page_vma(GFP_HIGHUSER | movableflags, vma, vaddr);
-	}
-#endif
 	if (page)
 		clear_user_highpage(page, vaddr);
 

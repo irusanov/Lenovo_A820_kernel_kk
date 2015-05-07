@@ -1482,11 +1482,7 @@ static void __vunmap(const void *addr, int deallocate_pages)
 			struct page *page = area->pages[i];
 
 			BUG_ON(!page);
-#ifndef CONFIG_MTK_PAGERECORDER
 			__free_page(page);
-#else
-			__free_page_nopagedebug(page);
-#endif
 		}
 
 		if (area->flags & VM_VPAGES)
@@ -1606,13 +1602,7 @@ static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
 		gfp_t tmp_mask = gfp_mask | __GFP_NOWARN;
 
 		if (node < 0)
-		{
-#ifndef CONFIG_MTK_PAGERECORDER
 			page = alloc_page(tmp_mask);
-#else
-			page = alloc_page_nopagedebug(tmp_mask);
-#endif
-		}
 		else
 			page = alloc_pages_node(node, tmp_mask, order);
 

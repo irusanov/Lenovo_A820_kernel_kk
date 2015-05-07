@@ -67,11 +67,6 @@
 
 #include "internal.h"
 
-#if defined(CONFIG_MTK_EXTMEM)
-extern bool extmem_in_mspace(struct vm_area_struct *vma);
-extern unsigned long get_virt_from_mspace(unsigned long pa);
-#endif
-
 #ifndef CONFIG_NEED_MULTIPLE_NODES
 /* use the per-pgdat data instead for discontigmem - mbligh */
 unsigned long max_mapnr;
@@ -189,11 +184,8 @@ static int tlb_next_batch(struct mmu_gather *tlb)
 
 	if (tlb->batch_count == MAX_GATHER_BATCH_COUNT)
 		return 0;
-#ifndef CONFIG_MTK_PAGERECORDER
+
 	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
-#else
- 	batch = (void *)__get_free_pages_nopagedebug(GFP_NOWAIT | __GFP_NOWARN, 0);
-#endif
 	if (!batch)
 		return 0;
 
@@ -1938,24 +1930,11 @@ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 			pte_unmap(pte);
 			goto next_page;
 		}
-    #ifdef CONFIG_MTK_EXTMEM
-        if (!vma || !(vm_flags & vma->vm_flags))
-		{
-		    return i ? : -EFAULT;
-        }
 
-		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
-		{
-		    /*Would pass VM_IO | VM_RESERVED | VM_PFNMAP. (for Reserved Physical Memory PFN Mapping Usage)*/
-		    if(!((vma->vm_flags&VM_IO)&&(vma->vm_flags&VM_RESERVED)&&(vma->vm_flags&VM_PFNMAP)))
-			    return i ? : -EFAULT;
-        }
-    #else
 		if (!vma ||
 		    (vma->vm_flags & (VM_IO | VM_PFNMAP)) ||
 		    !(vm_flags & vma->vm_flags))
 			return i ? : -EFAULT;
-    #endif
 
 		if (is_vm_hugetlb_page(vma)) {
 			i = follow_hugetlb_page(mm, vma, pages, vmas,
@@ -4099,22 +4078,6 @@ static int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
 		ret = get_user_pages(tsk, mm, addr, 1,
 				write, 1, &page, &vma);
 		if (ret <= 0) {
-#if defined(CONFIG_MTK_EXTMEM)
-			if (!write) {
-				vma = find_vma(mm, addr);
-				if (!vma || vma->vm_start > addr)
-					break;
-				if (vma->vm_end < addr + len)
-					len = vma->vm_end - addr;
-				if (extmem_in_mspace(vma)) {
-					void *extmem_va = (void *)get_virt_from_mspace(vma->vm_pgoff << PAGE_SHIFT) + (addr - vma->vm_start);
-					memcpy(buf, extmem_va, len);
-					buf += len;
-					break;
-				}
-			}
-			
-#endif
 			/*
 			 * Check if this is a VM_IO | VM_PFNMAP VMA, which
 			 * we can access using slightly different code.

@@ -558,7 +558,7 @@ struct zram_meta *zram_meta_alloc(u64 disksize)
 		goto free_buffer;
 	}
 
-	meta->mem_pool = zs_create_pool("zram", GFP_NOIO | __GFP_HIGHMEM | GFP_NO_MTKPASR);
+	meta->mem_pool = zs_create_pool("zram", GFP_NOIO | __GFP_HIGHMEM);
 	if (!meta->mem_pool) {
 		pr_err("Error creating memory pool\n");
 		goto free_table;

@@ -35,7 +35,6 @@
  */
 #define PAGE_ALLOC_COSTLY_ORDER 3
 
-#ifndef CONFIG_MTKPASR
 #define MIGRATE_UNMOVABLE     0
 #define MIGRATE_RECLAIMABLE   1
 #define MIGRATE_MOVABLE       2
@@ -43,16 +42,6 @@
 #define MIGRATE_RESERVE       3
 #define MIGRATE_ISOLATE       4 /* can't allocate from here */
 #define MIGRATE_TYPES         5
-#else
-#define MIGRATE_UNMOVABLE     0
-#define MIGRATE_RECLAIMABLE   1
-#define MIGRATE_MOVABLE       2
-#define MIGRATE_MTKPASR	      3
-#define MIGRATE_PCPTYPES      4 /* the number of types on the pcp lists */
-#define MIGRATE_RESERVE       4
-#define MIGRATE_ISOLATE       5 /* can't allocate from here */
-#define MIGRATE_TYPES         6
-#endif
 
 #define for_each_migratetype_order(order, type) \
 	for (order = 0; order < MAX_ORDER; order++) \
@@ -674,12 +663,6 @@ typedef struct pglist_data {
 					     range, including holes */
 	int node_id;
 	wait_queue_head_t kswapd_wait;
-        /*
-         * kernel patch
-         * commit: 0e343dbe08acb440f7914d989bcc32c1d1576735
-         * https://android.googlesource.com/kernel/common/+/0e343dbe08acb440f7914d989bcc32c1d1576735%5E!/#F0
-         */
-	//struct task_struct *kswapd;
 	struct task_struct *kswapd;	/* Protected by lock_memory_hotplug() */
 	int kswapd_max_order;
 	enum zone_type classzone_idx;
@@ -841,10 +824,6 @@ extern struct pglist_data contig_page_data;
 #include <asm/mmzone.h>
 
 #endif /* !CONFIG_NEED_MULTIPLE_NODES */
-
-#if defined(CONFIG_MTKPASR) && defined(CONFIG_HIGHMEM)
-#define MTKPASR_ZONE		(NODE_DATA(0)->node_zones + ZONE_HIGHMEM)
-#endif
 
 extern struct pglist_data *first_online_pgdat(void);
 extern struct pglist_data *next_online_pgdat(struct pglist_data *pgdat);

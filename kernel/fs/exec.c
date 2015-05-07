@@ -823,12 +823,6 @@ static int exec_mmap(struct mm_struct *mm)
 	/* Notify parent that we're no longer interested in the old VM */
 	tsk = current;
 	old_mm = current->mm;
-        /*
-         * kernel patch
-         * commit: 21017faf87a93117ca7a14aa8f0dd2f315fdeb08
-         * https://android.googlesource.com/kernel/common/+/21017faf87a93117ca7a14aa8f0dd2f315fdeb08%5E!/#F0
-         */
-	//sync_mm_rss(old_mm);
 	mm_release(tsk, old_mm);
 
 	if (old_mm) {
@@ -915,11 +909,13 @@ static int de_thread(struct task_struct *tsk)
 
 		sig->notify_count = -1;	/* for exit_notify() */
 		for (;;) {
+			threadgroup_change_begin(tsk);
 			write_lock_irq(&tasklist_lock);
 			if (likely(leader->exit_state))
 				break;
 			__set_current_state(TASK_UNINTERRUPTIBLE);
 			write_unlock_irq(&tasklist_lock);
+			threadgroup_change_end(tsk);
 			schedule();
 		}
 
@@ -975,6 +971,7 @@ static int de_thread(struct task_struct *tsk)
 		if (unlikely(leader->ptrace))
 			__wake_up_parent(leader, leader->parent);
 		write_unlock_irq(&tasklist_lock);
+		threadgroup_change_end(tsk);
 
 		release_task(leader);
 	}
@@ -1427,16 +1424,6 @@ int search_binary_handler(struct linux_binprm *bprm,struct pt_regs *regs)
 			read_unlock(&binfmt_lock);
 			bprm->recursion_depth = depth + 1;
 			retval = fn(bprm, regs);
-            /* exec mt_debug*/
-            if(-999 == retval){
-                put_binfmt(fmt);
-                return retval;
-            }
-			/*
-			 * Restore the depth counter to its starting value
-			 * in this call, so we don't have to rely on every
-			 * load_binary function to restore it on return.
-			 */
 			bprm->recursion_depth = depth;
 			if (retval >= 0) {
 				if (depth == 0) {
@@ -1499,10 +1486,6 @@ static int do_execve_common(const char *filename,
 	bool clear_in_exec;
 	int retval;
 	const struct cred *cred = current_cred();
-#ifdef CONFIG_MT_ENG_BUILD
-    int *argv_p0;
-//    int argv0;
-#endif
 
 	/*
 	 * We move the actual failure in case of RLIMIT_NPROC excess from
@@ -1575,12 +1558,6 @@ static int do_execve_common(const char *filename,
 	if (retval < 0)
 		goto out;
 
-#ifdef CONFIG_MT_ENG_BUILD
-    argv_p0 = (int *)get_user_arg_ptr(argv, 0);
-//    if(argv_p0 != 0)
- //       argv0 = *argv_p0;
-#endif
-
 	retval = copy_strings(bprm->argc, argv, bprm);
 	if (retval < 0)
 		goto out;
@@ -1632,13 +1609,7 @@ int do_execve(const char *filename,
 {
 	struct user_arg_ptr argv = { .ptr.native = __argv };
 	struct user_arg_ptr envp = { .ptr.native = __envp };
-    /* exec mt_debug*/
-    int ret;
-    int retry = 3;
-    do{
-        ret = do_execve_common(filename, argv, envp, regs);
-    }while( -999 == ret && retry-- > 0);
-	return ret;
+	return do_execve_common(filename, argv, envp, regs);
 }
 
 #ifdef CONFIG_COMPAT
@@ -2056,6 +2027,12 @@ static int __get_dumpable(unsigned long mm_flags)
 	return (ret >= 2) ? 2 : ret;
 }
 
+/*
+ * This returns the actual value of the suid_dumpable flag. For things
+ * that are using this for checking for privilege transitions, it must
+ * test against SUID_DUMP_USER rather than treating it as a boolean
+ * value.
+ */
 int get_dumpable(struct mm_struct *mm)
 {
 	return __get_dumpable(mm->flags);
@@ -2155,23 +2132,14 @@ void do_coredump(long signr, int exit_code, struct pt_regs *regs)
 	audit_core_dumps(signr);
 
 	binfmt = mm->binfmt;
-	if (!binfmt || !binfmt->core_dump) {
-		printk(KERN_WARNING "Skip process %d(%s) core dump(!binfmt?%s)\n",
-			task_tgid_vnr(current), current->comm, (!binfmt) ? "yes":"no");
+	if (!binfmt || !binfmt->core_dump)
 		goto fail;
-	}
-	if (!__get_dumpable(cprm.mm_flags)) {
-		printk(KERN_WARNING "Skip process %d(%s) core dump(mm_flags:%x)\n",
-			task_tgid_vnr(current), current->comm, (unsigned int)cprm.mm_flags);
+	if (!__get_dumpable(cprm.mm_flags))
 		goto fail;
-	}
 
 	cred = prepare_creds();
-	if (!cred) {
-		printk(KERN_WARNING "Skip process %d(%s) core dump(prepare_creds failed)\n",
-			task_tgid_vnr(current), current->comm);
+	if (!cred)
 		goto fail;
-	}
 	/*
 	 *	We cannot trust fsuid as being the "true" uid of the
 	 *	process nor do we know its entire history. We only know it
@@ -2331,11 +2299,8 @@ int dump_seek(struct file *file, loff_t off)
 		if (file->f_op->llseek(file, off, SEEK_CUR) < 0)
 			return 0;
 	} else {
-#ifndef CONFIG_MTK_PAGERECORDER
 		char *buf = (char *)get_zeroed_page(GFP_KERNEL);
-#else
-		char *buf = (char *)get_zeroed_page_nopagedebug(GFP_KERNEL);
-#endif
+
 		if (!buf)
 			return 0;
 		while (off > 0) {
@@ -2349,11 +2314,7 @@ int dump_seek(struct file *file, loff_t off)
 			}
 			off -= n;
 		}
-#ifndef CONFIG_MTK_PAGERECORDER
 		free_page((unsigned long)buf);
-#else
-		free_page_nopagedebug((unsigned long)buf);
-#endif
 	}
 	return ret;
 }

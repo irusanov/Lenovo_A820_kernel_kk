@@ -2170,13 +2170,6 @@ int split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
  * work.  This now handles partial unmappings.
  * Jeremy Fitzhardinge <jeremy@goop.org>
  */
-#ifdef CONFIG_MTK_EXTMEM
-extern bool extmem_in_mspace(struct vm_area_struct *vma);
-extern void * get_virt_from_mspace(void * pa);
-extern size_t extmem_get_mem_size(unsigned long pgoff);
-extern void extmem_free(void* mem);
-#endif
-
 int do_munmap(struct mm_struct *mm, unsigned long start, size_t len)
 {
 	unsigned long end;
@@ -2194,12 +2187,6 @@ int do_munmap(struct mm_struct *mm, unsigned long start, size_t len)
 		return 0;
 	prev = vma->vm_prev;
 	/* we have  start < vma->vm_end  */
-
-#ifdef CONFIG_MTK_EXTMEM
-	/* get correct mmap size if in mspace. */
-    	if (extmem_in_mspace(vma))
-        	len = extmem_get_mem_size(vma->vm_pgoff);
-#endif
 
 	/* if it doesn't overlap, we have nothing.. */
 	end = start + len;
@@ -2257,12 +2244,6 @@ int do_munmap(struct mm_struct *mm, unsigned long start, size_t len)
 	 * Remove the vma's, and unmap the actual pages
 	 */
 	detach_vmas_to_be_unmapped(mm, vma, prev, end);
-#if 0    
-#ifdef CONFIG_MTK_EXTMEM
-    	if (extmem_in_mspace(vma))
-        	extmem_free((void *)get_virt_from_mspace((vma->vm_pgoff << PAGE_SHIFT)));
-#endif
-#endif
 	unmap_region(mm, vma, prev, start, end);
 
 	/* Fix up all other VM information */

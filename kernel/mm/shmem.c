@@ -850,11 +850,7 @@ static inline struct page *shmem_swapin(swp_entry_t swap, gfp_t gfp,
 static inline struct page *shmem_alloc_page(gfp_t gfp,
 			struct shmem_inode_info *info, pgoff_t index)
 {
-#ifndef CONFIG_MTK_PAGERECORDER
 	return alloc_page(gfp);
-#else
-	return alloc_page_nopagedebug(gfp);
-#endif
 }
 #endif /* CONFIG_NUMA */
 
@@ -1138,12 +1134,6 @@ static struct inode *shmem_get_inode(struct super_block *sb, const struct inode 
 
 	inode = new_inode(sb);
 	if (inode) {
-		/* We don't let shmem use __GFP_SLOWHIGHMEM */
-#ifndef CONFIG_MTKPASR
-		mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER_MOVABLE);
-#else
-		mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER_MOVABLE|GFP_MTKPASR_HIGHUSER);
-#endif
 		inode->i_ino = get_next_ino();
 		inode_init_owner(inode, dir, mode);
 		inode->i_blocks = 0;
@@ -1383,11 +1373,6 @@ static ssize_t shmem_file_splice_read(struct file *in, loff_t *ppos,
 	struct splice_pipe_desc spd = {
 		.pages = pages,
 		.partial = partial,
-                /*
-                 * kernel patch
-                 * commit: 2c07f25ea7800adb36cd8da9b58c4ecd3fc3d064
-                 * https://android.googlesource.com/kernel/common/+/2c07f25ea7800adb36cd8da9b58c4ecd3fc3d064%5E!/#F0
-                 */
 		.nr_pages_max = PIPE_DEF_BUFFERS,
 		.flags = flags,
 		.ops = &page_cache_pipe_buf_ops,
@@ -1477,12 +1462,6 @@ static ssize_t shmem_file_splice_read(struct file *in, loff_t *ppos,
 	if (spd.nr_pages)
 		error = splice_to_pipe(pipe, &spd);
 
-        /*
-         * kernel patch
-         * commit: 2c07f25ea7800adb36cd8da9b58c4ecd3fc3d064
-         * https://android.googlesource.com/kernel/common/+/2c07f25ea7800adb36cd8da9b58c4ecd3fc3d064%5E!/#F0
-         */
-	//splice_shrink_spd(pipe, &spd);
 	splice_shrink_spd(&spd);
 
 	if (error > 0) {
