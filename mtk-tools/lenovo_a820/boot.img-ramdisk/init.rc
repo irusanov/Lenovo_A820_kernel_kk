@@ -264,7 +264,7 @@ on fs_property:ro.mount.fs=UBIFS
     mount ubifs ubi@system /system ro remount
     mount ubifs ubi@userdata /data nosuid nodev
     mount ubifs ubi@cache /cache nosuid nodev
-	  mount ubifs ubi@secstatic /system/secro ro
+	mount ubifs ubi@secstatic /system/secro ro
     write /proc/bootprof "INIT:NAND:Mount_END"
 
 # mount different fs end
@@ -880,6 +880,8 @@ on boot
     setprop net.tcp.buffersize.gprs    4092,8760,11680,4096,8760,11680
     setprop net.tcp.buffersize.evdo    4094,87380,262144,4096,16384,262144
 
+# Run sysinit
+    start sysinit
 
     class_start core
     class_start main
@@ -1317,10 +1319,11 @@ service emd_daemon /system/bin/emd_daemon
     user root
     oneshot
     
-#init.d support
-service initd /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
-    class main
-    oneshot 
+# sysinit (/system/etc/init.d)
+service sysinit /system/bin/sysinit
+    user root
+    oneshot
+    disabled
 
 service installd /system/bin/installd
     class main
