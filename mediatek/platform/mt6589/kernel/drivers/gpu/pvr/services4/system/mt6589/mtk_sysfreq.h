@@ -42,6 +42,6 @@ void MtkSetKeepFreq(void);
 extern unsigned int proton_gpu_frequency_get(void);
 extern unsigned int proton_gpu_tbltype_get(void);
 extern unsigned int proton_gpu_voltage_get(int num);
-extern int proton_gpu_dvfs;
+extern bool proton_gpu_dvfs;
 
 #endif // MTK_SYSFREQ_H

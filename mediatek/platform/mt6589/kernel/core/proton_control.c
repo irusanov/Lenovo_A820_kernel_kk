@@ -72,8 +72,8 @@ MODULE_PARM_DESC(proton_gpu_voltage, "Sets the GPU voltage");
 EXPORT_SYMBOL(proton_gpu_voltage);
 
 // GPU DVFS switch (1: enable, 0: disable)
-int proton_gpu_dvfs = 0;
-module_param(proton_gpu_dvfs, int, 0664);
+bool proton_gpu_dvfs = 0;
+module_param(proton_gpu_dvfs, bool, 0664);
 MODULE_PARM_DESC(proton_gpu_dvfs, "Enables or disabled GPU DVFS (Dynamic voltage and frequency)");
 EXPORT_SYMBOL(proton_gpu_dvfs);
 

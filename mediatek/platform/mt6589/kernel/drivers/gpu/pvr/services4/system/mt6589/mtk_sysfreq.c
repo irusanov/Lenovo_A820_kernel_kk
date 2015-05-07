@@ -15,9 +15,9 @@ void MtkInitSetFreqTbl(unsigned int tbltype)
 	int volt_mid = proton_gpu_voltage_get(1);
 	int volt_min = proton_gpu_voltage_get(2);
 
-	int dvfs_on = proton_gpu_dvfs;
+	bool dvfs_on = proton_gpu_dvfs;
 	
-	if(dvfs_on = 1) {
+	if(dvfs_on) {
 		// 238 - 156MHz
 		struct mt_gpufreq_info freqs_special0_0_vrf18_2[] = {
 			{GPU_DVFS_F7, 40, 100, volt_max, 100},
