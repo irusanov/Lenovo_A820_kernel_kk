@@ -25,6 +25,7 @@ typedef struct
     unsigned int coherent;
     void* pVA;
     unsigned int MVA;
+    ion_mm_buf_debug_info_t dbg_info;
 } ion_mm_buffer_info;
 
 
@@ -232,7 +233,12 @@ static int ion_mm_heap_allocate(struct ion_heap *heap,
         buffer->sg_table = table;
         pBufferInfo->pVA = 0;
         pBufferInfo->MVA = 0;
-        pBufferInfo->eModuleID = -1;;
+        pBufferInfo->eModuleID = -1;
+        pBufferInfo->dbg_info.value1=0;
+        pBufferInfo->dbg_info.value2=0;
+        pBufferInfo->dbg_info.value3=0;
+        pBufferInfo->dbg_info.value4=0;
+        strncpy((pBufferInfo->dbg_info.dbg_name), "nothing", ION_MM_DBG_NAME_LEN);
         mutex_init(&(pBufferInfo->lock));
 
         buffer->priv_virt = pBufferInfo;
@@ -494,6 +500,26 @@ void ion_mm_heap_destroy(struct ion_heap *heap)
 	kfree(sys_heap);
 }
 
+int ion_mm_copy_dbg_info(ion_mm_buf_debug_info_t *src, ion_mm_buf_debug_info_t *dst)
+{
+    int i;
+    dst->handle = src->handle;
+    for(i=0; i<ION_MM_DBG_NAME_LEN; i++)
+    {
+        dst->dbg_name[i] = src->dbg_name[i];
+    }
+    dst->dbg_name[ION_MM_DBG_NAME_LEN-1] = '\0';
+    dst->value1 = src->value1;
+    dst->value2 = src->value2;
+    dst->value3 = src->value3;
+    dst->value4 = src->value4;
+
+    return 0;
+    
+}
+
+
+
 long ion_mm_ioctl(struct ion_client *client, unsigned int cmd, unsigned long arg, int from_kernel)
 {
     ion_mm_data_t Param;
@@ -560,6 +586,74 @@ long ion_mm_ioctl(struct ion_client *client, unsigned int cmd, unsigned long arg
             ret = -EFAULT;
         }
         break;
+        
+    case ION_MM_SET_DEBUG_INFO:
+        {
+            struct ion_buffer* buffer;
+            if (Param.buf_debug_info_param.handle)
+            {
+                struct ion_handle *kernel_handle;
+                kernel_handle = ion_drv_get_kernel_handle(client, 
+                                Param.buf_debug_info_param.handle, from_kernel);
+                if(IS_ERR(kernel_handle))
+                {
+                    ret = -EINVAL;
+                    break;
+                }
+
+                buffer = ion_handle_buffer(kernel_handle);
+                if (buffer->heap->type == ION_HEAP_TYPE_MULTIMEDIA)
+                {
+                    ion_mm_buffer_info* pBufferInfo = buffer->priv_virt;
+                    mutex_lock(&(pBufferInfo->lock));
+                    ion_mm_copy_dbg_info(&(Param.buf_debug_info_param), &(pBufferInfo->dbg_info));
+                    mutex_unlock(&(pBufferInfo->lock));
+                }
+                else
+                {
+                   ret = -EFAULT;
+                }
+            }
+            else
+            {
+                ret = -EFAULT;
+            }
+        }
+        break;
+
+    case ION_MM_GET_DEBUG_INFO:
+        {
+            struct ion_buffer* buffer;
+            if (Param.buf_debug_info_param.handle)
+            {
+                struct ion_handle *kernel_handle;
+                kernel_handle = ion_drv_get_kernel_handle(client, 
+                                Param.buf_debug_info_param.handle, from_kernel);
+                if(IS_ERR(kernel_handle))
+                {
+                    ret = -EINVAL;
+                    break;
+                }
+                buffer = ion_handle_buffer(kernel_handle);
+                if (buffer->heap->type == ION_HEAP_TYPE_MULTIMEDIA)
+                {
+                    ion_mm_buffer_info* pBufferInfo = buffer->priv_virt;
+                    mutex_lock(&(pBufferInfo->lock));
+                    ion_mm_copy_dbg_info(&(pBufferInfo->dbg_info), &(Param.buf_debug_info_param));
+                    mutex_unlock(&(pBufferInfo->lock));
+                }
+                else
+                {
+                    ret = -EFAULT;
+                }
+            }
+            else
+            {
+                ret = -EFAULT;
+            }
+        }
+        break;
+
     default:
         IONMSG("[ion_mm_heap]: Error. Invalid command.\n");
         ret = -EFAULT;

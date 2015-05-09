@@ -140,18 +140,21 @@ int ion_carveout_heap_map_user(struct ion_heap *heap, struct ion_buffer *buffer,
 	return remap_pfn_range(vma, vma->vm_start,
 			       __phys_to_pfn(buffer->priv_phys) + vma->vm_pgoff,
 			       vma->vm_end - vma->vm_start,
-			       pgprot_noncached(vma->vm_page_prot));
+			       (vma->vm_page_prot));
+			       //pgprot_noncached(vma->vm_page_prot));
 }
 
 static struct ion_heap_ops carveout_heap_ops = {
 	.allocate = ion_carveout_heap_allocate,
 	.free = ion_carveout_heap_free,
 	.phys = ion_carveout_heap_phys,
-	.map_dma = ion_carveout_heap_map_dma,
-	.unmap_dma = ion_carveout_heap_unmap_dma,
+        .map_dma = ion_carveout_heap_map_dma,
+        .unmap_dma = ion_carveout_heap_unmap_dma,
 	.map_user = ion_carveout_heap_map_user,
-	.map_kernel = ion_carveout_heap_map_kernel,
-	.unmap_kernel = ion_carveout_heap_unmap_kernel,
+	//.map_kernel = ion_carveout_heap_map_kernel,
+	//.unmap_kernel = ion_carveout_heap_unmap_kernel,
+	.map_kernel = ion_heap_map_kernel,
+	.unmap_kernel = ion_heap_unmap_kernel,
 };
 
 struct ion_heap *ion_carveout_heap_create(struct ion_platform_heap *heap_data)

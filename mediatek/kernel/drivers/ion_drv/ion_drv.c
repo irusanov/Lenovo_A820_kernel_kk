@@ -123,17 +123,17 @@ static long ion_sys_cache_sync(struct ion_client *client, ion_sys_cache_sync_par
         // L1 cache sync
         if((pParam->sync_type==ION_CACHE_CLEAN_BY_RANGE) || (pParam->sync_type==ION_CACHE_CLEAN_BY_RANGE_USE_VA))
         {
-            printk("[ion_sys_cache_sync]: ION cache clean by range. start=0x%08X size=0x%08X\n", start, size);
+            //printk("[ion_sys_cache_sync]: ION cache clean by range. start=0x%08X size=0x%08X\n", start, size);
             dmac_map_area((void*)start, size, DMA_TO_DEVICE);
         }
         else if ((pParam->sync_type == ION_CACHE_INVALID_BY_RANGE)||(pParam->sync_type == ION_CACHE_INVALID_BY_RANGE_USE_VA))
         {
-            printk("[ion_sys_cache_sync]: ION cache invalid by range. start=0x%08X size=0x%08X\n", start, size);
+            //printk("[ion_sys_cache_sync]: ION cache invalid by range. start=0x%08X size=0x%08X\n", start, size);
             dmac_unmap_area((void*)start, size, DMA_FROM_DEVICE);
         }
         else if ((pParam->sync_type == ION_CACHE_FLUSH_BY_RANGE)||(pParam->sync_type == ION_CACHE_FLUSH_BY_RANGE_USE_VA))
         {
-            printk("[ion_sys_cache_sync]: ION cache flush by range. start=0x%08X size=0x%08X\n", start, size);
+            //printk("[ion_sys_cache_sync]: ION cache flush by range. start=0x%08X size=0x%08X\n", start, size);
             dmac_flush_range((void*)start, (void*)(start+size-1));
         }
 
@@ -150,19 +150,19 @@ static long ion_sys_cache_sync(struct ion_client *client, ion_sys_cache_sync_par
         // All cache operation
         if (pParam->sync_type == ION_CACHE_CLEAN_ALL)
         {
-            printk("[ion_sys_cache_sync]: ION cache clean all.\n");
+            //printk("[ion_sys_cache_sync]: ION cache clean all.\n");
             smp_inner_dcache_flush_all();
             outer_clean_all();
         }
         else if (pParam->sync_type == ION_CACHE_INVALID_ALL)
         {
-            printk("[ion_sys_cache_sync]: ION cache invalid all.\n");
+            //printk("[ion_sys_cache_sync]: ION cache invalid all.\n");
             smp_inner_dcache_flush_all();
             outer_inv_all();
         }
         else if (pParam->sync_type == ION_CACHE_FLUSH_ALL)
         {
-            printk("[ion_sys_cache_sync]: ION cache flush all.\n");
+            //printk("[ion_sys_cache_sync]: ION cache flush all.\n");
             smp_inner_dcache_flush_all();
             outer_flush_all();
         }
