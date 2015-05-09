@@ -11,7 +11,6 @@
 #include <linux/vmalloc.h>
 #include "ion_priv.h"
 #include <linux/slab.h>
-#include <linux/xlog.h>
 #include <mach/m4u.h>
 #include <linux/ion_drv.h>
 #include <linux/mutex.h>
@@ -26,7 +25,6 @@ typedef struct
     unsigned int coherent;
     void* pVA;
     unsigned int MVA;
-    ion_mm_buf_debug_info_t dbg_info;
 } ion_mm_buffer_info;
 
 
@@ -234,12 +232,7 @@ static int ion_mm_heap_allocate(struct ion_heap *heap,
         buffer->sg_table = table;
         pBufferInfo->pVA = 0;
         pBufferInfo->MVA = 0;
-        pBufferInfo->eModuleID = -1;
-        pBufferInfo->dbg_info.value1=0;
-        pBufferInfo->dbg_info.value2=0;
-        pBufferInfo->dbg_info.value3=0;
-        pBufferInfo->dbg_info.value4=0;
-        strncpy((pBufferInfo->dbg_info.dbg_name), "nothing", ION_MM_DBG_NAME_LEN);
+        pBufferInfo->eModuleID = -1;;
         mutex_init(&(pBufferInfo->lock));
 
         buffer->priv_virt = pBufferInfo;
@@ -423,115 +416,6 @@ end:
 
 }
 
-static int ion_mm_heap_debug_show(struct ion_heap *heap, struct seq_file *s,
-                                      void *unused)
-{
-
-	struct ion_system_heap *sys_heap = container_of(heap,
-							struct ion_system_heap,
-							heap);
-    struct ion_device *dev = heap->dev;
-    struct rb_node *n;
-	int i;
-    
-	for (i = 0; i < num_orders; i++) {
-		struct ion_page_pool *pool = sys_heap->pools[i];
-		ION_PRINT_LOG_OR_SEQ(s, "%d order %u highmem pages in pool = %lu total\n",
-			   pool->high_count, pool->order,
-			   (1 << pool->order) * PAGE_SIZE * pool->high_count);
-		ION_PRINT_LOG_OR_SEQ(s, "%d order %u lowmem pages in pool = %lu total\n",
-			   pool->low_count, pool->order,
-			   (1 << pool->order) * PAGE_SIZE * pool->low_count);
-	}
-    if (heap->flags & ION_HEAP_FLAG_DEFER_FREE)
-    {
-    	ION_PRINT_LOG_OR_SEQ(s, "mm_heap_freelist total_size=0x%x\n", ion_heap_freelist_size(heap));
-    }
-    else
-    {
-    	ION_PRINT_LOG_OR_SEQ(s, "mm_heap defer free disabled\n");
-    }
-
-    {
-        ion_mm_buffer_info *pBufInfo;
-        ion_mm_buf_debug_info_t *pDbg;
-
-        ION_PRINT_LOG_OR_SEQ(s, "----------------------------------------------------\n");
-        ION_PRINT_LOG_OR_SEQ(s, "%8.s %8.s %4.s %3.s %3.s %3.s %8.s %3.s %3.s %3.s %8.s " \
-                        "%4.s %4.s %4.s %4.s %s\n", 
-                    "buffer","size", "kmap", "ref","hdl","mod", "mva", "sec", "coh", "pid", "comm",
-                    "v1","v2","v3","v4","dbg_name");
-
-
-        mutex_lock(&dev->buffer_lock);
-        for (n = rb_first(&dev->buffers); n; n = rb_next(n)) {
-            struct ion_buffer *buffer = rb_entry(n, struct ion_buffer,
-                                                 node);
-            if (buffer->heap->type != heap->type)
-                    continue;
-            pBufInfo = (ion_mm_buffer_info*)buffer->priv_virt;
-            pDbg = &(pBufInfo->dbg_info);
-            
-            ION_PRINT_LOG_OR_SEQ(s, "0x%x %8u %3d %3d %3d %3d %8x %3d %3d %3d %s " \
-                          "0x%x 0x%x 0x%x 0x%x %s\n", (unsigned int)buffer, 
-                        buffer->size, buffer->kmap_cnt,
-                       atomic_read(&buffer->ref.refcount),
-                       buffer->handle_count,
-                       pBufInfo->eModuleID, pBufInfo->MVA, 
-                       pBufInfo->security, pBufInfo->coherent,
-                       buffer->pid, buffer->task_comm,
-                       pDbg->value1,pDbg->value2,pDbg->value3,pDbg->value4,
-                       pDbg->dbg_name);
-        }
-        mutex_unlock(&dev->buffer_lock);
-
-        ION_PRINT_LOG_OR_SEQ(s, "----------------------------------------------------\n");
-
-    }
-
-    #if ION_RUNTIME_DEBUGGER
-    //dump all handle's backtrace 
-    for (n = rb_first(&dev->clients); n; n = rb_next(n)) {
-        struct ion_client *client = rb_entry(n, struct ion_client,node);
-
-        if (client->task) {
-                char task_comm[TASK_COMM_LEN];
-                get_task_comm(task_comm, client->task);
-                ION_PRINT_LOG_OR_SEQ(s, "%16.s %16u(pid)================>\n", task_comm,client->pid);
-        } else {
-        	ION_PRINT_LOG_OR_SEQ(s, "%16.s %16u(pid)================>\n", client->name,client->pid);
-        }
-
-        {
-            struct rb_node *m;
-
-            mutex_lock(&client->lock);
-            for (m = rb_first(&client->handles); m; m = rb_next(m)) {
-                    struct ion_handle *handle = rb_entry(m,
-                                                         struct ion_handle,
-                                                         node);
-                    int i;
-
-                    ION_PRINT_LOG_OR_SEQ(s, "handle=0x%x, buffer=0x%x, heap=%d, backtrace is:\n",
-                    (unsigned int)handle, (unsigned int)handle->buffer, handle->buffer->heap->id);
-
-                for(i=0; i<handle->dbg.backtrace_num; i++)
-                {
-                	ION_PRINT_LOG_OR_SEQ(s,"\t\tbt: 0x%x\n", handle->dbg.backtrace[i]);
-                }
-
-            }
-            mutex_unlock(&client->lock);
-        }
-            
-    }
-    #endif
-
-    
-
-        return 0;
-}
-
 void ion_mm_heap_total_memory() {
     struct ion_device *dev = g_ion_device;
     struct ion_heap *heap = NULL;
@@ -546,21 +430,12 @@ void ion_mm_heap_total_memory() {
 			heap = buffer->heap;
 			total_size += buffer->size;
 			if (!buffer->handle_count) {
-				ION_PRINT_LOG_OR_SEQ(NULL, "%16.s %16u %16u %d %d\n", buffer->task_comm,
-						buffer->pid, buffer->size, buffer->kmap_cnt,
-						atomic_read(&buffer->ref.refcount) );
 				total_orphaned_size += buffer->size;
 			}
 		}
 	}
 	mutex_unlock(&dev->buffer_lock);
 
-    ION_PRINT_LOG_OR_SEQ(NULL, "----------------------------------------------------\n");
-    ION_PRINT_LOG_OR_SEQ(NULL, "%16.s %16u\n", "total orphaned", total_orphaned_size);
-    ION_PRINT_LOG_OR_SEQ(NULL, "%16.s %16u\n", "total ", total_size);
-    ION_PRINT_LOG_OR_SEQ(NULL, "----------------------------------------------------\n");
-
-	ion_mm_heap_debug_show(heap, NULL, NULL);
 }
 
 struct ion_heap *ion_mm_heap_create(struct ion_platform_heap *unused)
@@ -593,7 +468,6 @@ struct ion_heap *ion_mm_heap_create(struct ion_platform_heap *unused)
     heap->heap.shrinker.seeks = DEFAULT_SEEKS;
     heap->heap.shrinker.batch = 1024;
     register_shrinker(&heap->heap.shrinker);
-	heap->heap.debug_show = ion_mm_heap_debug_show;
 	return &heap->heap;
 err_create_pool:
         IONMSG("[ion_mm_heap]: error to create pool\n");
@@ -619,26 +493,6 @@ void ion_mm_heap_destroy(struct ion_heap *heap)
 	kfree(sys_heap->pools);
 	kfree(sys_heap);
 }
-
-int ion_mm_copy_dbg_info(ion_mm_buf_debug_info_t *src, ion_mm_buf_debug_info_t *dst)
-{
-    int i;
-    dst->handle = src->handle;
-    for(i=0; i<ION_MM_DBG_NAME_LEN; i++)
-    {
-        dst->dbg_name[i] = src->dbg_name[i];
-    }
-    dst->dbg_name[ION_MM_DBG_NAME_LEN-1] = '\0';
-    dst->value1 = src->value1;
-    dst->value2 = src->value2;
-    dst->value3 = src->value3;
-    dst->value4 = src->value4;
-
-    return 0;
-    
-}
-
-
 
 long ion_mm_ioctl(struct ion_client *client, unsigned int cmd, unsigned long arg, int from_kernel)
 {
@@ -706,80 +560,6 @@ long ion_mm_ioctl(struct ion_client *client, unsigned int cmd, unsigned long arg
             ret = -EFAULT;
         }
         break;
-        
-    case ION_MM_SET_DEBUG_INFO:
-        {
-            struct ion_buffer* buffer;
-            if (Param.buf_debug_info_param.handle)
-            {
-                struct ion_handle *kernel_handle;
-                kernel_handle = ion_drv_get_kernel_handle(client, 
-                                Param.buf_debug_info_param.handle, from_kernel);
-                if(IS_ERR(kernel_handle))
-                {
-                    IONMSG("ion config buffer fail! port=%d\n", Param.config_buffer_param.eModuleID);
-                    ret = -EINVAL;
-                    break;
-                }
-
-                buffer = ion_handle_buffer(kernel_handle);
-                if (buffer->heap->type == ION_HEAP_TYPE_MULTIMEDIA)
-                {
-                    ion_mm_buffer_info* pBufferInfo = buffer->priv_virt;
-                    mutex_lock(&(pBufferInfo->lock));
-                    ion_mm_copy_dbg_info(&(Param.buf_debug_info_param), &(pBufferInfo->dbg_info));
-                    mutex_unlock(&(pBufferInfo->lock));
-                }
-                else
-                {
-                    IONMSG("[ion_mm_heap]: Error. Cannot set dbg buffer that is not from multimedia heap.\n");
-                    ret = -EFAULT;
-                }
-            }
-            else
-            {
-                IONMSG("[ion_mm_heap]: Error. set dbg buffer with invalid handle.\n");
-                ret = -EFAULT;
-            }
-        }
-        break;
-
-    case ION_MM_GET_DEBUG_INFO:
-        {
-            struct ion_buffer* buffer;
-            if (Param.buf_debug_info_param.handle)
-            {
-                struct ion_handle *kernel_handle;
-                kernel_handle = ion_drv_get_kernel_handle(client, 
-                                Param.buf_debug_info_param.handle, from_kernel);
-                if(IS_ERR(kernel_handle))
-                {
-                    IONMSG("ion config buffer fail! port=%d\n", Param.config_buffer_param.eModuleID);
-                    ret = -EINVAL;
-                    break;
-                }
-                buffer = ion_handle_buffer(kernel_handle);
-                if (buffer->heap->type == ION_HEAP_TYPE_MULTIMEDIA)
-                {
-                    ion_mm_buffer_info* pBufferInfo = buffer->priv_virt;
-                    mutex_lock(&(pBufferInfo->lock));
-                    ion_mm_copy_dbg_info(&(pBufferInfo->dbg_info), &(Param.buf_debug_info_param));
-                    mutex_unlock(&(pBufferInfo->lock));
-                }
-                else
-                {
-                    IONMSG("[ion_mm_heap]: Error. Cannot set dbg buffer that is not from multimedia heap.\n");
-                    ret = -EFAULT;
-                }
-            }
-            else
-            {
-                IONMSG("[ion_mm_heap]: Error. set dbg buffer with invalid handle.\n");
-                ret = -EFAULT;
-            }
-        }
-        break;
-
     default:
         IONMSG("[ion_mm_heap]: Error. Invalid command.\n");
         ret = -EFAULT;

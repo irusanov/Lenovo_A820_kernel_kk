@@ -18,7 +18,7 @@
 #define _LINUX_ION_H
 
 #include <linux/types.h>
-struct ion_handle_debug;
+
 struct ion_handle;
 /**
  * enum ion_heap_types - list of all possible types of heaps

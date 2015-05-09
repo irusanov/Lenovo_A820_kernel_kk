@@ -136,13 +136,6 @@ struct ion_client {
 	struct dentry *debug_root;
 };
 
-struct ion_handle_debug {
-    pid_t pid;
-    pid_t tgid;
-    unsigned int backtrace[BACKTRACE_SIZE];
-    unsigned int backtrace_num;
-};
-
 /**
  * ion_handle - a client local reference to a buffer
  * @ref:		reference count
@@ -162,9 +155,6 @@ struct ion_handle {
 	struct rb_node node;
 	unsigned int kmap_cnt;
 	int id;
-#if ION_RUNTIME_DEBUGGER
-        struct ion_handle_debug dbg;
-#endif
 };
 
 void ion_buffer_destroy(struct ion_buffer *buffer);
@@ -185,20 +175,20 @@ void ion_buffer_destroy(struct ion_buffer *buffer);
  * map_dma and map_kernel return pointer on success, ERR_PTR on error.
  */
 struct ion_heap_ops {
-        int (*allocate) (struct ion_heap *heap,
-                         struct ion_buffer *buffer, unsigned long len,
-                         unsigned long align, unsigned long flags);
-        void (*free) (struct ion_buffer *buffer);
-        int (*phys) (struct ion_heap *heap, struct ion_buffer *buffer,
-                     ion_phys_addr_t *addr, size_t *len);
-        struct sg_table *(*map_dma) (struct ion_heap *heap,
-                                        struct ion_buffer *buffer);
-        void (*unmap_dma) (struct ion_heap *heap, struct ion_buffer *buffer);
-        void * (*map_kernel) (struct ion_heap *heap, struct ion_buffer *buffer);
-        void (*unmap_kernel) (struct ion_heap *heap, struct ion_buffer *buffer);
-        int (*map_user) (struct ion_heap *mapper, struct ion_buffer *buffer,
-                         struct vm_area_struct *vma);
-        void (*add_freelist) (struct ion_buffer *buffer);
+	int (*allocate) (struct ion_heap *heap,
+			 struct ion_buffer *buffer, unsigned long len,
+			 unsigned long align, unsigned long flags);
+	void (*free) (struct ion_buffer *buffer);
+	int (*phys) (struct ion_heap *heap, struct ion_buffer *buffer,
+		     ion_phys_addr_t *addr, size_t *len);
+	struct sg_table *(*map_dma) (struct ion_heap *heap,
+					struct ion_buffer *buffer);
+	void (*unmap_dma) (struct ion_heap *heap, struct ion_buffer *buffer);
+	void * (*map_kernel) (struct ion_heap *heap, struct ion_buffer *buffer);
+	void (*unmap_kernel) (struct ion_heap *heap, struct ion_buffer *buffer);
+	int (*map_user) (struct ion_heap *mapper, struct ion_buffer *buffer,
+			 struct vm_area_struct *vma);
+	void (*add_freelist) (struct ion_buffer *buffer);
 };
 
 /**
@@ -235,25 +225,25 @@ struct ion_heap_ops {
  * that are allocated from a specially reserved heap.
  */
 struct ion_heap {
-        struct plist_node node;
-        struct ion_device *dev;
-        enum ion_heap_type type;
-        struct ion_heap_ops *ops;
-        unsigned long flags;
-        unsigned int id;
-        const char *name;
-        struct shrinker shrinker;
-        struct list_head free_list;
-        size_t free_list_size;
-        struct rt_mutex lock;
-        wait_queue_head_t waitqueue;
-        struct task_struct *task;
-        int (*debug_show)(struct ion_heap *heap, struct seq_file *, void *);
+	struct plist_node node;
+	struct ion_device *dev;
+	enum ion_heap_type type;
+	struct ion_heap_ops *ops;
+	unsigned long flags;
+	unsigned int id;
+	const char *name;
+	struct shrinker shrinker;
+	struct list_head free_list;
+	size_t free_list_size;
+	struct rt_mutex lock;
+	wait_queue_head_t waitqueue;
+	struct task_struct *task;
+	int (*debug_show)(struct ion_heap *heap, struct seq_file *, void *);
 };
 
 /**
  * ion_buffer_cached - this ion buffer is cached
- * @buffer:             buffer
+ * @buffer:		buffer
  *
  * indicates whether this ion buffer is cached
  */
@@ -261,7 +251,7 @@ bool ion_buffer_cached(struct ion_buffer *buffer);
 
 /**
  * ion_buffer_fault_user_mappings - fault in user mappings of this buffer
- * @buffer:             buffer
+ * @buffer:		buffer
  *
  * indicates whether userspace mappings of this buffer will be faulted
  * in, this can affect how buffers are allocated from the heap.
@@ -270,25 +260,25 @@ bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer);
 
 /**
  * ion_device_create - allocates and returns an ion device
- * @custom_ioctl:       arch specific ioctl function if applicable
+ * @custom_ioctl:	arch specific ioctl function if applicable
  *
  * returns a valid device or -PTR_ERR
  */
 struct ion_device *ion_device_create(long (*custom_ioctl)
-                                     (struct ion_client *client,
-                                      unsigned int cmd,
-                                      unsigned long arg));
+				     (struct ion_client *client,
+				      unsigned int cmd,
+				      unsigned long arg));
 
 /**
  * ion_device_destroy - free and device and it's resource
- * @dev:                the device
+ * @dev:		the device
  */
 void ion_device_destroy(struct ion_device *dev);
 
 /**
  * ion_device_add_heap - adds a heap to the ion device
- * @dev:                the device
- * @heap:               the heap to add
+ * @dev:		the device
+ * @heap:		the heap to add
  */
 void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap);
 
@@ -384,9 +374,9 @@ void ion_cma_heap_destroy(struct ion_heap *);
  * used to back an architecture specific custom heap
  */
 ion_phys_addr_t ion_carveout_allocate(struct ion_heap *heap, unsigned long size,
-                                      unsigned long align);
+				      unsigned long align);
 void ion_carveout_free(struct ion_heap *heap, ion_phys_addr_t addr,
-                       unsigned long size);
+		       unsigned long size);
 /**
  * The carveout heap returns physical addresses, since 0 may be a valid
  * physical address, this is used to indicate allocation failed
@@ -423,14 +413,14 @@ void ion_carveout_free(struct ion_heap *heap, ion_phys_addr_t addr,
  * on many systems
  */
 struct ion_page_pool {
-        int high_count;
-        int low_count;
-        struct list_head high_items;
-        struct list_head low_items;
-        struct mutex mutex;
-        gfp_t gfp_mask;
-        unsigned int order;
-        struct plist_node list;
+	int high_count;
+	int low_count;
+	struct list_head high_items;
+	struct list_head low_items;
+	struct mutex mutex;
+	gfp_t gfp_mask;
+	unsigned int order;
+	struct plist_node list;
 };
 
 struct ion_page_pool *ion_page_pool_create(gfp_t gfp_mask, unsigned int order);
