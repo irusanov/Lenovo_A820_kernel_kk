@@ -94,9 +94,6 @@ static void __uart_start(struct tty_struct *tty)
 	struct uart_state *state = tty->driver_data;
 	struct uart_port *port = state->uart_port;
 
-	if (port->ops->wake_peer)
-		port->ops->wake_peer(port);
-
 	if (!uart_circ_empty(&state->xmit) && state->xmit.buf &&
 	    !tty->stopped && !tty->hw_stopped)
 		port->ops->start_tx(port);
@@ -358,7 +355,7 @@ uart_get_baud_rate(struct uart_port *port, struct ktermios *termios,
 		 * The spd_hi, spd_vhi, spd_shi, spd_warp kludge...
 		 * Die! Die! Die!
 		 */
-		if (baud == 38400)
+		if (try == 0 && baud == 38400)
 			baud = altbaud;
 
 		/*
@@ -1957,30 +1954,24 @@ int uart_resume_port(struct uart_driver *drv, struct uart_port *uport)
 	/*
 	 * Re-enable the console device after suspending.
 	 */
-	if (console_suspend_enabled && uart_console(uport)) {
-		/*
-		 * no need to resume serial console, it wasn't suspended, 
-		 * if console_suspend_enabled is FALSE 
-		 */
-		uart_change_pm(state, 0);
-		memset(&termios, 0, sizeof(struct ktermios));
+	if (uart_console(uport)) {
 		/*
 		 * First try to use the console cflag setting.
 		 */
+		memset(&termios, 0, sizeof(struct ktermios));
 		termios.c_cflag = uport->cons->cflag;
 
 		/*
 		 * If that's unset, use the tty termios setting.
 		 */
-		if (port->tty && port->tty->termios && termios.c_cflag == 0) {
+		if (port->tty && port->tty->termios && termios.c_cflag == 0)
 			termios = *(port->tty->termios);
-			uport->ops->set_termios(uport, &termios, NULL);
-			printk("[Serial_Core]: Set termio\n");
-		}else{
-			printk("[Serial_Core]: By pass Set termio\n");
-		}
-		//if (console_suspend_enabled)
-		console_start(uport->cons);
+
+		if (console_suspend_enabled)
+			uart_change_pm(state, 0);
+		uport->ops->set_termios(uport, &termios, NULL);
+		if (console_suspend_enabled)
+			console_start(uport->cons);
 	}
 
 	if (port->flags & ASYNC_SUSPENDED) {

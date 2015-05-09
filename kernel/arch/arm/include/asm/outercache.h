@@ -28,7 +28,7 @@ struct outer_cache_fns {
 	void (*clean_range)(unsigned long, unsigned long);
 	void (*flush_range)(unsigned long, unsigned long);
 	void (*flush_all)(void);
-        void (*clean_all)(void);
+    void (*clean_all)(void);
 	void (*inv_all)(void);
 	void (*disable)(void);
 #ifdef CONFIG_OUTER_CACHE_SYNC

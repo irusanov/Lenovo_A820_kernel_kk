@@ -3507,6 +3507,7 @@ level_store(struct mddev *mddev, const char *buf, size_t len)
 		mddev->in_sync = 1;
 		del_timer_sync(&mddev->safemode_timer);
 	}
+	blk_set_stacking_limits(&mddev->queue->limits);
 	pers->run(mddev);
 	mddev_resume(mddev);
 	set_bit(MD_CHANGE_DEVS, &mddev->flags);
@@ -7070,8 +7071,10 @@ void md_do_sync(struct mddev *mddev)
 	/* just incase thread restarts... */
 	if (test_bit(MD_RECOVERY_DONE, &mddev->recovery))
 		return;
-	if (mddev->ro) /* never try to sync a read-only array */
+	if (mddev->ro) {/* never try to sync a read-only array */
+		set_bit(MD_RECOVERY_INTR, &mddev->recovery);
 		return;
+	}
 
 	if (test_bit(MD_RECOVERY_SYNC, &mddev->recovery)) {
 		if (test_bit(MD_RECOVERY_CHECK, &mddev->recovery))
@@ -7101,14 +7104,10 @@ void md_do_sync(struct mddev *mddev)
 	 *
 	 */
 
-	set_freezable();
-
 	do {
 		mddev->curr_resync = 2;
 
 	try_again:
-	try_to_freeze();
-
 		if (kthread_should_stop())
 			set_bit(MD_RECOVERY_INTR, &mddev->recovery);
 
@@ -7131,9 +7130,6 @@ void md_do_sync(struct mddev *mddev)
 					 * time 'round when curr_resync == 2
 					 */
 					continue;
-
-				try_to_freeze();
-
 				/* We need to wait 'interruptible' so as not to
 				 * contribute to the load average, and not to
 				 * be caught by 'softlockup'
@@ -7146,7 +7142,6 @@ void md_do_sync(struct mddev *mddev)
 					       " share one or more physical units)\n",
 					       desc, mdname(mddev), mdname(mddev2));
 					mddev_put(mddev2);
-					try_to_freeze();
 					if (signal_pending(current))
 						flush_signals(current);
 					schedule();
@@ -7185,6 +7180,19 @@ void md_do_sync(struct mddev *mddev)
 			    rdev->recovery_offset < j)
 				j = rdev->recovery_offset;
 		rcu_read_unlock();
+
+		/* If there is a bitmap, we need to make sure all
+		 * writes that started before we added a spare
+		 * complete before we start doing a recovery.
+		 * Otherwise the write might complete and (via
+		 * bitmap_endwrite) set a bit in the bitmap after the
+		 * recovery has checked that bit and skipped that
+		 * region.
+		 */
+		if (mddev->bitmap) {
+			mddev->pers->quiesce(mddev, 1);
+			mddev->pers->quiesce(mddev, 0);
+		}
 	}
 
 	printk(KERN_INFO "md: %s of RAID array %s\n", desc, mdname(mddev));
@@ -7254,8 +7262,6 @@ void md_do_sync(struct mddev *mddev)
 						 || kthread_should_stop());
 		}
 
-		try_to_freeze();
-
 		if (kthread_should_stop())
 			goto interrupted;
 
@@ -7299,7 +7305,6 @@ void md_do_sync(struct mddev *mddev)
 			last_mark = next;
 		}
 
-		try_to_freeze();
 
 		if (kthread_should_stop())
 			goto interrupted;
@@ -7509,10 +7514,8 @@ static void reap_sync_thread(struct mddev *mddev)
  */
 void md_check_recovery(struct mddev *mddev)
 {
-#ifdef CONFIG_FREEZER
-	if (mddev->suspended || unlikely(atomic_read(&system_freezing_cnt)))
+	if (mddev->suspended)
 		return;
-#endif
 
 	if (mddev->bitmap)
 		bitmap_daemon_work(mddev);
@@ -8179,7 +8182,8 @@ static int md_notify_reboot(struct notifier_block *this,
 		if (mddev_trylock(mddev)) {
 			if (mddev->pers)
 				__md_stop_writes(mddev);
-			mddev->safemode = 2;
+			if (mddev->persistent)
+				mddev->safemode = 2;
 			mddev_unlock(mddev);
 		}
 		need_delay = 1;

@@ -259,9 +259,8 @@ static void percpu_timer_setup(void);
 asmlinkage void __cpuinit secondary_start_kernel(void)
 {
 	struct mm_struct *mm = &init_mm;
-	unsigned int cpu = smp_processor_id();
+	unsigned int cpu;
 
-	aee_rr_rec_hoplug(cpu, 1, 0);
 	/*
 	 * The identity mapping is uncached (strongly ordered), so
 	 * switch away from it before attempting any exclusive accesses.
@@ -269,39 +268,32 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	cpu_switch_mm(mm->pgd, mm);
 	enter_lazy_tlb(mm, current);
 	local_flush_tlb_all();
-	aee_rr_rec_hoplug(cpu, 2, 0);
 
 	/*
 	 * All kernel threads share the same mm context; grab a
 	 * reference and switch to it.
 	 */
+	cpu = smp_processor_id();
 	atomic_inc(&mm->mm_count);
 	current->active_mm = mm;
 	cpumask_set_cpu(cpu, mm_cpumask(mm));
-	aee_rr_rec_hoplug(cpu, 3, 0);
 
 	printk("CPU%u: Booted secondary processor\n", cpu);
 
 	cpu_init();
-	aee_rr_rec_hoplug(cpu, 4, 0);
 	preempt_disable();
-	aee_rr_rec_hoplug(cpu, 5, 0);
 	trace_hardirqs_off();
-	aee_rr_rec_hoplug(cpu, 6, 0);
 
 	/*
 	 * Give the platform a chance to do its own initialisation.
 	 */
 	platform_secondary_init(cpu);
-	aee_rr_rec_hoplug(cpu, 7, 0);
 
 	notify_cpu_starting(cpu);
-	aee_rr_rec_hoplug(cpu, 8, 0);
 
 	calibrate_delay();
 
 	smp_store_cpu_info(cpu);
-	aee_rr_rec_hoplug(cpu, 9, 0);
 
 	/*
 	 * OK, now it's safe to let the boot CPU continue.  Wait for
@@ -309,20 +301,15 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	 * before we continue - which happens after __cpu_up returns.
 	 */
 	set_cpu_online(cpu, true);
-	aee_rr_rec_hoplug(cpu, 10, 0);
 	complete(&cpu_running);
-	aee_rr_rec_hoplug(cpu, 11, 0);
 
 	/*
 	 * Setup the percpu timer for this CPU.
 	 */
 	percpu_timer_setup();
-	aee_rr_rec_hoplug(cpu, 12, 0);
 
 	local_irq_enable();
-	aee_rr_rec_hoplug(cpu, 13, 0);
 	local_fiq_enable();
-	aee_rr_rec_hoplug(cpu, 14, 0);
 
 	/*
 	 * OK, it's off to the idle thread for us
@@ -739,10 +726,7 @@ void smp_send_stop(void)
 	cpumask_copy(&mask, cpu_online_mask);
 	cpumask_clear_cpu(smp_processor_id(), &mask);
 	if (!cpumask_empty(&mask))
-	{
-		printk("Send IPI to stop CPUs...\n");
 		smp_cross_call(&mask, IPI_CPU_STOP);
-	}
 
 	/* Wait up to one second for other CPUs to stop */
 	timeout = USEC_PER_SEC;

@@ -308,6 +308,11 @@ static int magicmouse_raw_event(struct hid_device *hdev,
 		if (size < 4 || ((size - 4) % 9) != 0)
 			return 0;
 		npoints = (size - 4) / 9;
+		if (npoints > 15) {
+			hid_warn(hdev, "invalid size value (%d) for TRACKPAD_REPORT_ID\n",
+					size);
+			return 0;
+		}
 		msc->ntouches = 0;
 		for (ii = 0; ii < npoints; ii++)
 			magicmouse_emit_touch(msc, ii, data + ii * 9 + 4);
@@ -331,6 +336,11 @@ static int magicmouse_raw_event(struct hid_device *hdev,
 		if (size < 6 || ((size - 6) % 8) != 0)
 			return 0;
 		npoints = (size - 6) / 8;
+		if (npoints > 15) {
+			hid_warn(hdev, "invalid size value (%d) for MOUSE_REPORT_ID\n",
+					size);
+			return 0;
+		}
 		msc->ntouches = 0;
 		for (ii = 0; ii < npoints; ii++)
 			magicmouse_emit_touch(msc, ii, data + ii * 8 + 6);
@@ -387,10 +397,8 @@ static int magicmouse_raw_event(struct hid_device *hdev,
 	return 1;
 }
 
-static int magicmouse_setup_input(struct hid_device *hdev, struct hid_input *hi)
+static void magicmouse_setup_input(struct input_dev *input, struct hid_device *hdev)
 {
-	struct input_dev *input = hi->input;
-
 	__set_bit(EV_KEY, input->evbit);
 
 	if (input->id.product == USB_DEVICE_ID_APPLE_MAGICMOUSE) {
@@ -473,8 +481,6 @@ static int magicmouse_setup_input(struct hid_device *hdev, struct hid_input *hi)
 		__set_bit(EV_MSC, input->evbit);
 		__set_bit(MSC_RAW, input->mscbit);
 	}
-
-	return 0;
 }
 
 static int magicmouse_input_mapping(struct hid_device *hdev,
@@ -526,6 +532,12 @@ static int magicmouse_probe(struct hid_device *hdev,
 		hid_err(hdev, "magicmouse hw start failed\n");
 		goto err_free;
 	}
+
+	/* We do this after hid-input is done parsing reports so that
+	 * hid-input uses the most natural button and axis IDs.
+	 */
+	if (msc->input)
+		magicmouse_setup_input(msc->input, hdev);
 
 	if (id->product == USB_DEVICE_ID_APPLE_MAGICMOUSE)
 		report = hid_register_report(hdev, HID_INPUT_REPORT,
@@ -591,7 +603,6 @@ static struct hid_driver magicmouse_driver = {
 	.remove = magicmouse_remove,
 	.raw_event = magicmouse_raw_event,
 	.input_mapping = magicmouse_input_mapping,
-	.input_register = magicmouse_setup_input,
 };
 
 static int __init magicmouse_init(void)
