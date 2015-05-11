@@ -1,0 +1,664 @@
+out/target/product/lenovo_a820_kernel.log:sec_osal.c:(.bss+0x6f994): multiple definition of `buf_lock'
+out/target/product/lenovo_a820_kernel.log:arm-eabi-ld.bfd: Warning: size of symbol `buf_lock' changed from 76 in fs/built-in.o to 8 in mediatek/kernel/built-in.o
+out/target/product/lenovo_a820_kernel.log:arm-eabi-ld.bfd: Warning: type of symbol `buf_lock' changed from 2 to 1 in mediatek/kernel/built-in.o
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/kernel/built-in.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/kernel/printk.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/fs/ntfs/built-in.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/fs/ntfs/ntfs.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/fs/ntfs/debug.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/fs/exfat/exfat.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/fs/exfat/built-in.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/fs/exfat/exfat_cache.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/fs/exfat/exfat_core.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/fs/built-in.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/mediatek/kernel/drivers/built-in.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/mediatek/kernel/drivers/fmradio/mtk_fm_drv.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/mediatek/kernel/drivers/fmradio/built-in.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/mediatek/kernel/drivers/combo/common/built-in.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/mediatek/kernel/drivers/combo/common/linux/stp_uart.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/mediatek/kernel/drivers/combo/common/linux/built-in.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/mediatek/kernel/drivers/combo/built-in.o matches
+Binary file out/target/product/lenovo_a820/obj/KERNEL_OBJ/mediatek/kernel/built-in.o matches
+kernel/include/linux/arcdevice.h:	atomic_t buf_lock;
+kernel/include/linux/pstore.h:	spinlock_t	buf_lock;	/* serialize access to 'buf' */
+kernel/drivers/tty/hvc/hvc_vio.c:	spinlock_t		buf_lock;
+kernel/drivers/tty/hvc/hvc_vio.c:	spin_lock_irqsave(&pv->buf_lock, flags);
+kernel/drivers/tty/hvc/hvc_vio.c:	spin_unlock_irqrestore(&pv->buf_lock, flags);
+kernel/drivers/tty/hvc/hvc_vio.c:		spin_lock_init(&pv->buf_lock);
+kernel/drivers/tty/hvc/hvc_vio.c:	spin_lock_init(&hvterm_priv0.buf_lock);
+kernel/drivers/tty/hvc/hvc_vio.c:	spin_lock_init(&hvterm_priv0.buf_lock);
+kernel/drivers/tty/hvc/hvc_vio.c:	spin_lock_init(&hvterm_priv0.buf_lock);
+kernel/drivers/isdn/capi/capiutil.c:static u_long g_debbuf_lock;
+kernel/drivers/isdn/capi/capiutil.c:	if (likely(!test_and_set_bit(1, &g_debbuf_lock))) {
+kernel/drivers/isdn/capi/capiutil.c:		test_and_clear_bit(1, &g_debbuf_lock);
+kernel/drivers/firmware/efivars.c:		spin_lock_init(&efivars->efi_pstore_info.buf_lock);
+kernel/drivers/watchdog/wdrtas.c:	spin_lock(&rtas_data_buf_lock);
+kernel/drivers/watchdog/wdrtas.c:	spin_unlock(&rtas_data_buf_lock);
+kernel/drivers/acpi/apei/erst.c:	spin_lock_init(&erst_info.buf_lock);
+kernel/drivers/scsi/lpfc/lpfc_init.c:spinlock_t _dump_buf_lock;
+kernel/drivers/scsi/lpfc/lpfc_init.c:			spin_lock_init(&_dump_buf_lock);
+kernel/drivers/scsi/lpfc/lpfc_debugfs.c:	spin_lock(&_dump_buf_lock);
+kernel/drivers/scsi/lpfc/lpfc_debugfs.c:	spin_unlock(&_dump_buf_lock);
+kernel/drivers/scsi/lpfc/lpfc_scsi.c:	spin_lock(&_dump_buf_lock);
+kernel/drivers/scsi/lpfc/lpfc_scsi.c:	spin_unlock(&_dump_buf_lock);
+kernel/drivers/scsi/lpfc/lpfc_crtn.h:extern spinlock_t _dump_buf_lock;
+kernel/drivers/spi/spidev.c:	struct mutex		buf_lock;
+kernel/drivers/spi/spidev.c:	mutex_lock(&spidev->buf_lock);
+kernel/drivers/spi/spidev.c:	mutex_unlock(&spidev->buf_lock);
+kernel/drivers/spi/spidev.c:	mutex_lock(&spidev->buf_lock);
+kernel/drivers/spi/spidev.c:	mutex_unlock(&spidev->buf_lock);
+kernel/drivers/spi/spidev.c:	mutex_lock(&spidev->buf_lock);
+kernel/drivers/spi/spidev.c:	mutex_unlock(&spidev->buf_lock);
+kernel/drivers/spi/spidev.c:	mutex_init(&spidev->buf_lock);
+kernel/drivers/net/wireless/mwifiex/scan.c:	spin_lock_irqsave(&priv->curr_bcn_buf_lock, flags);
+kernel/drivers/net/wireless/mwifiex/scan.c:	spin_unlock_irqrestore(&priv->curr_bcn_buf_lock, flags);
+kernel/drivers/net/wireless/mwifiex/main.h:	spinlock_t curr_bcn_buf_lock;
+kernel/drivers/net/wireless/mwifiex/init.c:			spin_lock_init(&priv->curr_bcn_buf_lock);
+kernel/drivers/net/arcnet/arcnet.c:	if (!atomic_dec_and_test(&lp->buf_lock)) {
+kernel/drivers/net/arcnet/arcnet.c:		       lp->buf_lock.counter);
+kernel/drivers/net/arcnet/arcnet.c:	atomic_inc(&lp->buf_lock);
+kernel/drivers/net/arcnet/arcnet.c:	atomic_set(&lp->buf_lock, 1);
+kernel/drivers/staging/rtl8712/rtl8712_recv.h:	spinlock_t recvbuf_lock;
+kernel/drivers/staging/rtl8712/rtl8712_recv.c:		spin_lock_init(&precvbuf->recvbuf_lock);
+kernel/drivers/staging/iio/accel/adis16209_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16209_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16209_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16209_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16209_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16209_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16209_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/accel/kxsd9.c: * @buf_lock:	protect the rx and tx buffers.
+kernel/drivers/staging/iio/accel/kxsd9.c:	struct mutex buf_lock;
+kernel/drivers/staging/iio/accel/kxsd9.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/kxsd9.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/kxsd9.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/kxsd9.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16204_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16204_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16204_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16204_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16204_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16204_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16204_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16204.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/accel/adis16204.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/accel/adis16201.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/accel/adis16201.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/accel/lis3l02dq_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/lis3l02dq_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/lis3l02dq_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/lis3l02dq_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/lis3l02dq_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/lis3l02dq_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/lis3l02dq_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/lis3l02dq_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/lis3l02dq_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16209_ring.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16209_ring.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16201_ring.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16201_ring.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/lis3l02dq_ring.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/lis3l02dq_ring.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16240_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16240_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16240_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16240_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16240_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16240_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16240_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16201_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16201_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16201_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16201_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16201_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16201_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16201_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16240_ring.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16240_ring.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16203_ring.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16203_ring.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/lis3l02dq.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/accel/lis3l02dq.h:	struct mutex			buf_lock;
+kernel/drivers/staging/iio/accel/adis16203_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16203_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16203_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16203_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16203_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16203_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16203_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16240.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/accel/adis16240.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/accel/adis16209.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/accel/adis16209.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/accel/adis16220_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16220_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16220_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16220_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16220_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16220_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16220_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16220_core.c:		mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16220_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16220_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16220.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/accel/adis16220.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/accel/adis16203.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/accel/adis16203.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/accel/adis16204_ring.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/accel/adis16204_ring.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/imu/adis16400_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/imu/adis16400_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/imu/adis16400_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/imu/adis16400_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/imu/adis16400_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/imu/adis16400_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/imu/adis16400_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/imu/adis16400_ring.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/imu/adis16400_ring.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/imu/adis16400.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/imu/adis16400.h:	struct mutex			buf_lock;
+kernel/drivers/staging/iio/meter/ade7754.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/meter/ade7754.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-spi.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7759.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7759.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7759.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7759.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7759.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7759.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7759.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7759.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/meter/ade7759.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/meter/ade7753.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7753.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7753.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7753.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7753.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7753.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7753.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7753.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/meter/ade7753.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/meter/ade7754.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7754.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7754.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7754.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7754.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7754.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7754.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/meter/ade7758.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854-i2c.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7854.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/meter/ade7854.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/meter/ade7758_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adxrs450.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/gyro/adxrs450.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/gyro/adxrs450_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adxrs450_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adxrs450_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adxrs450_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adxrs450_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adxrs450_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adxrs450_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adxrs450_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adxrs450_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16060_core.c: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/gyro/adis16060_core.c:	struct mutex			buf_lock;
+kernel/drivers/staging/iio/gyro/adis16060_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16060_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16060_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16060_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16060_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16260.h: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/gyro/adis16260.h:	struct mutex		buf_lock;
+kernel/drivers/staging/iio/gyro/adis16260_ring.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16260_ring.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16260_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16260_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16260_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16260_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16260_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16260_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16260_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16080_core.c: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/gyro/adis16080_core.c:	struct mutex			buf_lock;
+kernel/drivers/staging/iio/gyro/adis16080_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16080_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16080_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16080_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16080_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16130_core.c: * @buf_lock:		mutex to protect tx and rx
+kernel/drivers/staging/iio/gyro/adis16130_core.c:	struct mutex			buf_lock;
+kernel/drivers/staging/iio/gyro/adis16130_core.c:	mutex_lock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16130_core.c:	mutex_unlock(&st->buf_lock);
+kernel/drivers/staging/iio/gyro/adis16130_core.c:	mutex_init(&st->buf_lock);
+kernel/drivers/char/virtio_console.c:	spinlock_t inbuf_lock;
+kernel/drivers/char/virtio_console.c:	spin_lock_irqsave(&port->inbuf_lock, flags);
+kernel/drivers/char/virtio_console.c:	spin_unlock_irqrestore(&port->inbuf_lock, flags);
+kernel/drivers/char/virtio_console.c:		spin_lock_irqsave(&port->inbuf_lock, flags);
+kernel/drivers/char/virtio_console.c:		spin_unlock_irqrestore(&port->inbuf_lock, flags);
+kernel/drivers/char/virtio_console.c:	spin_lock_irq(&port->inbuf_lock);
+kernel/drivers/char/virtio_console.c:	spin_unlock_irq(&port->inbuf_lock);
+kernel/drivers/char/virtio_console.c:	spin_lock_irq(&port->inbuf_lock);
+kernel/drivers/char/virtio_console.c:		spin_unlock_irq(&port->inbuf_lock);
+kernel/drivers/char/virtio_console.c:	spin_unlock_irq(&port->inbuf_lock);
+kernel/drivers/char/virtio_console.c:	spin_lock_init(&port->inbuf_lock);
+kernel/drivers/char/virtio_console.c:	nr_added_bufs = fill_queue(port->in_vq, &port->inbuf_lock);
+kernel/drivers/char/virtio_console.c:	spin_lock_irqsave(&port->inbuf_lock, flags);
+kernel/drivers/char/virtio_console.c:	spin_unlock_irqrestore(&port->inbuf_lock, flags);
+kernel/drivers/char/virtio_console.c:		fill_queue(port->in_vq, &port->inbuf_lock);
+kernel/drivers/ata/libata-scsi.c:static DEFINE_SPINLOCK(ata_scsi_rbuf_lock);
+kernel/drivers/ata/libata-scsi.c: *	spin_lock_irqsave(ata_scsi_rbuf_lock) on success
+kernel/drivers/ata/libata-scsi.c:	spin_lock_irqsave(&ata_scsi_rbuf_lock, *flags);
+kernel/drivers/ata/libata-scsi.c: *	Unlocks ata_scsi_rbuf_lock.
+kernel/drivers/ata/libata-scsi.c:	spin_unlock_irqrestore(&ata_scsi_rbuf_lock, *flags);
+kernel/drivers/hid/hid-roccat.c:	struct mutex cbuf_lock;
+kernel/drivers/hid/hid-roccat.c:	mutex_lock(&device->cbuf_lock);
+kernel/drivers/hid/hid-roccat.c:			mutex_unlock(&device->cbuf_lock);
+kernel/drivers/hid/hid-roccat.c:			mutex_lock(&device->cbuf_lock);
+kernel/drivers/hid/hid-roccat.c:	mutex_unlock(&device->cbuf_lock);
+kernel/drivers/hid/hid-roccat.c:	mutex_init(&device->cbuf_lock);
+kernel/kernel/printk.c: * logbuf_lock protects log_buf, log_start, log_end, con_start and logged_chars
+kernel/kernel/printk.c:static DEFINE_RAW_SPINLOCK(logbuf_lock);
+kernel/kernel/printk.c:	raw_spin_lock_irqsave(&logbuf_lock, flags);
+kernel/kernel/printk.c:	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
+kernel/kernel/printk.c:		raw_spin_lock_irq(&logbuf_lock);
+kernel/kernel/printk.c:		raw_spin_unlock_irq(&logbuf_lock);
+kernel/kernel/printk.c:		raw_spin_lock_irq(&logbuf_lock);
+kernel/kernel/printk.c:		raw_spin_unlock_irq(&logbuf_lock);
+kernel/kernel/printk.c:		raw_spin_lock_irq(&logbuf_lock);
+kernel/kernel/printk.c:			raw_spin_unlock_irq(&logbuf_lock);
+kernel/kernel/printk.c:			raw_spin_lock_irq(&logbuf_lock);
+kernel/kernel/printk.c:		raw_spin_unlock_irq(&logbuf_lock);
+kernel/kernel/printk.c:		raw_spin_lock_irq(&logbuf_lock);
+kernel/kernel/printk.c:			raw_spin_unlock_irq(&logbuf_lock);
+kernel/kernel/printk.c:			raw_spin_lock_irq(&logbuf_lock);
+kernel/kernel/printk.c:		raw_spin_unlock_irq(&logbuf_lock);
+kernel/kernel/printk.c:	raw_spin_lock_init(&logbuf_lock);
+kernel/kernel/printk.c:/* cpu currently holding logbuf_lock */
+kernel/kernel/printk.c: * This gets called with the 'logbuf_lock' spinlock held and
+kernel/kernel/printk.c: * interrupts disabled. It should return with 'lockbuf_lock'
+kernel/kernel/printk.c:	__releases(&logbuf_lock)
+kernel/kernel/printk.c:	raw_spin_unlock(&logbuf_lock);
+kernel/kernel/printk.c:	raw_spin_lock(&logbuf_lock);
+kernel/kernel/printk.c:	 * will release 'logbuf_lock' regardless of whether it
+kernel/kernel/printk.c:		raw_spin_lock_irqsave(&logbuf_lock, flags);
+kernel/kernel/printk.c:		raw_spin_unlock(&logbuf_lock);
+kernel/kernel/printk.c:	raw_spin_unlock(&logbuf_lock);
+kernel/kernel/printk.c:	raw_spin_lock(&logbuf_lock);
+kernel/kernel/printk.c:	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
+kernel/kernel/printk.c:		raw_spin_lock_irqsave(&logbuf_lock, flags);
+kernel/kernel/printk.c:		raw_spin_unlock_irqrestore(&logbuf_lock, flags);
+kernel/kernel/printk.c:	raw_spin_lock_irqsave(&logbuf_lock, flags);
+kernel/kernel/printk.c:	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
+kernel/kernel/trace/trace.c:	static arch_spinlock_t trace_buf_lock =
+kernel/kernel/trace/trace.c:	arch_spin_lock(&trace_buf_lock);
+kernel/kernel/trace/trace.c:	arch_spin_unlock(&trace_buf_lock);
+kernel/kernel/trace/trace.c:	static arch_spinlock_t trace_buf_lock = __ARCH_SPIN_LOCK_UNLOCKED;
+kernel/kernel/trace/trace.c:	arch_spin_lock(&trace_buf_lock);
+kernel/kernel/trace/trace.c:	arch_spin_unlock(&trace_buf_lock);
+kernel/fs/ntfs/debug.c:static DEFINE_SPINLOCK(err_buf_lock);
+kernel/fs/ntfs/debug.c:	spin_lock(&err_buf_lock);
+kernel/fs/ntfs/debug.c:	spin_unlock(&err_buf_lock);
+kernel/fs/ntfs/debug.c:	spin_lock(&err_buf_lock);
+kernel/fs/ntfs/debug.c:	spin_unlock(&err_buf_lock);
+kernel/fs/ntfs/debug.c:	spin_lock(&err_buf_lock);
+kernel/fs/ntfs/debug.c:	spin_unlock(&err_buf_lock);
+kernel/fs/exfat/exfat_cache.h:void   buf_lock(struct super_block *sb, u32 sec);
+kernel/fs/exfat/exfat_core.c:		buf_lock(sb, sector);
+kernel/fs/exfat/exfat_core.c:			buf_lock(sb, sector);
+kernel/fs/exfat/exfat_core.c:	buf_lock(sb, sector);
+kernel/fs/exfat/exfat_core.c:	buf_lock(sb, sector);
+kernel/fs/exfat/exfat_core.c:	/* buf_lock() before call count_ext_entries() */
+kernel/fs/exfat/exfat_core.c:	buf_lock(sb, sector_old);
+kernel/fs/exfat/exfat_core.c:	/* buf_lock() before call count_ext_entries() */
+kernel/fs/exfat/exfat_core.c:			buf_lock(sb, sector_old);
+kernel/fs/exfat/exfat_core.c:	buf_lock(sb, sector_mov);
+kernel/fs/exfat/exfat_core.c:	/* buf_lock() before call count_ext_entries() */
+kernel/fs/exfat/exfat_core.c:		buf_lock(sb, sector_mov);
+kernel/fs/exfat/exfat_cache.c:void buf_lock(struct super_block *sb, u32 sec)
+kernel/fs/exfat/exfat_cache.c:} /* end of buf_lock */
+kernel/fs/xfs/xfs_ag.h:	spinlock_t	pag_buf_lock;	/* lock for pag_buf_tree */
+kernel/fs/xfs/xfs_trace.h:DEFINE_BUF_EVENT(xfs_buf_lock);
+kernel/fs/xfs/xfs_trace.h:DEFINE_BUF_EVENT(xfs_buf_lock_done);
+kernel/fs/xfs/xfs_trace.h:		__field(int, buf_lockval)
+kernel/fs/xfs/xfs_trace.h:		__entry->buf_lockval = bip->bli_buf->b_sema.count;
+kernel/fs/xfs/xfs_trace.h:		  __entry->buf_lockval,
+kernel/fs/xfs/xfs_buf.h:extern void xfs_buf_lock(xfs_buf_t *);
+kernel/fs/xfs/xfs_buf.c: * b_lru_ref counts left on the inode under the pag->pag_buf_lock. it is there
+kernel/fs/xfs/xfs_buf.c:	spin_lock(&pag->pag_buf_lock);
+kernel/fs/xfs/xfs_buf.c:		spin_unlock(&pag->pag_buf_lock);
+kernel/fs/xfs/xfs_buf.c:		spin_unlock(&pag->pag_buf_lock);
+kernel/fs/xfs/xfs_buf.c:	spin_unlock(&pag->pag_buf_lock);
+kernel/fs/xfs/xfs_buf.c:		xfs_buf_lock(bp);
+kernel/fs/xfs/xfs_buf.c:	if (atomic_dec_and_lock(&bp->b_hold, &pag->pag_buf_lock)) {
+kernel/fs/xfs/xfs_buf.c:			spin_unlock(&pag->pag_buf_lock);
+kernel/fs/xfs/xfs_buf.c:			spin_unlock(&pag->pag_buf_lock);
+kernel/fs/xfs/xfs_buf.c:xfs_buf_lock(
+kernel/fs/xfs/xfs_buf.c:	trace_xfs_buf_lock(bp, _RET_IP_);
+kernel/fs/xfs/xfs_buf.c:	trace_xfs_buf_lock_done(bp, _RET_IP_);
+kernel/fs/xfs/xfs_mount.c:		spin_lock_init(&pag->pag_buf_lock);
+kernel/fs/xfs/xfs_mount.c:		xfs_buf_lock(bp);
+kernel/fs/xfs/xfs_mount.c:	xfs_buf_lock(bp);
+kernel/fs/xfs/xfs_log_recover.c:	xfs_buf_lock(bp);
+kernel/fs/pstore/platform.c:		is_locked = spin_trylock_irqsave(&psinfo->buf_lock, flags);
+kernel/fs/pstore/platform.c:		spin_lock_irqsave(&psinfo->buf_lock, flags);
+kernel/fs/pstore/platform.c:			spin_unlock_irqrestore(&psinfo->buf_lock, flags);
+kernel/fs/pstore/platform.c:		spin_unlock_irqrestore(&psinfo->buf_lock, flags);
+kernel/fs/dlm/debug_fs.c:static struct mutex debug_buf_lock;
+kernel/fs/dlm/debug_fs.c:	mutex_lock(&debug_buf_lock);
+kernel/fs/dlm/debug_fs.c:	mutex_unlock(&debug_buf_lock);
+kernel/fs/dlm/debug_fs.c:	mutex_init(&debug_buf_lock);
+kernel/Documentation/preempt-locking.txt:	spin_lock(&buf_lock);
+kernel/arch/powerpc/include/asm/rtas.h:extern spinlock_t rtas_data_buf_lock;
+kernel/arch/powerpc/kernel/lparcfg.c:	spin_lock(&rtas_data_buf_lock);
+kernel/arch/powerpc/kernel/lparcfg.c:	spin_unlock(&rtas_data_buf_lock);
+kernel/arch/powerpc/kernel/rtas.c:DEFINE_SPINLOCK(rtas_data_buf_lock);
+kernel/arch/powerpc/kernel/rtas.c:EXPORT_SYMBOL(rtas_data_buf_lock);
+kernel/arch/powerpc/kernel/rtas_flash.c:		spin_lock(&rtas_data_buf_lock);
+kernel/arch/powerpc/kernel/rtas_flash.c:		spin_unlock(&rtas_data_buf_lock);
+kernel/arch/powerpc/kernel/rtas_flash.c:	spin_lock(&rtas_data_buf_lock);
+kernel/arch/powerpc/kernel/rtas_flash.c:		spin_unlock(&rtas_data_buf_lock);
+kernel/arch/powerpc/kernel/rtas_flash.c:	spin_unlock(&rtas_data_buf_lock);
+kernel/arch/powerpc/platforms/pseries/mobility.c:	spin_lock(&rtas_data_buf_lock);
+kernel/arch/powerpc/platforms/pseries/mobility.c:	spin_unlock(&rtas_data_buf_lock);
+kernel/arch/powerpc/platforms/pseries/ras.c:static DEFINE_SPINLOCK(ras_log_buf_lock);
+kernel/arch/powerpc/platforms/pseries/ras.c:	spin_lock(&ras_log_buf_lock);
+kernel/arch/powerpc/platforms/pseries/ras.c:	spin_unlock(&ras_log_buf_lock);
+kernel/arch/powerpc/platforms/pseries/ras.c:	spin_lock(&ras_log_buf_lock);
+kernel/arch/powerpc/platforms/pseries/ras.c:	spin_unlock(&ras_log_buf_lock);
+kernel/arch/powerpc/platforms/pseries/dlpar.c:		spin_lock(&rtas_data_buf_lock);
+kernel/arch/powerpc/platforms/pseries/dlpar.c:		spin_unlock(&rtas_data_buf_lock);
+kernel/arch/powerpc/platforms/pseries/eeh_pseries.c:static DEFINE_SPINLOCK(slot_errbuf_lock);
+kernel/arch/powerpc/platforms/pseries/eeh_pseries.c:	spin_lock_init(&slot_errbuf_lock);
+kernel/arch/powerpc/platforms/pseries/eeh_pseries.c:	spin_lock_irqsave(&slot_errbuf_lock, flags);
+kernel/arch/powerpc/platforms/pseries/eeh_pseries.c:	spin_unlock_irqrestore(&slot_errbuf_lock, flags);
+kernel/arch/powerpc/platforms/pseries/scanlog.c:		spin_lock(&rtas_data_buf_lock);
+kernel/arch/powerpc/platforms/pseries/scanlog.c:		spin_unlock(&rtas_data_buf_lock);
+kernel/arch/powerpc/platforms/pseries/setup.c:	spin_lock(&rtas_data_buf_lock);
+kernel/arch/powerpc/platforms/pseries/setup.c:		spin_unlock(&rtas_data_buf_lock);
+kernel/arch/powerpc/platforms/pseries/setup.c:	spin_unlock(&rtas_data_buf_lock);
+kernel/arch/sparc/kernel/psycho_common.c:static DEFINE_SPINLOCK(stc_buf_lock);
+kernel/arch/sparc/kernel/psycho_common.c:	spin_lock(&stc_buf_lock);
+kernel/arch/sparc/kernel/psycho_common.c:	spin_unlock(&stc_buf_lock);
+kernel/arch/sparc/kernel/pci_schizo.c:static DEFINE_SPINLOCK(stc_buf_lock);
+kernel/arch/sparc/kernel/pci_schizo.c:	spin_lock(&stc_buf_lock);
+kernel/arch/sparc/kernel/pci_schizo.c:	spin_unlock(&stc_buf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:static DEFINE_SPINLOCK(mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_lock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_unlock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_lock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_unlock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_lock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_unlock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_lock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_unlock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_lock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_unlock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_lock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_unlock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:        spin_lock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:        spin_unlock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    //spin_lock_irqsave(&mlogbuf_lock, flag);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_lock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_unlock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    //spin_unlock_irqrestore(&mlogbuf_lock, flag);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_lock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_unlock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_lock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:        spin_unlock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:        spin_lock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_unlock_bh(&mlogbuf_lock);
+mediatek/kernel/drivers/mlog/mlog_logger.c:    spin_lock_init(&mlogbuf_lock);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:        KAL_MUTEXLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_num_thistime]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:        KAL_MUTEXUNLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_num_thistime]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:                KAL_MUTEXLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_num_thistime]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:                KAL_MUTEXUNLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_num_thistime]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:            KAL_MUTEXLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_num_thistime]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:            KAL_MUTEXUNLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_num_thistime]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:        KAL_MUTEXLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_num_thistime]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:        KAL_MUTEXUNLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_num_thistime]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:        KAL_MUTEXLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_start]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:        KAL_MUTEXUNLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_start]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:            KAL_MUTEXLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_thistime]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:            KAL_MUTEXUNLOCK(&hif_sdio_handler.rx_buf_lock[rxbuf_thistime]);
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:        KAL_AQUIREMUTEX(&hif_sdio_handler.rx_buf_lock[i]) ;
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.c:            KAL_DESTROYMUTEX(&hif_sdio_handler.rx_buf_lock[i]) ;
+mediatek/kernel/drivers/eemcs/lte_hif_sdio.h:    KAL_MUTEX	rx_buf_lock[RX_BUF_NUM];
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:static struct fm_lock *cmd_buf_lock = NULL;
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:	if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:	FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:	cmd_buf_lock = fm_lock_create("20_cmd");
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:	ret = fm_lock_get(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:	ret = fm_lock_put(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6620/pub/mt6620_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:static struct fm_lock *cmd_buf_lock = NULL;
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:                if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:                FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:                if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:                FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:                if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:                FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:                if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:                FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return fm_false;
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:            if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:            FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:	if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:	FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) 
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    cmd_buf_lock = fm_lock_create("30_cmd");
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    ret = fm_lock_get(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6630/pub/mt6630_fm_lib.c:    ret = fm_lock_put(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:static struct fm_lock *cmd_buf_lock = NULL;
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:            if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:            FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:            if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:            FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:            if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:            FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:            if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:            FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return fm_false;
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return fm_false;
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:            if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:            FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:	if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:	FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    cmd_buf_lock = fm_lock_create("27_cmd");
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    ret = fm_lock_get(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6627/pub/mt6627_fm_lib.c:    ret = fm_lock_put(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:static struct fm_lock *cmd_buf_lock = NULL;
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:            if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:            FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:            if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:            FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:            if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:            FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:            if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:            FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return fm_false;
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return fm_false;
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:            if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:            FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:	if (FM_LOCK(cmd_buf_lock)) return (-FM_ELOCK);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:	FM_UNLOCK(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    cmd_buf_lock = fm_lock_create("28_cmd");
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    ret = fm_lock_get(cmd_buf_lock);
+mediatek/kernel/drivers/fmradio/mt6628/pub/mt6628_fm_lib.c:    ret = fm_lock_put(cmd_buf_lock);
+mediatek/kernel/drivers/combo/common/linux/stp_uart.c:spinlock_t         buf_lock;
+mediatek/kernel/drivers/combo/common/linux/stp_uart.c:////    spin_lock_irqsave(&buf_lock, flags);
+mediatek/kernel/drivers/combo/common/linux/stp_uart.c:////    spin_unlock_irqrestore(&buf_lock, flags);
+mediatek/kernel/drivers/combo/common/linux/stp_uart.c:////    spin_lock_init(&buf_lock);
+mediatek/kernel/drivers/combo/common/linux/stp_uart.c:    //spin_lock_irqsave(&buf_lock, flags);
+mediatek/kernel/drivers/combo/common/linux/stp_uart.c:////    spin_lock_irqsave(&buf_lock, flags);
