@@ -120,7 +120,7 @@ void sync_filesystems(int wait)
 {
 	iterate_supers(sync_one_sb, &wait);
 }
-#ifdef CONFIG_DYNAMIC_FSYNC
+#ifndef CONFIG_DYNAMIC_FSYNC
 EXPORT_SYMBOL_GPL(sync_filesystems);
 #endif
 

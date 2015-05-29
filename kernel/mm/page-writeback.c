@@ -97,7 +97,7 @@ unsigned long vm_dirty_bytes;
  * The default intervals between `kupdate'-style writebacks
  */
 #define DEFAULT_DIRTY_WRITEBACK_INTERVAL	 5 * 100 /* centiseconds */
-#define HIGH_DIRTY_WRITEBACK_INTERVAL		15 * 100 /* centiseconds */
+#define HIGH_DIRTY_WRITEBACK_INTERVAL		45 * 100 /* centiseconds */
 
 /*
  * The interval between `kupdate'-style writebacks
@@ -109,7 +109,7 @@ EXPORT_SYMBOL_GPL(dirty_writeback_interval);
 /*
  * The dynamic writeback activation status
  */
-int dyn_dirty_writeback_enabled = 1;
+int dyn_dirty_writeback_enabled = 0;
 EXPORT_SYMBOL_GPL(dyn_dirty_writeback_enabled);
 
 /*
@@ -2067,26 +2067,6 @@ int __set_page_dirty_no_writeback(struct page *page)
  */
 void account_page_dirtied(struct page *page, struct address_space *mapping)
 {
-#ifdef FEATURE_STORAGE_PID_LOGGER
-		struct page_pid_logger *tmp_logger;
-		extern unsigned char *page_logger;
-		extern spinlock_t g_locker;
-		if( page_logger && page) {
-			int page_index;
-	
-			page_index = (unsigned long)((page) - mem_map) ;
-			tmp_logger =((struct page_pid_logger *)page_logger) + page_index;
-			spin_lock(&g_locker);
-			if( page_index < num_physpages) {
-				if( tmp_logger->pid1 == 0XFFFF && tmp_logger->pid2 != current->pid)
-					tmp_logger->pid1 = current->pid;
-				else if( tmp_logger->pid1 != current->pid )
-					tmp_logger->pid2 = current->pid;
-			}
-			spin_unlock(&g_locker);
-			//printk(KERN_INFO"account_page_dirtied pid1:%u pid2:%u pfn:%d \n", tmp_logger->pid1, tmp_logger->pid2, page_index );
-		}
-#endif
 	if (mapping_cap_account_dirty(mapping)) {
 		__inc_zone_page_state(page, NR_FILE_DIRTY);
 		__inc_zone_page_state(page, NR_DIRTIED);

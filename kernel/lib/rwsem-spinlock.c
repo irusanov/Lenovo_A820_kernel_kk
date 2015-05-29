@@ -195,6 +195,7 @@ void __sched __down_write_nested(struct rw_semaphore *sem, int subclass)
 	/* set up my own style of waitqueue */
 	tsk = current;
 	waiter.task = tsk;
+
 	waiter.type = RWSEM_WAITING_FOR_WRITE;
 	list_add_tail(&waiter.list, &sem->wait_list);
 
@@ -208,6 +209,7 @@ void __sched __down_write_nested(struct rw_semaphore *sem, int subclass)
 		 */
 		if (sem->activity == 0)
 			break;
+		schedule();
 		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
 		raw_spin_unlock_irqrestore(&sem->wait_lock, flags);
 		schedule();

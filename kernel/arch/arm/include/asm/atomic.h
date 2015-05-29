@@ -37,6 +37,7 @@ extern void __force_clock(u32 l);
  */
 #define atomic_read(v)	(*(volatile int *)&(v)->counter)
 #define atomic_set(v,i)	(((v)->counter) = (i))
+#define cpu_relaxed_read_atomic(v)	atomic_read(v)
 
 #if __LINUX_ARM_ARCH__ >= 6
 
@@ -264,7 +265,7 @@ typedef struct {
 
 #define ATOMIC64_INIT(i) { (i) }
 
-static inline u64 atomic64_read(atomic64_t *v)
+static inline u64 atomic64_read(const atomic64_t *v)
 {
 	u64 result;
 
