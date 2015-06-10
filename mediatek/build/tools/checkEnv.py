@@ -485,9 +485,9 @@ class EabiCheck(object):
             self.versionNo = match.group(1)
             number = self.versionNo.split(".")
             if int(number[0]) < 4 \
-               or (int(number[0]) == 4 and int(number[1]) != 8): 
+               or (int(number[0]) == 4 and int(number[1]) > 9): 
                 self.info = "your arm-linux-androideabi-gcc version is not recommendation"
-            elif int(number[0]) == 4 and int(number[1]) == 8:
+            elif int(number[0]) == 4 and int(number[1]) <= 9:
                self.flag = "OK"
         else:
             self.versionNo = "unknown version"

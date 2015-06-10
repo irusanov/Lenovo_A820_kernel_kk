@@ -7,8 +7,9 @@ ALWAYSON_DFOSET_VALUE=MTK_CTA_SUPPORT MTK_AUTOIP_SUPPORT
 AUTO_ADD_GLOBAL_DEFINE_BY_NAME=MTK_ACMT_DEBUG MTK_BT_PROFILE_AVRCP MTK_NVRAM_SECURITY MTK_MMPROFILE_SUPPORT MTK_GPS_SUPPORT MTK_3GDONGLE_SUPPORT MTK_CAM_AUTORAMA_SUPPORT EVDO_DT_SUPPORT MTK_CAMCORDER_PROFILE_MID_MP4 MTK_CAM_MAV_SUPPORT MTK_AUDIO_DDPLUS_SUPPORT MTK_FM_SUPPORT MTK_USES_HD_VIDEO MTK_TABLET_PLATFORM MTK_DRM_APP MTK_MT8193_NFI_SUPPORT MTK_AUDIO_RAW_SUPPORT MTK_AUTO_DETECT_MAGNETOMETER MTK_SMARTBOOK_SUPPORT MTK_GEMINI_SMART_3G_SWITCH MTK_AUDIO_APE_SUPPORT MTK_BT_PROFILE_MANAGER MTK_SIM_RECOVERY MTK_TER_SERVICE MTK_FM_RECORDING_SUPPORT MTK_AUDIO_EXTCODEC_SUPPORT MTK_CAM_STEREO_CAMERA_SUPPORT PURE_AP_USE_EXTERNAL_MODEM MTK_DEDICATEDAPN_SUPPORT MTK_WAPI_SUPPORT MTK_BT_PROFILE_HIDH MTK_BT_PROFILE_TIMES MTK_DT_SUPPORT MTK_BT_PROFILE_BIP MTK_CAMERA_BSP_SUPPORT MTK_USER_ROOT_SWITCH MTK_MATV_SERIAL_IF_SUPPORT MTK_MULTIBRIDGE_SUPPORT MTK_BT_PROFILE_PBAP MTK_FAT_ON_NAND MTK_VOICE_UI_SUPPORT MTK_DX_HDCP_SUPPORT MTK_GEMINI_4SIM_SUPPORT MTK_CAM_IMAGE_REFOCUS_SUPPORT MTK_BT_PROFILE_PAN MTK_BT_PROFILE_HFP MTK_BT_21_SUPPORT MTK_CAM_GESTURE_SUPPORT CUSTOM_KERNEL_BAROMETER MTK_BT_PROFILE_AVRCP14 MTK_DOLBY_DAP_SUPPORT MTK_MASS_STORAGE MTK_RAWFS_NAND_SUPPORT MTK_BICR_SUPPORT MTK_SEC_VIDEO_PATH_SUPPORT MTK_WMA_PLAYBACK_SUPPORT MTK_FM_50KHZ_SUPPORT MTK_BT_PROFILE_BPP MTK_CTPPPOE_SUPPORT MTK_COMBO_QUICK_SLEEP_SUPPORT MTK_THEMEMANAGER_APP MTK_FSCK_TUNE MTK_TMP103_SUPPORT MTK_BQ24158_SUPPORT MTK_TABLET_DRAM MTK_CAMERA_APP_3DHW_SUPPORT MTK_MT8193_SUPPORT MTK_MERGE_INTERFACE_SUPPORT HAVE_AACENCODE_FEATURE MTK_BT_PROFILE_MAPS TRUSTONIC_TEE_SUPPORT MTK_AUDIO MTK_WIFI_HOTSPOT_SUPPORT MTK_COMBO_SUPPORT MTK_CSD_DIALER_SUPPORT MTK_IN_HOUSE_TEE_SUPPORT MTK_FLIGHT_MODE_POWER_OFF_MD MTK_RADIOOFF_POWER_OFF_MD MTK_PRIVACY_PROTECTION_LOCK MTK_BT_PROFILE_MAPC MTK_SHARED_SDCARD MTK_EMMC_DISCARD MTK_PQ_SUPPORT MTK_DSPIRDBG MTK_WVDRM_L1_SUPPORT MTK_VT3G324M_SUPPORT MTK_VIDEO_HEVC_SUPPORT MTK_DMNR_TUNING_AT_MD MTK_MULTI_STORAGE_SUPPORT MTK_CACHE_MERGE_SUPPORT MTK_MT8193_HDCP_SUPPORT MTK_ENABLE_VIDEO_EDITOR MTK_CHIPTEST_INT MTK_EAP_SIM_AKA MTK_BESLOUDNESS_SUPPORT MTK_WFD_SUPPORT MTK_VIDEO_AUTO_FLASH_SUPPORT MTK_HIGH_RESOLUTION_AUDIO_SUPPORT MTK_LIVE_PHOTO_SUPPORT MTK_CAM_HDR_SUPPORT MTK_WIFIWPSP2P_NFC_SUPPORT MTK_FD_SUPPORT MTK_DISPLAY_HIGH_RESOLUTION HAVE_ADPCMENCODE_FEATURE MTK_OGM_PLAYBACK_SUPPORT MTK_NCP1851_SUPPORT HAVE_AWBENCODE_FEATURE MTK_CAM_LOMO_SUPPORT NAND_OTP_SUPPORT MTK_FACEBEAUTY_SUPPORT MTK_PERSIST_PARTITION_SUPPORT MTK_AAL_SUPPORT MTK_BQ24156_SUPPORT MTK_LTE_DC_SUPPORT MTK_VIDEO_VP9_SUPPORT MTK_CAM_SD_SUPPORT MTK_WFD_SINK_UIBC_SUPPORT MTK_AUDIO_HD_REC_SUPPORT MTK_BQ24296_SUPPORT MTK_CAMERA_OT_SUPPORT MTK_PASSPOINT_R1_SUPPORT MTK_MLC_NAND_SUPPORT MTK_SLOW_MOTION_VIDEO_SUPPORT MTK_AVI_PLAYBACK_SUPPORT MTK_BT_PROFILE_FTP MTK_BATTERY_PROTECT MTK_TOUCH_BOOST MTK_MT8193_HDMI_SUPPORT MTK_HIGH_QUALITY_THUMBNAIL MTK_FAN5402_SUPPORT MTK_IPV6_TETHER_NDP_MODE MTK_FLV_PLAYBACK_SUPPORT MTK_WIRELESS_CHARGER_SUPPORT MTK_PLAYREADY_SUPPORT MTK_IMAGE_LARGE_MEM_LIMIT MTK_SUBTITLE_SUPPORT IS_VRF18_USE_6333VRF18 MTK_FM_TX_SUPPORT MTK_MDM_FUMO MTK_OWNER_SDCARD_ONLY_SUPPORT MTK_BRAZIL_CUSTOMIZATION_VIVO MTK_BRAZIL_CUSTOMIZATION_CLARO MT6280_SUPER_DONGLE MTK_ENABLE_MD5 MTK_ENABLE_MD2 MTK_SWIP_WMAPRO MTK_CAM_OT_SUPPORT MTK_ENABLE_MD1 HAVE_XLOG_FEATURE MTK_SEC_WFD_VIDEO_PATH_SUPPORT MTK_LCA_RAM_OPTIMIZE MTK_WORLD_PHONE MTK_CAM_FACEBEAUTY_SUPPORT MTK_NO_NEED_USB_LED MTK_CAM_DEPTH_AF_SUPPORT MTK_BT_40_SUPPORT EVDO_DT_VIA_SUPPORT MTK_COMBO_NAND_SUPPORT MTK_SWCHR_SUPPORT MTK_CAM_SINGLE_3DSHOT_SUPPORT MTK_BT_PROFILE_TIMEC MTK_VOICE_UNLOCK_SUPPORT MTK_CAM_EIS_SUPPORT MTK_UMTS_TDD128_MODE MTK_TETHERING_EEM_SUPPORT MTK_YMAL_SCATTER_FILE_SUPPORT MTK_MATV_ANALOG_SUPPORT MTK_AUTORAMA_SUPPORT MTK_NEW_COMBO_EMMC_SUPPORT MTK_DRM_KEY_MNG_SUPPORT MTK_MOBILE_MANAGEMENT MTK_MOTION_TRACK_SUPPORT MTK_BRAZIL_CUSTOMIZATION MTK_BT_PROFILE_A2DP MTK_MDM_LAWMO MTK_LCA_ROM_OPTIMIZE MTK_TABLET_PLUGIN_BUILD MTK_WFD_HDCP_TX_SUPPORT MTK_BT_SUPPORT MTK_ASF_PLAYBACK_SUPPORT MTK_DFO_RESOLUTION_SUPPORT MTK_SPI_NAND_SUPPORT MTK_CTA_SUPPORT MTK_PM_STATS_SUPPORT MTK_YAML_SCATTER_FILE_SUPPORT MTK_PARTITION_TABLE_PLAIN_TEXT MTK_CAM_NR3D_SUPPORT MTK_THERMAL_PA_VIA_ATCMD MTK_IPV6_SUPPORT MTK_CAM_VHDR_SUPPORT MTK_NFC_SUPPORT MTK_PMIC_MT6397 MTK_AUDIO_ADPCM_SUPPORT MTK_GPT_SCHEME_SUPPORT MTK_SDIOAUTOK_SUPPORT MTK_NAND_UBIFS_SUPPORT CUSTOM_KERNEL_GYROSCOPE MTK_MDM_SCOMO MTK_SIM_HOT_SWAP_COMMON_SLOT CUSTOM_KERNEL_MAGNETOMETER MTK_HANDSFREE_DMNR_SUPPORT MTK_EMULATOR_SUPPORT CUSTOM_KERNEL_ACCELEROMETER TELEPHONY_DFOSET MTK_MT6333_SUPPORT MTK_LOMO_SUPPORT MTK_BIP_SCWS MTK_POWER_EXT_DETECT MTK_WLAN_SUPPORT MTK_POST_PROCESS_FRAMEWORK_SUPPORT MTK_DRM_PLAYREADY_SUPPORT MTK_TETHERINGIPV6_SUPPORT MTK_WMV_PLAYBACK_SUPPORT MTK_UART_USB_SWITCH MTK_IPOH_SUPPORT MTK_AUTO_DETECT_ACCELEROMETER HAVE_CMMB_FEATURE MTK_USES_VR_DYNAMIC_QUALITY_MECHANISM MTK_EMMC_SUPPORT_OTP IS_VCORE_USE_6333VCORE MTK_TB_APP_CALL_FORCE_SPEAKER_ON HAVE_MATV_FEATURE MTK_COMBO_CORE_DUMP_SUPPORT MTK_PLATFORM_OPTIMIZE MTK_FEMTO_CELL_SUPPORT MTK_MULTISIM_RINGTONE_SUPPORT MTK_FORCE_CLUSTER1 MTK_PRODUCT_INFO_SUPPORT MTK_BEAM_PLUS_SUPPORT MTK_FM_RX_SUPPORT MTK_FM_SHORT_ANTENNA_SUPPORT MTK_QVGA_LANDSCAPE_SUPPORT MTK_AIV_SUPPORT MTK_AUTO_DETECT_ALSPS MTK_HDMI_HDCP_SUPPORT MTK_HDMI_SUPPORT MTK_GEMINI_3SIM_SUPPORT MTK_INTERNAL_HDMI_SUPPORT IS_VM_USE_6333VM MTK_EXTERNAL_LDO MTK_BT_PROFILE_SPP MTK_KERNEL_POWER_OFF_CHARGING MTK_BQ24160_SUPPORT MTK_FAN5405_SUPPORT MTK_DVFS_DISABLE_LOW_VOLTAGE_SUPPORT MTK_CAM_ZSD_SUPPORT MTK_CAM_FD_SUPPORT MTK_DISABLE_POWER_ON_OFF_VOLTAGE_LIMITATION MTK_HW_ENHANCE USE_FRAUNHOFER_AAC MTK_ION_SUPPORT MTK_SHOW_MSENSOR_TOAST_SUPPORT MTK_LCEEFT_SUPPORT MTK_CTP_RESET_CONFIG MTK_BT_FM_OVER_BT_VIA_CONTROLLER MTK_AUDIO_CHANGE_SUPPORT MTK_DUAL_MIC_SUPPORT MTK_BT_PROFILE_SIMAP MTK_DHCPV6C_WIFI MTK_WIFI_CALLING_RIL_SUPPORT MTK_BT_PROFILE_PRXM MTK_MTKPS_PLAYBACK_SUPPORT MTK_FSCK_MSDOS_MTK MTK_BATLOWV_NO_PANEL_ON_EARLY MTK_IPV6_TETHER_PD_MODE MTK_2IN1_SPK_SUPPORT MTK_BQ24196_SUPPORT MTK_BT_PROFILE_DUN MTK_SWIP_VORBIS MTK_MD_SHUT_DOWN_NT MTK_SPH_EHN_CTRL_SUPPORT MTK_BSP_PACKAGE MTK_WB_SPEECH_SUPPORT MTK_2SDCARD_SWAP CUSTOM_KERNEL_ALSPS MTK_VIBSPK_SUPPORT HW_HAVE_TP_THREAD MTK_CLEARMOTION_SUPPORT MTK_BT_PROFILE_PRXR ENCRY_PARTITION_SUPPORT MTK_CAM_NATIVE_PIP_SUPPORT MTK_BT_30_SUPPORT MTK_CAM_VIDEO_FACEBEAUTY_SUPPORT MTK_DFO_SUPPORT MTK_WFD_SINK_SUPPORT MTK_MAV_SUPPORT MTK_BQ27541_SUPPORT MTK_SD_REINIT_SUPPORT MTK_CAM_ASD_SUPPORT MTK_VOIP_ENHANCEMENT_SUPPORT MTK_SENSOR_SUPPORT MTK_M4U_SUPPORT MTK_BT_PROFILE_OPP MTK_EMMC_SUPPORT MTK_MULTI_PARTITION_MOUNT_ONLY_SUPPORT MTK_INTERNAL_MHL_SUPPORT MTK_S3D_SUPPORT MTK_BQ24297_SUPPORT MTK_CAM_VSS_SUPPORT MTK_LTE_SUPPORT MTK_WEB_NOTIFICATION_SUPPORT MTK_TC1_FEATURE MTK_LCA_SUPPORT MTK_WLANBT_SINGLEANT MTK_MSDC1_NOT_SUPPORT_SDR104 MTK_VOICE_CONTACT_SEARCH_SUPPORT TP_GESTURE_SUPPORT ARCSOFT_CAMERA_FEATURE
 AUTO_ADD_GLOBAL_DEFINE_BY_NAME_VALUE=MTK_TELEPHONY_BOOTUP_MODE_SLOT2 MTK_TELEPHONY_BOOTUP_MODE_SLOT1 MTK_CAM_MFB_SUPPORT MTK_SHARE_MODEM_SUPPORT MTK_CAM_CONTINUOUS_SHOT_MODE LCM_WIDTH MTK_HOTKNOT_SUPPORT MTK_FW_UPGRADE MTK_NEON_SUPPORT MTK_COMBO_PSM_TX_TH MTK_NFC_SE_NUM MTK_COMBO_PSM_RX_TH MTK_PCB_BATTERY_SENSOR MTK_SHARE_MODEM_CURRENT MTK_VIDEO_4KH264_SUPPORT MTK_SIM2_SOCKET_TYPE MTK_SIM1_SOCKET_TYPE MTK_LCM_PHYSICAL_ROTATION LCM_HEIGHT MTK_FW_UPGRADE_APP MTK_ICUSB_SUPPORT MTK_OVERLAY_ENGINE_SUPPORT CUSTOM_KERNEL_SSW MTK_SINGLE_3DSHOT_SUPPORT MTK_EXTERNAL_MODEM_SLOT CUSTOM_KERNEL_MAIN2_IMGSENSOR
 AUTO_ADD_GLOBAL_DEFINE_BY_VALUE=MTK_PLATFORM CUSTOM_KERNEL_LENS CUSTOM_KERNEL_MAIN_BACKUP_LENS BOOT_LOGO CUSTOM_KERNEL_LCM MTK_MODEM_SUPPORT MTK_ATV_CHIP CUSTOM_KERNEL_MAIN_IMGSENSOR MTK_BT_CHIP MTK_WLAN_CHIP CUSTOM_KERNEL_SUB_BACKUP_IMGSENSOR CUSTOM_KERNEL_MAIN_BACKUP_IMGSENSOR CUSTOM_KERNEL_FLASHLIGHT CUSTOM_KERNEL_SUB_IMGSENSOR CUSTOM_KERNEL_SUB_LENS MTK_AUDIO_BLOUD_CUSTOMPARAMETER_REV CUSTOM_KERNEL_IMGSENSOR MTK_FM_RX_AUDIO MTK_COMBO_CHIP MTK_GPS_CHIP CUSTOM_KERNEL_SUB_BACKUP_LENS CUSTOM_KERNEL_MAIN_LENS MTK_FM_TX_AUDIO MTK_FM_CHIP CUSTOM_KERNEL_MAIN2_IMGSENSOR PROJECT_NAME CUSTOM_NAME
-BUILD_GMS=yes
-AEON_FCOVER_SUPPORT = no
+BUILD_GMS=no
+AEON_FCOVER_SUPPORT=no
+MTK_DEFAULT_AOSP=yes
 
 # Decide whether to build kernel or not.
 BUILD_KERNEL=yes
@@ -49,12 +50,12 @@ CUSTOM_HAL_EEPROM=dummy_eeprom
 
 # User space cameara flashlight driver.You can use this driver to choose cameara flashlight type.
 CUSTOM_HAL_FLASHLIGHT=dummy_flashlight
-CUSTOM_HAL_FMRADIO = mt6628
+CUSTOM_HAL_FMRADIO=mt6628
 
 # User space image sensor driver. Define  project used all image sensors. The value is combination of CUSTOM_HAL_MAIN_IMGSENSOR, CUSTOM_HAL_MAIN_BACKUP_IMGSENSOR, CUSTOM_HAL_SUB_IMGSENSOR, and CUSTOM_HAL_SUB_BACKUP_IMGSENSOR
 CUSTOM_HAL_IMGSENSOR=ov8825_mipi_raw
 
-# = CUSTOM_HAL_MAIN_LENS +CUSTOM_HAL_MAIN_BACKUP_LENS + CUSTOM_HAL_SUB_LENS + CUSTOM_HAL_SUB_BACKUP_LENS
+#=CUSTOM_HAL_MAIN_LENS +CUSTOM_HAL_MAIN_BACKUP_LENS + CUSTOM_HAL_SUB_LENS + CUSTOM_HAL_SUB_BACKUP_LENS
 CUSTOM_HAL_LENS=fm50af sensordrive dummy_lens
 CUSTOM_HAL_MAIN2_IMGSENSOR=
 CUSTOM_HAL_MAIN_BACKUP_IMGSENSOR=
@@ -69,7 +70,7 @@ CUSTOM_HAL_MAIN_IMGSENSOR=ov8825_mipi_raw
 CUSTOM_HAL_MAIN_LENS=fm50af
 
 # M-sensor hal layer library including daemon
-CUSTOM_HAL_MSENSORLIB = 
+CUSTOM_HAL_MSENSORLIB=
 
 # sensor hal layer common part
 CUSTOM_HAL_SENSORS=sensor
@@ -180,8 +181,8 @@ CUSTOM_SEC_SIGNTOOL_SUPPORT=no
 
 # Add these variables to define the default input method and default input method languages.
 DEFAULT_INPUT_METHOD=com.android.inputmethod.latin.LatinIME
-MTK_IME_SUPPORT = yes
-MTK_IME_INPUT_ENGINE = xt9
+MTK_IME_SUPPORT=yes
+MTK_IME_INPUT_ENGINE=xt9
 
 # Add these variables to define the default input method and default input method languages.
 DEFAULT_LATIN_IME_LANGUAGES=en_US
@@ -274,7 +275,7 @@ MTK_AAL_SUPPORT=yes
 MTK_ACMT_DEBUG=no
 
 # This option is for AIV playback feature
-# MTK_AIV_SUPPORT = "yes" means enable AIV feature and "no" disable.
+# MTK_AIV_SUPPORT="yes" means enable AIV feature and "no" disable.
 MTK_AIV_SUPPORT=no
 
 # Originally designed for ESD(Electrostatic discharge) test. For internal use only.
@@ -300,7 +301,7 @@ MTK_AUDENH_SUPPORT=no
 MTK_AUDIO=yes
 MTK_AUDIO_ADPCM_SUPPORT=yes
 
-# Ape feature control option which is used for switch audio APE format playback: switch on:  MTK_AUDIO_APE_SUPPORT = yes switch off: MTK_AUDIO_APE_SUPPORT = no
+# Ape feature control option which is used for switch audio APE format playback: switch on:  MTK_AUDIO_APE_SUPPORT=yes switch off: MTK_AUDIO_APE_SUPPORT=no
 MTK_AUDIO_APE_SUPPORT=yes
 
 # MTK_AUDIO_BLOUD_CUSTOMPARAMETER_V4: Use V4 version lib
@@ -349,8 +350,8 @@ MTK_BEAM_PLUS_SUPPORT=no
 # no, turn off benchmark boost thermal policy.
 MTK_BENCHMARK_BOOST_TP=yes
 MTK_BESLOUDNESS_SUPPORT=no
-MTK_BG_POWER_SAVING_SUPPORT=yes
-MTK_BG_POWER_SAVING_UI_SUPPORT=yes
+MTK_BG_POWER_SAVING_SUPPORT=no
+MTK_BG_POWER_SAVING_UI_SUPPORT=no
 MTK_BICR_SUPPORT=yes
 
 # Support TCP server and TCP client mode channel
@@ -415,10 +416,10 @@ MTK_BT_FM_OVER_BT_VIA_CONTROLLER=no
 MTK_BT_POWER_EFFICIENCY_ENHANCEMENT=yes
 
 # When this option set to yes, the Bluetooth "Advanced Audio Distribution Profile" (A2DP) will be enabled.
-MTK_BT_PROFILE_A2DP = yes
+MTK_BT_PROFILE_A2DP=yes
 
 # When this option set to yes, the Bluetooth "Audio/Video Remote Control Profile" (AVRCP) version 1.0 will be enabled.
-MTK_BT_PROFILE_AVRCP = yes
+MTK_BT_PROFILE_AVRCP=yes
 
 # When this option set to yes, the Bluetooth "Audio/Video Remote Control Profile" (AVRCP) version 1.0 will be enabled.
 MTK_BT_PROFILE_AVRCP13=no
@@ -439,10 +440,10 @@ MTK_BT_PROFILE_DUN=no
 MTK_BT_PROFILE_FTP=no
 
 # When this option set to yes, the Bluetooth "Hands-Free Profile" (HFP) will be enabled.
-MTK_BT_PROFILE_HFP = yes
+MTK_BT_PROFILE_HFP=yes
 
 # When this option set to yes, the Bluetooth "Human Interface Devices Profile - Host Role" (HIDH) will be enabled.
-MTK_BT_PROFILE_HIDH = no
+MTK_BT_PROFILE_HIDH=no
 
 # When this option is set to "yes", "Profile Manager" feature will be enabled and advanced UI will be showed.
 MTK_BT_PROFILE_MANAGER=yes
@@ -454,13 +455,13 @@ MTK_BT_PROFILE_MAPC=no
 MTK_BT_PROFILE_MAPS=no
 
 # When this option set to yes, the Bluetooth "Object Push Profile" (OPP) will be enabled.
-MTK_BT_PROFILE_OPP = yes
+MTK_BT_PROFILE_OPP=yes
 
 # When this option set to yes, the Bluetooth "Personal Area Networking Profile" (PAN) will be enabled.
-MTK_BT_PROFILE_PAN = yes
+MTK_BT_PROFILE_PAN=yes
 
 # When this option set to yes, the Bluetooth "Phone Book Access Profile" (PBAP) will be enabled.
-MTK_BT_PROFILE_PBAP = yes
+MTK_BT_PROFILE_PBAP=yes
 
 # When this option set to yes, the Bluetooth Low Energy "Proximity Profile - Monitor Role" (PRXM) will be enabled.
 MTK_BT_PROFILE_PRXM=no
@@ -472,7 +473,7 @@ MTK_BT_PROFILE_PRXR=no
 MTK_BT_PROFILE_SIMAP=no
 
 # When this option set to yes, the Bluetooth "Serial Port Profile" (SPP) will be enabled.
-MTK_BT_PROFILE_SPP = yes
+MTK_BT_PROFILE_SPP=yes
 
 # When this option set to yes, the Bluetooth Low Energy "Time Profile - Client Role" (TIMEC) will be enabled.
 MTK_BT_PROFILE_TIMEC=no
@@ -484,14 +485,14 @@ MTK_BT_PROFILE_TIMES=no
 MTK_BT_SUPPORT=yes
 MTK_BWC_SUPPORT=yes
 
-# MTK_CACHE_MERGE_SUPPORT = "yes" means enable cache merge feature and "no" disable.
+# MTK_CACHE_MERGE_SUPPORT="yes" means enable cache merge feature and "no" disable.
 MTK_CACHE_MERGE_SUPPORT=no
 
 # An calendar event importer to enable sharing events via Bluetooth.
 MTK_CALENDAR_IMPORTER_APP=yes
 
 # Encode camcorder output file with MP4 encoder
-MTK_CAMCORDER_PROFILE_MID_MP4 = yes
+MTK_CAMCORDER_PROFILE_MID_MP4=yes
 
 # This option provides the build-time switch to determine which camera will be build in image(Two candidates: android default camera, Mediatek camera)
 MTK_CAMERA_APP=no
@@ -539,7 +540,7 @@ MTK_CMAS_SUPPORT=no
 # this feature is used to identify MT6620 chip version. MT6620E3 or later version should be used for this feature
 MTK_COMBO_CHIP=MT6628
 
-# valid_value_list = yes,no
+# valid_value_list=yes,no
 MTK_COMBO_CORE_DUMP_SUPPORT=yes
 MTK_COMBO_NAND_SUPPORT=no
 MTK_COMBO_PSM_RX_TH=1600
@@ -603,7 +604,7 @@ MTK_DIALER_SEARCH_SUPPORT=yes
 
 # support for using digital mic MTK_DIGITAL_MIC_SUPPORT= yes use digital mic MTK_DIGITAL_MIC_SUPPORT= yes use analog mic
 MTK_DIGITAL_MIC_SUPPORT=no
-MTK_DISABLE_EFUSE = yes
+MTK_DISABLE_EFUSE=yes
 MTK_DISABLE_POWER_ON_OFF_VOLTAGE_LIMITATION=yes
 
 # Display high resolution cause DRAM bandwidth usage, CPU usage, Memory usage, and Performance has different behavior.
@@ -630,8 +631,8 @@ MTK_DP_FRAMEWORK=yes
 # Enable or disable the DRM1.0 feature this feature is implemented according to OMA DRM v1.0 specification, and is used for dealing with Digital Rights Management (DRM) if any media content provider require it.
 MTK_DRM_APP=yes
 
-# MTK_DRM_KEY_MNG_SUPPORT = yes means,enabling MTK DRM Key Management
-# MTK_IN_HOUSE_TEE_SUPPORT = no means,disabling MTK DRM Key Management.
+# MTK_DRM_KEY_MNG_SUPPORT=yes means,enabling MTK DRM Key Management
+# MTK_IN_HOUSE_TEE_SUPPORT=no means,disabling MTK DRM Key Management.
 MTK_DRM_KEY_MNG_SUPPORT=no
 
 # Let app/modules could use prebuild playready library.
@@ -676,14 +677,14 @@ MTK_ENABLE_MD5=no
 MTK_ENABLE_S263_DECODER=yes
 
 # enable video editor native and java apk
-MTK_ENABLE_VIDEO_EDITOR=yes
+MTK_ENABLE_VIDEO_EDITOR=no
 
 # A utility application on phone that provide convenience supporting method for RDs and customers to debug, test their project.
 MTK_ENGINEERMODE_APP=yes
 
 # yes: support ETWS feature, and  the Application CellBroadcastReceiver should be build in the system.
 # no: not support ETWS feature, and CellBroadcastReceiver application will not be build in the system.
-MTK_ETWS_SUPPORT=yes
+MTK_ETWS_SUPPORT=no
 MTK_EXTERNAL_LDO=no
 
 # Enable face beautify
@@ -707,7 +708,7 @@ MTK_FILEMANAGER_APP=yes
 MTK_FIRST_MD=1
 
 # MTK_FLIGHT_MODE_POWER_OFF_MD is used to control if modem is powered off when entering flight mode MTK_TELEPHONY_MODE is used for specify current telephony mode MTK_FIRST_MD is used to specify the high priority modem
-MTK_FLIGHT_MODE_POWER_OFF_MD = yes
+MTK_FLIGHT_MODE_POWER_OFF_MD=yes
 
 # use  to wrap the FLV playback feature, AS 50MP do not include the FLV Playback, so set no
 MTK_FLV_PLAYBACK_SUPPORT=yes
@@ -731,7 +732,7 @@ MTK_FM_SHORT_ANTENNA_SUPPORT=yes
 # define FM TX type digital or analog
 MTK_FM_TX_AUDIO=FM_ANALOG_OUTPUT
 MTK_FORCE_CLUSTER1=no
-MTK_FOTA_ENTRY = no
+MTK_FOTA_ENTRY=no
 
 # Firmware Upgrade Over The Air
 MTK_FOTA_SUPPORT=no
@@ -814,8 +815,8 @@ MTK_INTERNAL=no
 MTK_INTERNAL_HDMI_SUPPORT=no
 MTK_INTERNAL_MHL_SUPPORT=no
 
-# MTK_IN_HOUSE_TEE_SUPPORT = yes means,enabling MTK In-House TEE
-# MTK_IN_HOUSE_TEE_SUPPORT = no means,disabling MTK In-House TEE.
+# MTK_IN_HOUSE_TEE_SUPPORT=yes means,enabling MTK In-House TEE
+# MTK_IN_HOUSE_TEE_SUPPORT=no means,disabling MTK In-House TEE.
 MTK_IN_HOUSE_TEE_SUPPORT=no
 MTK_ION_SUPPORT=yes
 MTK_IPOH_SUPPORT=yes
@@ -845,7 +846,7 @@ MTK_LCEEFT_SUPPORT=yes
 # To set the angle between dimension of UI layout and LCM scan direction
 MTK_LCM_PHYSICAL_ROTATION=0
 
-# To enable/disable feature Google default live Wallpapers on the project. If MTK_LIVEWALLPAPER_APP = yes all Google default live wallpapers will be built into bootimage and users can use this feature on their device, vice versa.
+# To enable/disable feature Google default live Wallpapers on the project. If MTK_LIVEWALLPAPER_APP=yes all Google default live wallpapers will be built into bootimage and users can use this feature on their device, vice versa.
 MTK_LIVEWALLPAPER_APP=yes
 MTK_LIVE_PHOTO_SUPPORT=no
 
@@ -1019,7 +1020,7 @@ MTK_PERFSERVICE_SUPPORT=yes
 MTK_PERMISSION_CONTROL=yes
 MTK_PERSIST_PARTITION_SUPPORT=no
 
-# This feature option is to define whether we support features for phone number attribution of China (CMCC, CU and CT) MTK_PHONE_NUMBER_GEODESCRIPTION = Yes means that  phone number attribution of China is enabled in current project, vice versa
+# This feature option is to define whether we support features for phone number attribution of China (CMCC, CU and CT) MTK_PHONE_NUMBER_GEODESCRIPTION=Yes means that  phone number attribution of China is enabled in current project, vice versa
 MTK_PHONE_NUMBER_GEODESCRIPTION=no
 
 # Enable voice recording function
@@ -1062,7 +1063,7 @@ MTK_RADIOOFF_POWER_OFF_MD=no
 # These feature options are for AT&T related  requirement
 MTK_RAT_BALANCING=no
 
-# This feature option is to define if we support features for RAT WCDMA PREFERRED network mode MTK_RAT_WCDMA_PREFERRED = yes means that RAT WCDMA PREFERRED network mode is enabled in current project, vice versa
+# This feature option is to define if we support features for RAT WCDMA PREFERRED network mode MTK_RAT_WCDMA_PREFERRED=yes means that RAT WCDMA PREFERRED network mode is enabled in current project, vice versa
 MTK_RAT_WCDMA_PREFERRED=yes
 MTK_RAWFS_NAND_SUPPORT=no
 
@@ -1128,7 +1129,7 @@ MTK_SEC_SECRO_AC_SUPPORT=yes
 # Secure download means that only trusted image can be downloaded into the phone.   Description of option value: (1) ATTR_SUSBDL_ENABLE : secure download will be enabled on the phone (2) ATTR_SUSBDL_ENABLE : image won't be checked at download time (3) ATTR_SUSBDL_ONLY_ENABLE_ON_SCHIP : secure download is only enabled on security chip (that's the default setting)
 MTK_SEC_USBDL=ATTR_SUSBDL_ONLY_ENABLE_ON_SCHIP
 
-# MTK_SEC_VIDEO_PATH_SUPPORT = yes means,enabling MTK Secure Video Path
+# MTK_SEC_VIDEO_PATH_SUPPORT=yes means,enabling MTK Secure Video Path
 # MTK_SEC_VIDEO_PATH_SUPPORT,= no means disabling MTK Secure Video Path.
 MTK_SEC_VIDEO_PATH_SUPPORT=no
 
@@ -1200,7 +1201,7 @@ MTK_STREAMING_VIDEO_SUPPORT=yes
 # Gallery video display can support internal / external subtitle
 MTK_SUBTITLE_SUPPORT=yes
 
-# set MTK_SUPPORT_MJPEG = yes to enable motion jpeg playback.
+# set MTK_SUPPORT_MJPEG=yes to enable motion jpeg playback.
 MTK_SUPPORT_MJPEG=no
 MTK_SWIP_AAC=yes
 
@@ -1259,7 +1260,7 @@ MTK_TRANSPARENT_BAR_SUPPORT=yes
 MTK_TRIPLE_FRAMEBUFFER_SUPPORT=yes
 
 # For TTY function enable option.
-MTK_TTY_SUPPORT = yes
+MTK_TTY_SUPPORT=yes
 MTK_TVOUT_SUPPORT=no
 
 # Support share USB DP/DM as UART TX/RX.
@@ -1280,7 +1281,7 @@ MTK_VIBSPK_SUPPORT=no
 MTK_VIDEOORB_APP=no
 
 # support video record and playback to 1080p  resolution
-MTK_VIDEO_1080P = yes
+MTK_VIDEO_1080P=yes
 MTK_VIDEO_4KH264_SUPPORT=no
 
 # Provide an option to enable/disable app widget:video favorites
@@ -1290,7 +1291,7 @@ MTK_VIDEO_FAVORITES_WIDGET_APP=no
 MTK_VIDEO_HEVC_SUPPORT=yes
 MTK_VIDEO_THUMBNAIL_PLAY_SUPPORT=yes
 
-# To enable/disable feature Video Wallpaper on the project. If MTK_VLW_APP = yes MtkVideoLiveWallpaper.apk will be built into bootimage and users can use this feature on their device, vice versa.
+# To enable/disable feature Video Wallpaper on the project. If MTK_VLW_APP=yes MtkVideoLiveWallpaper.apk will be built into bootimage and users can use this feature on their device, vice versa.
 MTK_VLW_APP=yes
 MTK_VOICE_CONTACT_SEARCH_SUPPORT=no
 MTK_VOICE_UI_SUPPORT=yes
@@ -1318,13 +1319,13 @@ MTK_WAPPUSH_SUPPORT=yes
 MTK_WB_SPEECH_SUPPORT=yes
 
 # the switcher of turn on /off weather3d  widget
-MTK_WEATHER3D_WIDGET = no
+MTK_WEATHER3D_WIDGET=no
 
 # The weather information retrieval engine and provider.
-MTK_WEATHER_PROVIDER_APP = no
+MTK_WEATHER_PROVIDER_APP=no
 
 # A widget shows weather information provided by Yahoo!
-MTK_WEATHER_WIDGET_APP = no
+MTK_WEATHER_WIDGET_APP=no
 MTK_WEB_NOTIFICATION_SUPPORT=yes
 
 # Define MTK weekly number(internal use only)
@@ -1358,8 +1359,8 @@ MTK_WML_SUPPORT=yes
 MTK_WMV_PLAYBACK_SUPPORT=yes
 MTK_WORLD_PHONE=no
 
-# MTK_WVDRM_L1_SUPPORT = yes means enabling,Widevine DRM Level 1
-# MTK_WVDRM_L1_SUPPORT = no means enabling,Widevine DRM Level 3.
+# MTK_WVDRM_L1_SUPPORT=yes means enabling,Widevine DRM Level 1
+# MTK_WVDRM_L1_SUPPORT=no means enabling,Widevine DRM Level 3.
 MTK_WVDRM_L1_SUPPORT=no
 
 # yes: to enable this WV-DRM feature no: to disable this WV-DRM feature
@@ -1382,7 +1383,7 @@ PLATFORM_MTK_SDK_VERSION=2
 # AP only chip use external modem, ex: mt8135.
 PURE_AP_USE_EXTERNAL_MODEM=no
 
-# use to differentiate the project UI which use the some density resource . Just like the QHD resolution and WQVA resolution , they all use the hdpi resources, if you want to support this two projects ,  you do not need two code base ,you can use  RESOURCE_OVERLAY_SUPPORT  = hdpi to differentiate the QHD and WQVA in one code base. It could overlay the resources in build stage.
+# use to differentiate the project UI which use the some density resource . Just like the QHD resolution and WQVA resolution , they all use the hdpi resources, if you want to support this two projects ,  you do not need two code base ,you can use  RESOURCE_OVERLAY_SUPPORT =hdpi to differentiate the QHD and WQVA in one code base. It could overlay the resources in build stage.
 RESOURCE_OVERLAY_SUPPORT=generic qHD
 
 # When the option is on, SIM refresh - reset command will be handled by modem side. Otherwise, AP have to call modme reset.
@@ -1408,7 +1409,7 @@ WIFI_WEP_KEY_ID_SET=no
 CUSTOM_MODEM=eastaeon89_wet_kk_md1_hspa
 
 # Set the option to Yes to force to send SCRI message during the screen is on if the network doesn't support R8 Fast Dormancy.
-MTK_FD_FORCE_REL_SUPPORT = yes
+MTK_FD_FORCE_REL_SUPPORT=yes
 
 # Support Fast Dormancy or not
 MTK_FD_SUPPORT=yes
@@ -1420,7 +1421,7 @@ MTK_GEMINI_3G_SWITCH=yes
 MTK_VT3G324M_SUPPORT=yes
 
 # Defined for FM driver to show current FM chip type in use
-CUSTOM_KERNEL_FM = mt6628
+CUSTOM_KERNEL_FM=mt6628
 
 # Used in FM driver and Native lib makefiles to decide which chip driver will be build
 MTK_FM_CHIP=MT6628_FM
@@ -1479,26 +1480,26 @@ LCM_WIDTH=540
 # To control resource build. The value would be assigned to PRODUCT_LOCALES under build/target/product/XXX.mk (XXX is each project's name)
 MTK_PRODUCT_LOCALES=en_US es_ES zh_CN zh_TW ru_RU bg_BG pt_BR fr_FR de_DE tr_TR it_IT in_ID ms_MY vi_VN ar_EG th_TH pt_PT pl_PL nl_NL el_GR hu_HU tl_PH ro_RO cs_CZ ko_KR iw_IL my_MM km_KH hdpi
 
-# mATV feature control option which is used for swithing on/off mATV feature: switch on:  HAVE_MATV_FEATURE = yes switch off: HAVE_MATV_FEATURE = no
+# mATV feature control option which is used for swithing on/off mATV feature: switch on:  HAVE_MATV_FEATURE=yes switch off: HAVE_MATV_FEATURE=no
 HAVE_MATV_FEATURE=no
 
 # mATV chip select option: but MTK_MT5192 is only support on mt6516 platform
 MTK_ATV_CHIP=
 
-# mATV audio path mode selection: analog path:  MTK_MATV_ANALOG_SUPPORT = yes I2S path: MTK_MATV_ANALOG_SUPPORT = no
+# mATV audio path mode selection: analog path:  MTK_MATV_ANALOG_SUPPORT=yes I2S path: MTK_MATV_ANALOG_SUPPORT=no
 MTK_MATV_ANALOG_SUPPORT=yes
 
 # if it is set to TRUE: Support WAPI (WLAN Authentication and Privacy Infrastructure) if it is set to FALSE: Does not Support WAPI (WLAN Authentication and Privacy Infrastructure)
 MTK_WAPI_SUPPORT=yes
 
-# To enable Wi-Fi Tethering in the Wi-Fi Setting UI * valid_value_list = Yes or No (Yes: Enable, No: Disable)  * dependency_relationship need MTK_WLAN_SUPPORT = yes
-MTK_WIFI_HOTSPOT_SUPPORT = yes
+# To enable Wi-Fi Tethering in the Wi-Fi Setting UI * valid_value_list=Yes or No (Yes: Enable, No: Disable)  * dependency_relationship need MTK_WLAN_SUPPORT=yes
+MTK_WIFI_HOTSPOT_SUPPORT=yes
 
 MTK_RESOURCE_OPTIMIZATION=hdpi
 
 # The Wlan switch for the wlan feature in the Android(app, framework, native, kernel).
 MTK_WLAN_SUPPORT=yes
 #CREATE_PROJECT_INFO=20140326971
-MTK_BUILD_VERNO = PROTON.KK.V1.0
+MTK_BUILD_VERNO=PROTON.KK.V1.0.DEV
 
-LENOVO_PRODUCT_DEVICE = A820
+LENOVO_PRODUCT_DEVICE=A820

@@ -328,7 +328,7 @@ struct ext_buffer{
 #define MTK_HDMI_GET_SLTDATA                    HDMI_IOWR(69, CEC_GETSLT_DATA)
 #define MTK_HDMI_VIDEO_MUTE                     HDMI_IOWR(70, int)
 
-///#define MTK_HDMI_USBOTG_STATUS	    HDMI_IOWR(71, int)
+//#define MTK_HDMI_USBOTG_STATUS	    HDMI_IOWR(71, int)
 #define MTK_HDMI_GET_DRM_ENABLE     HDMI_IOWR(72, int)
 #define MTK_EXT_DISPLAY_ENTER			HDMI_IO(73)
 #define MTK_EXT_DISPLAY_LEAVE			HDMI_IO(74)
