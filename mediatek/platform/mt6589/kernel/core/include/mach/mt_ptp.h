@@ -15,7 +15,7 @@ typedef unsigned long long  u64;
 
 #define En_PTP_OD 1
 #define PTP_Get_Real_Val 1
-#define Set_PMIC_Volt 0 //1
+#define Set_PMIC_Volt 1 //1
 #define En_ISR_log 0
 
 #define ENHANCE_TURBO_OPP 0 //1

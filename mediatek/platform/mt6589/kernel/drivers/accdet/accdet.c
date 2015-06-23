@@ -73,6 +73,13 @@ static int long_press_time;
 
 static DEFINE_MUTEX(accdet_eint_irq_sync_mutex);
 
+/* LENOVO.SW BEGIN.chenyb1,2012.9.4, add for new standard */
+#ifdef LENOVO_STD_LINECTL_EARPHONE
+	extern struct input_dev *kpd_input_dev;
+	static int linectl_button_press_debounce =	0x300;
+#endif //LENOVO_STD_LINECTL_EARPHONE
+/* LENOVO.SW END.chenyb1,2012.9.4, add for new standard */
+
 static inline void clear_accdet_interrupt(void);
 
 #ifdef ACCDET_EINT
@@ -90,7 +97,13 @@ static inline void accdet_init(void);
 #ifdef ACCDET_LOW_POWER
 
 #include <linux/timer.h>
+/* lenovo.sw begin chenyb1 20130401, use more time to wait user insert the headset */
+#ifdef LENOVO_STD_LINECTL_EARPHONE
+#define MICBIAS_DISABLE_TIMER   (20 *HZ)         //6 seconds
+#else
 #define MICBIAS_DISABLE_TIMER   (6 *HZ)         //6 seconds
+#endif
+/* lenovo.sw end chenyb1 20130401, use more time to wait user insert the headset */
 struct timer_list micbias_timer;
 static void disable_micbias(unsigned long a);
 /* Used to let accdet know if the pin has been fully plugged-in */
@@ -441,6 +454,12 @@ static void accdet_eint_func(void)
 //#ifdef ACCDET_LOW_POWER
 //		del_timer_sync(&micbias_timer);
 //#endif
+/* LENOVO.SW Begin.chenyb1 2013.1.14.Fix plug out with button down error event */
+#ifdef LENOVO_STD_LINECTL_EARPHONE
+             // then is plug-in detect debounce
+              mt65xx_eint_set_hw_debounce(CUST_EINT_ACCDET_NUM, CUST_EINT_ACCDET_DEBOUNCE_CN);
+#endif
+/* LENOVO.SW End.chenyb1 2013.1.14.Fix plug out with button down error event */
 	} 
 	else 
 	{
@@ -469,6 +488,12 @@ static void accdet_eint_func(void)
 		add_timer(&micbias_timer);
 					
 #endif
+/* LENOVO.SW Begin.chenyb1 2013.1.14.Fix plug out with button down error event */
+#ifdef LENOVO_STD_LINECTL_EARPHONE
+              // then is plug-out detect debounce
+              mt65xx_eint_set_hw_debounce(CUST_EINT_ACCDET_NUM, 10);
+#endif
+/* LENOVO.SW End.chenyb1 2013.1.14.Fix plug out with button down error event */
 	}
 	ret = queue_work(accdet_eint_workqueue, &accdet_eint_work);	
 }
@@ -915,9 +940,16 @@ static inline void check_cable_type(void)
             break;
 
 	    case MIC_BIAS:
+/* LENOVO.SW BEGIN.chenyb1,2012.9.4, add for new standard */
+#ifndef LENOVO_STD_LINECTL_EARPHONE			
 	    //ALPS00038030:reduce the time of remote button pressed during incoming call
             //solution: resume hook switch debounce time
             pmic_pwrap_write(ACCDET_DEBOUNCE0, cust_headset_settings->debounce0);
+#else
+	     pmic_pwrap_write(ACCDET_DEBOUNCE0, linectl_button_press_debounce);
+	     pmic_pwrap_write(ACCDET_DEBOUNCE1, linectl_button_press_debounce);
+#endif //LENOVO_STD_LINECTL_EARPHONE
+/* LENOVO.SW END.chenyb1,2012.9.4, add for new standard */            
 			
             if(current_status == 0)
             {
@@ -942,6 +974,28 @@ static inline void check_cable_type(void)
 		    button_status = 1;
 			if(button_status)
 		    {	
+/* LENOVO.SW BEGIN.chenyb1,2012.9.4, add for new standard */
+#ifdef LENOVO_STD_LINECTL_EARPHONE
+                     msleep(10);
+                     
+        	    	ACCDET_DEBUG("[%s]-----------------button_status = %d, cur_eint_state=%d\n", __func__,button_status,cur_eint_state);
+
+        		if ((button_status) && (cur_eint_state == EINT_PIN_PLUG_IN))
+        		{
+        			input_report_key(kpd_input_dev, KEY_INFO, 1);
+        			input_sync(kpd_input_dev);
+        			ACCDET_DEBUG("[%s]SEND DOWN\n", __func__);
+        		}
+/* lenovo.sw begin chenyb1 20130407 retore the pwm signal.The pwm must stop in multikey press */
+#if 1
+			//init  pwm frequency and duty
+                   pmic_pwrap_write(ACCDET_PWM_WIDTH, REGISTER_VALUE(cust_headset_settings->pwm_width));
+                   pmic_pwrap_write(ACCDET_PWM_THRESH, REGISTER_VALUE(cust_headset_settings->pwm_thresh));
+#endif
+/* lenovo.sw end chenyb1 20130407 retore the pwm signal.The pwm must stop in multikey press */
+        		break;
+#endif //LENOVO_STD_LINECTL_EARPHONE
+/* LENOVO.SW END.chenyb1,2012.9.4, add for new standard */
 			#ifdef ACCDET_MULTI_KEY_FEATURE		
 				int multi_key = NO_KEY;		
 			  	//mdelay(10);
@@ -1097,6 +1151,14 @@ static inline void check_cable_type(void)
 				//#ifdef ACCDET_LOW_POWER
 				//wake_unlock(&accdet_timer_lock);//add for suspend disable accdet more than 5S
 				//#endif
+/* LENOVO.SW BEGIN.chenyb1,2012.9.4, add for new standard */
+#ifdef LENOVO_STD_LINECTL_EARPHONE			
+                input_report_key(kpd_input_dev, KEY_INFO, 0);
+                input_sync(kpd_input_dev);
+                ACCDET_DEBUG("[%s]SEND UP\n", __func__);
+                pmic_pwrap_write(ACCDET_DEBOUNCE0, linectl_button_press_debounce);
+#endif //LENOVO_STD_LINECTL_EARPHONE
+/* LENOVO.SW END.chenyb1,2012.9.4, add for new standard */				
             }
             else if(current_status == 3)
             {
@@ -1659,19 +1721,27 @@ void mt_accdet_suspend(void)  // only one suspend mode
 	   printk(KERN_DEBUG "[Accdet]accdet_working_in_suspend\n");
 	   g_accdet_working_in_suspend = 1;
        pre_state_swctrl = accdet_get_swctrl();
+/* LENOVO.SW BEGIN.chenyb1,2012.9.4, add for new standard */
+#ifndef LENOVO_STD_LINECTL_EARPHONE			
 	   // disable ACCDET unit
        accdet_disable_hal();
 	   //disable_clock
 	   accdet_disable_clk();
+#endif //LENOVO_STD_LINECTL_EARPHONE
+/* LENOVO.SW END.chenyb1,2012.9.4, add for new standard */       
     }
 #else
     // disable ACCDET unit
     if(call_status == 0)
     {
        pre_state_swctrl = accdet_get_swctrl();
+/* LENOVO.SW BEGIN.chenyb1,2012.9.4, add for new standard */
+#ifndef LENOVO_STD_LINECTL_EARPHONE 
        accdet_disable_hal();
        //disable_clock
        accdet_disable_clk(); 
+#endif //LENOVO_STD_LINECTL_EARPHONE
+/* LENOVO.SW END.chenyb1,2012.9.4, add for new standard */       
     }
 #endif	
 #endif 

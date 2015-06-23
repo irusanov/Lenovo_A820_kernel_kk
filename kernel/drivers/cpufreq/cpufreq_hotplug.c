@@ -64,7 +64,11 @@
 #define MAX_CPU_DOWN_AVG_TIMES              (200)
 
 #define DEF_CPU_INPUT_BOOST_ENABLE          (1)
+
 #define DEF_CPU_INPUT_BOOST_NUM             (2)
+/* 1 jiffies */
+#define DEF_MIN_SAMPLE_TIME             (10)
+#define DEF_CPU_BOOST_NUM               (4)
 
 #define DEF_CPU_RUSH_BOOST_ENABLE           (1)
 
@@ -91,6 +95,10 @@ typedef enum {
     CPU_HOTPLUG_WORK_TYPE_UP,
     CPU_HOTPLUG_WORK_TYPE_DOWN,
     CPU_HOTPLUG_WORK_TYPE_RUSH,
+/*lenovo_sw gezz1, modify at 2014/6/12, for input(hard key) boost,4 core ,highest cpu freq	begin*/
+    CPU_HOTPLUG_WORK_TYPE_MAX_PERF,
+/*lenovo_sw gezz1, modify at 2014/6/12, for input(hard key) boost,4 core ,highest cpu freq	end*/
+
 } cpu_hotplug_work_type_t;
 
 //#define DEBUG_LOG
@@ -144,6 +152,10 @@ int g_cpu_down_load_index = 0;
 long g_cpu_down_load_history[MAX_CPU_DOWN_AVG_TIMES] = {0};
 
 cpu_hotplug_work_type_t g_trigger_hp_work = 0;
+
+unsigned long next_jiffies = 0;
+#define DVFS_F4     ( 497250)   // KHz
+
 unsigned int g_next_hp_action = 0;
 struct delayed_work hp_work;
 
@@ -241,6 +253,9 @@ static struct dbs_tuners {
     unsigned int cpu_rush_threshold;
     unsigned int cpu_rush_tlp_times;
     unsigned int cpu_rush_avg_times;
+    /* cpuboost pulse interface */
+    unsigned int cpu_boostpulse_duration;
+    unsigned int cpu_boost_num_base;
 } dbs_tuners_ins = {
     .up_threshold = DEF_FREQUENCY_UP_THRESHOLD,
     .sampling_down_factor = DEF_SAMPLING_DOWN_FACTOR,
@@ -261,8 +276,9 @@ static struct dbs_tuners {
     .cpu_rush_threshold = DEF_CPU_RUSH_THRESHOLD,
     .cpu_rush_tlp_times = DEF_CPU_RUSH_TLP_TIMES,
     .cpu_rush_avg_times = DEF_CPU_RUSH_AVG_TIMES,
+    .cpu_boostpulse_duration = DEF_MIN_SAMPLE_TIME,
+    .cpu_boost_num_base = DEF_CPU_BOOST_NUM,
 };
-
 
 /* dvfs thermal limit */
 void dbs_freq_thermal_limited(unsigned int limited, unsigned int freq)
@@ -904,6 +920,75 @@ static ssize_t store_cpu_rush_avg_times(struct kobject *a, struct attribute *b,
 	return count;
 }
 
+static ssize_t store_cpu_boostpulse(struct kobject *kobj, struct attribute *attr,
+				const char *buf, size_t count)
+{
+	int ret;
+	unsigned long val;
+
+	ret = kstrtoul(buf, 0, &val);
+	if (ret < 0)
+		return ret;
+
+	g_trigger_hp_work = CPU_HOTPLUG_WORK_TYPE_MAX_PERF;
+	schedule_delayed_work_on(0, &hp_work, 0);
+
+	return count;
+}
+
+static struct global_attr cpu_boostpulse =
+	__ATTR(boostpulse, 0220, NULL, store_cpu_boostpulse);
+
+static ssize_t show_cpu_boostpulse_duration(
+	struct kobject *kobj, struct attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", dbs_tuners_ins.cpu_boostpulse_duration);
+}
+
+static ssize_t store_cpu_boostpulse_duration(
+	struct kobject *kobj, struct attribute *attr, const char *buf,
+	size_t count)
+{
+	int ret;
+	unsigned long val;
+
+
+	ret = kstrtoul(buf, 0, &val);
+	if (ret < 0) 
+		return ret;
+
+	mutex_lock(&dbs_mutex);
+	dbs_tuners_ins.cpu_boostpulse_duration = val;
+	mutex_unlock(&dbs_mutex);
+
+	return count;
+}
+
+static ssize_t show_cpu_boost_num_base(
+	struct kobject *kobj, struct attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", dbs_tuners_ins.cpu_boost_num_base);
+}
+
+static ssize_t store_cpu_boost_num_base(
+	struct kobject *kobj, struct attribute *attr, const char *buf,
+	size_t count)
+{
+	int ret;
+	unsigned long val;
+
+
+	ret = kstrtoul(buf, 0, &val);
+	if (ret < 0) 
+		return ret;
+
+	mutex_lock(&dbs_mutex);
+	dbs_tuners_ins.cpu_boost_num_base = val;
+	mutex_unlock(&dbs_mutex);
+
+	return count;
+}
+
 define_one_global_rw(sampling_rate);
 define_one_global_rw(io_is_busy);
 define_one_global_rw(up_threshold);
@@ -925,6 +1010,8 @@ define_one_global_rw(cpu_rush_boost_num);
 define_one_global_rw(cpu_rush_threshold);
 define_one_global_rw(cpu_rush_tlp_times);
 define_one_global_rw(cpu_rush_avg_times);
+define_one_global_rw(cpu_boostpulse_duration);
+define_one_global_rw(cpu_boost_num_base);
 
 static struct attribute *dbs_attributes[] = {
     &sampling_rate_min.attr,
@@ -949,6 +1036,9 @@ static struct attribute *dbs_attributes[] = {
     &cpu_rush_threshold.attr,
     &cpu_rush_tlp_times.attr,
     &cpu_rush_avg_times.attr,
+    &cpu_boostpulse.attr,
+    &cpu_boostpulse_duration.attr,
+    &cpu_boost_num_base.attr,
     NULL
 };
 
@@ -1138,6 +1228,16 @@ static void hp_work_handler(struct work_struct *work)
 					for (i = online_cpus_count - 1; i >= g_next_hp_action; --i)
 						cpu_down(i);
 					break;
+/*lenovo_sw gezz1, modify at 2014/6/12, for input(hard key) boost,4 core ,highest cpu freq  begin*/
+				case CPU_HOTPLUG_WORK_TYPE_MAX_PERF:
+                        {
+						struct cpu_dbs_info_s *dbs_info = &per_cpu(hp_cpu_dbs_info, 0);
+						//printk("$$$$ min:%d, max:%d \n",dbs_info->cur_policy->min, dbs_info->cur_policy->max);
+						dbs_info->cur_policy->min = dbs_info->cur_policy->max;
+						g_trigger_hp_work = CPU_HOTPLUG_WORK_TYPE_NONE;
+						}
+					break;
+/*lenovo_sw gezz1, modify at 2014/6/12, for input(hard key) boost,4 core ,highest cpu freq  end*/
 				default:
 					for (i = online_cpus_count; i < min(dbs_tuners_ins.cpu_input_boost_num, dbs_tuners_ins.cpu_num_limit); ++i)
 						cpu_up(i);
@@ -1525,6 +1625,33 @@ static void do_dbs_timer(struct work_struct *work)
 	int delay;
 
 	mutex_lock(&dbs_info->timer_mutex);
+
+/*lenovo_sw gezz1, modify at 2014/4/29, for input boost,4 core ,highest cpu freq  begin*/
+	//printk("do_dbs_timer min: %d, max: %d cpu_num_base: %d\n",
+	//	dbs_info->cur_policy->min,
+	//	dbs_info->cur_policy->max,
+	//	dbs_tuners_ins.cpu_num_base
+	//	);
+	if(dbs_info->cur_policy->min == dbs_info->cur_policy->max
+		&& next_jiffies == 0){
+		next_jiffies = jiffies + msecs_to_jiffies(dbs_tuners_ins.cpu_boostpulse_duration);
+	}
+
+	//printk("do_dbs_timer next_jiffies: %uld , dbs_tuners_ins.cpu_num_base: %d \n",
+	//	next_jiffies, dbs_tuners_ins.cpu_num_base);
+
+
+	if (next_jiffies != 0
+		&& jiffies > next_jiffies) {
+		next_jiffies = 0;
+        /* restore original states */
+		dbs_info->cur_policy->min = (DVFS_F4);
+	    dbs_tuners_ins.cpu_num_base = 1;
+	} else if (next_jiffies != 0
+		&& jiffies < next_jiffies) {
+		dbs_tuners_ins.cpu_num_base = dbs_tuners_ins.cpu_boost_num_base;
+	}
+/*lenovo_sw gezz1, modify at 2014/4/29, for input boost,4 core ,highest cpu freq  end*/
 
 	/* Common NORMAL_SAMPLE setup */
 	dbs_info->sample_type = DBS_NORMAL_SAMPLE;

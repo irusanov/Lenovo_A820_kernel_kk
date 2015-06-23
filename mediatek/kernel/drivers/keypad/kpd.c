@@ -785,6 +785,12 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 	__set_bit(KPD_PMIC_RSTKEY_MAP, kpd_input_dev->keybit);
 #endif
 
+/* LENOVO.SW BEGIN.chenyb1,2012.9.4, add for new standard */
+#ifdef LENOVO_STD_LINECTL_EARPHONE
+    __set_bit(KEY_INFO, kpd_input_dev->keybit);
+#endif //LENOVO_STD_LINECTL_EARPHONE
+/* LENOVO.SW END.chenyb1,2012.9.4, add for new standard */
+
 	kpd_input_dev->dev.parent = &pdev->dev;
 	r = input_register_device(kpd_input_dev);
 	if (r) {

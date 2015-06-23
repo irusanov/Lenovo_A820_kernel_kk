@@ -4,7 +4,7 @@
 /***************************
 * CPU Undervolt
 ****************************/
-#define PROTON_UNDERVOLT 1
+#define PROTON_UNDERVOLT 0
 
 #if PROTON_UNDERVOLT
 	#define DVFS_V0 (1075)  // mV

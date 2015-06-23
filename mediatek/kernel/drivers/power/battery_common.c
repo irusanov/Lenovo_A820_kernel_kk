@@ -1840,7 +1840,7 @@ void mt_battery_GetBatteryData(void)
 
 }
 
-static KAL_BOOL g_overTemp = KAL_FALSE;
+
 static PMU_STATUS mt_battery_CheckBatteryTemp(void)
 {	
 	PMU_STATUS status = PMU_STATUS_OK;
@@ -1874,17 +1874,8 @@ static PMU_STATUS mt_battery_CheckBatteryTemp(void)
     if (BMT_status.temperature >= MAX_CHARGE_TEMPERATURE)
     {
         battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] Battery Over Temperature !!\n\r");                
-        status = PMU_STATUS_FAIL;  
-        g_overTemp = KAL_TRUE;  //add here      
-    }  
-	if((g_overTemp == KAL_TRUE) && (BMT_status.temperature <= RECOVERY_CHARGING_TEMPERATURE))
-	{
-	     battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] recovery charging after over temperature!! \n\r");
-	     g_overTemp = KAL_FALSE; 
-	     status = PMU_STATUS_OK;
-	     BMT_status.bat_charging_state = CHR_PRE;
-	}
-	  
+        status = PMU_STATUS_FAIL;       
+    }    
 #endif
 
 #endif
@@ -2719,7 +2710,7 @@ int charger_hv_detect_sw_thread_handler(void *unused)
     
        	if ((upmu_is_chr_det() == KAL_TRUE))
         {
-            //check_battery_exist();
+            check_battery_exist();
         }
 		
 	 	charger_hv_detect_flag = KAL_FALSE;

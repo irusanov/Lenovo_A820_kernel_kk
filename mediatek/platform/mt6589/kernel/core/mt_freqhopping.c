@@ -84,7 +84,7 @@ static unsigned int	*g_fh_rank0_va;
 
 //TODO: fill in the default freq & corresponding setting_id
 static  fh_pll_t g_fh_pll[MT658X_FH_PLL_TOTAL_NUM] = { //keep track the status of each PLL 
-	{FH_FH_DISABLE,     FH_PLL_ENABLE   , 0, 0       , 0}, //ARMPLL   default SSC disable
+	{FH_FH_ENABLE_SSC,     FH_PLL_ENABLE   , 0, 1209000       , 0}, //ARMPLL   default SSC disable
 	{FH_FH_DISABLE,     FH_PLL_ENABLE   , 0, 1612000 , 0}, //MAINPLL  default SSC disable
 	{FH_FH_ENABLE_SSC,  FH_PLL_ENABLE   , 0, 266000  , 0}, //MEMPLL   default SSC enable
 	{FH_FH_DISABLE,     FH_PLL_ENABLE   , 0, 1599000 , 0}, //MSDCPLL  default SSC enable

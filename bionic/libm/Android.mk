@@ -178,6 +178,7 @@ libm_common_src_files += \
     upstream-freebsd/lib/msun/src/w_dremf.c \
 
 libm_common_src_files += fake_long_double.c
+libm_common_cflags += -DLENOVO_NEON_OPTIMIZATION -fno-if-conversion
 
 # TODO: on Android, "long double" is "double".
 #    upstream-freebsd/lib/msun/src/e_acosl.c \
@@ -234,7 +235,9 @@ ifneq ($(MTK_POW_OPT), NONE)
 						  arm/k_rem_pio2.s \
 						  arm/s_atan.s \
 						  arm/s_cos.s \
-						  arm/s_sin.s
+						  arm/s_sin.s \
+                          arm/e_sqrtf.S \
+                          arm/e_sqrt.S
 
 	libm_common_src_files := $(filter-out \
     	$(addprefix upstream-freebsd/lib/msun/src/, \
@@ -245,7 +248,9 @@ ifneq ($(MTK_POW_OPT), NONE)
     		e_rem_pio2.c \
     		s_atan.c \
     		s_cos.c \
-    		s_sin.c) \
+    		s_sin.c \
+            e_sqrtf.c \
+            e_sqrt.c) \
 		,$(libm_common_src_files))
 endif
 endif

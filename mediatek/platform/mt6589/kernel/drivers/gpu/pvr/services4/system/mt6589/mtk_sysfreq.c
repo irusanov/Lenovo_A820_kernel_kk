@@ -134,7 +134,8 @@ PVRSRV_ERROR MTKSetFreqInfo(unsigned int freq, unsigned int tbltype)
         		pll = GPU_UNIVPLL1_D4;
         		break;
         }
-		
+        
+		mt_gpufreq_set_initial(freq, voltage);
 		mt_gpufreq_keep_frequency_non_OD_init(pll, voltage);
 //    }
 //    else
