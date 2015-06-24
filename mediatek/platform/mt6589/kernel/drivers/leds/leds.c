@@ -62,6 +62,7 @@ static int debug_enable_led_hal = 1;
  * custom APIs
 ***************************************************************************/
 extern unsigned int brightness_mapping(unsigned int level);
+extern unsigned int Cust_GetBacklightLevelSupport_byPWM(void);
 
 /*****************PWM *************************************************/
 static int time_array_hal[PWM_DIV_NUM]={256,512,1024,2048,4096,8192,16384,32768};

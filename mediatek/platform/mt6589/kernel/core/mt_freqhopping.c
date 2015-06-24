@@ -84,7 +84,7 @@ static unsigned int	*g_fh_rank0_va;
 
 //TODO: fill in the default freq & corresponding setting_id
 static  fh_pll_t g_fh_pll[MT658X_FH_PLL_TOTAL_NUM] = { //keep track the status of each PLL 
-	{FH_FH_ENABLE_SSC,     FH_PLL_ENABLE   , 0, 1209000       , 0}, //ARMPLL   default SSC disable
+	{FH_FH_DISABLE,     FH_PLL_ENABLE   , 0, 0       , 0}, //ARMPLL   default SSC disable
 	{FH_FH_DISABLE,     FH_PLL_ENABLE   , 0, 1612000 , 0}, //MAINPLL  default SSC disable
 	{FH_FH_ENABLE_SSC,  FH_PLL_ENABLE   , 0, 266000  , 0}, //MEMPLL   default SSC enable
 	{FH_FH_DISABLE,     FH_PLL_ENABLE   , 0, 1599000 , 0}, //MSDCPLL  default SSC enable
@@ -1394,8 +1394,11 @@ static int freqhopping_dramc_proc_write(struct file *file, const char *buffer, u
 	if (sscanf(dramc, "%d", &freq) == 1)
 	{
 		if( (freq == 266) || (freq == 200)){
-			FH_MSG("dramc:%d ", freq);
-			(freq==266) ? mt_fh_hal_l2h_mempll() : mt_fh_hal_h2l_mempll();
+			FH_MSG("dramc:%d, g_curr_dramc:%d ", freq, g_curr_dramc);
+            if (g_curr_dramc != 293)
+			    (freq==266) ? mt_fh_hal_l2h_mempll() : mt_fh_hal_h2l_mempll();
+            else 
+                if (freq == 266)  mt_oc2h_mempll();
 		}
 		else if(freq == 293){
 			mt_fh_hal_dram_overclock(293);

@@ -213,7 +213,7 @@ int slp_set_wakesrc(u32 wakesrc, bool enable, bool ck26m_on)
 
     slp_notice("wakesrc = 0x%x, enable = %u, ck26m_on = %u\n",
                wakesrc, enable, ck26m_on);
-
+	wakesrc |= WAKE_SRC_KP ; //====add==== 
 #if SLP_REPLACE_DEF_WAKESRC
     if (wakesrc & WAKE_SRC_CFG_KEY)
 #else

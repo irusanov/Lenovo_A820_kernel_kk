@@ -6,6 +6,8 @@
 
 extern int disp_bls_set_backlight(unsigned int level);
 
+extern unsigned int Cust_GetBacklightLevelSupport_byPWM(void);
+
 static struct cust_mt65xx_led cust_led_list[MT65XX_LED_TYPE_TOTAL] = {
 	{"red",               MT65XX_LED_MODE_NONE, -1,{0}},
 	{"green",             MT65XX_LED_MODE_NONE, -1,{0}},

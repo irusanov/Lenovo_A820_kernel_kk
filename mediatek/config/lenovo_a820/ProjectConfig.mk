@@ -704,6 +704,9 @@ MTK_FENCE_SUPPORT=yes
 # use this feature option to enable/disable File Manager App
 MTK_FILEMANAGER_APP=yes
 
+# Add CyanogenMod FileManager app
+CM_FILE_MANAGER_APP=no
+
 # MTK_FLIGHT_MODE_POWER_OFF_MD is used to control if modem is powered off when entering flight mode MTK_TELEPHONY_MODE is used for specify current telephony mode MTK_FIRST_MD is used to specify the high priority modem
 MTK_FIRST_MD=1
 
@@ -1292,7 +1295,7 @@ MTK_VIDEO_HEVC_SUPPORT=yes
 MTK_VIDEO_THUMBNAIL_PLAY_SUPPORT=yes
 
 # To enable/disable feature Video Wallpaper on the project. If MTK_VLW_APP=yes MtkVideoLiveWallpaper.apk will be built into bootimage and users can use this feature on their device, vice versa.
-MTK_VLW_APP=yes
+MTK_VLW_APP=no
 MTK_VOICE_CONTACT_SEARCH_SUPPORT=no
 MTK_VOICE_UI_SUPPORT=yes
 MTK_VOICE_UNLOCK_SUPPORT=yes
