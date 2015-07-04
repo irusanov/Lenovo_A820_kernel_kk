@@ -31,7 +31,7 @@ typedef struct{
 #define MAX_CHARGE_TEMPERATURE  50
 #define MIN_CHARGE_TEMPERATURE  0
 #define ERR_CHARGE_TEMPERATURE  0xFF
-#define HIGH_BATTERY_VOLTAGE_SUPPORT 1
+//#define HIGH_BATTERY_VOLTAGE_SUPPORT 1
 
 /* Recharging Battery Voltage */
 #ifdef HIGH_BATTERY_VOLTAGE_SUPPORT
@@ -63,7 +63,7 @@ VBAT_TO_PERCENT Batt_VoltToPercent_Table[] = {
 	{3891,70},
 	{3960,80},
 	{4044,90},
-	{4183,100},
+	{4183,100}
 };
 
 /* Precise Tunning */

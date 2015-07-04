@@ -350,8 +350,8 @@ MTK_BEAM_PLUS_SUPPORT=no
 # no, turn off benchmark boost thermal policy.
 MTK_BENCHMARK_BOOST_TP=yes
 MTK_BESLOUDNESS_SUPPORT=no
-MTK_BG_POWER_SAVING_SUPPORT=no
-MTK_BG_POWER_SAVING_UI_SUPPORT=no
+MTK_BG_POWER_SAVING_SUPPORT=yes
+MTK_BG_POWER_SAVING_UI_SUPPORT=yes
 MTK_BICR_SUPPORT=yes
 
 # Support TCP server and TCP client mode channel
@@ -922,7 +922,7 @@ MTK_MT8193_NFI_SUPPORT=no
 MTK_MT8193_SUPPORT=no
 
 # yes: to include MTKLogger
-MTK_MTKLOGGER_SUPPORT=yes
+MTK_MTKLOGGER_SUPPORT=no
 
 # enable/disable ogm and mtkps playback feature
 MTK_MTKPS_PLAYBACK_SUPPORT=no
@@ -1245,7 +1245,7 @@ MTK_TER_SERVICE=no
 MTK_TETHERINGIPV6_SUPPORT=yes
 
 # support tethering over eem in Linux or MacOS PC
-MTK_TETHERING_EEM_SUPPORT=no
+MTK_TETHERING_EEM_SUPPORT=yes
 
 # Whether to enable/disable ThemeManager feature, ThemeManager is a feature which maintains themes exist in device, and make it possible for user to change the current skin of device.
 MTK_THEMEMANAGER_APP=no
@@ -1509,4 +1509,4 @@ LENOVO_PRODUCT_DEVICE=A820
 LENOVO_PROJECT_ALTAI=yes
 LENOVO_NEON_OPTIMIZATION=yes
 LENOVO_STD_LINECTL_EARPHONE=yes
-HIGH_BATTERY_VOLTAGE_SUPPORT=yes
+HIGH_BATTERY_VOLTAGE_SUPPORT=no

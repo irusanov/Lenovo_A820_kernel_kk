@@ -1,8 +1,11 @@
+
 # Copyright (C) 2012 The Android Open Source Project
 #
 # IMPORTANT: Do not create world writable files or directories.
 # This is a common source of Android security bugs.
 #
+
+import /init.superuser.rc
 
 #import /init.${ro.hardware}.rc
 import /init.usb.rc
@@ -100,6 +103,7 @@ loglevel 6
 
     # See storage config details at http://source.android.com/tech/storage/
     mkdir /mnt/media_rw 0700 media_rw media_rw
+	mkdir /mnt/shell 0700 shell shell
     mkdir /storage 0751 root sdcard_r
 
     mkdir /mnt/cd-rom 0000 system system
@@ -260,7 +264,7 @@ on fs_property:ro.mount.fs=UBIFS
     mount ubifs ubi@system /system ro remount
     mount ubifs ubi@userdata /data nosuid nodev
     mount ubifs ubi@cache /cache nosuid nodev
-	  mount ubifs ubi@secstatic /system/secro ro
+	mount ubifs ubi@secstatic /system/secro ro
     write /proc/bootprof "INIT:NAND:Mount_END"
 
 # mount different fs end
@@ -488,8 +492,6 @@ on post-fs-data
 
     #Accdet
     chown root radio /sys/devices/platform/Accdet_Driver/driver/accdet_call_state
-    #VideoCodec
-    #insmod /system/lib/modules/vcodec_kernel_driver.ko
     mknod /dev/Vcodec c 160 0
     chmod 0660 /dev/Vcodec
     chown system media /dev/Vcodec
@@ -719,8 +721,8 @@ on boot
     chmod 0664 /sys/module/lowmemorykiller/parameters/minfree
 
     # Tweak background writeout
-    write /proc/sys/vm/dirty_expire_centisecs 200
-    write /proc/sys/vm/dirty_writeback_centisecs 300
+    write /proc/sys/vm/dirty_expire_centisecs 500
+    write /proc/sys/vm/dirty_writeback_centisecs 1000
     write /proc/sys/vm/dirty_background_ratio  5
 
     # Permissions for System Server and daemons.
@@ -762,6 +764,14 @@ on boot
     chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/input_boost
     chown system system /sys/devices/system/cpu/cpufreq/hotplug/cpu_num_base
     chmod 0660 /sys/devices/system/cpu/cpufreq/hotplug/cpu_num_base
+    
+    # Hotplug
+    mkdir /data/data/hotplug
+    write /data/data/hotplug/cmd 0
+    chown root system /data/data/hotplug
+    chown root system /data/data/hotplug/cmd
+    chmod 0666 /data/data/hotplug
+    chmod 0666 /data/data/hotplug/cmd
 
     # Assume SMP uses shared cpufreq policy for all CPUs
     chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
@@ -870,6 +880,8 @@ on boot
     setprop net.tcp.buffersize.gprs    4092,8760,11680,4096,8760,11680
     setprop net.tcp.buffersize.evdo    4094,87380,262144,4096,16384,262144
 
+# Run sysinit
+    start sysinit
 
     class_start core
     class_start main
@@ -934,11 +946,6 @@ service healthd /sbin/healthd
     class core
     critical
     seclabel u:r:healthd:s0
-
-#service healthd /sbin/healthd
-#   class core
-#   critical
-#   seclabel u:r:healthd:s0
 
 #service healthd-charger /sbin/healthd -n
 #   class charger
@@ -1306,9 +1313,12 @@ service dpfd /system/bin/dpfd
 service emd_daemon /system/bin/emd_daemon
     user root
     oneshot
-
-
-
+    
+# sysinit (/system/etc/init.d)
+service sysinit /system/bin/sysinit
+    user root
+    oneshot
+    disabled
 
 service installd /system/bin/installd
     class main
@@ -1403,32 +1413,32 @@ service dualmdlogger /system/bin/dualmdlogger
 #sensor service (begin)
 #
 
-service msensord /system/bin/msensord
-    class main
-    oneshot
+#service msensord /system/bin/msensord
+#    class main
+#    oneshot
 
-service ami304d /system/bin/ami304d
-    user system
-    group system
-    disabled
-    class main
+#service ami304d /system/bin/ami304d
+#    user system
+#    group system
+#    disabled
+#    class main
 
-service memsicd /system/bin/memsicd
-     disabled
-    user system
-    group system
-    class main
+#service memsicd /system/bin/memsicd
+#     disabled
+#    user system
+#    group system
+#    class main
 
-service akmd8975 /system/bin/akmd8975
-    disabled
-    user system
-    group system
-    class main
+#service akmd8975 /system/bin/akmd8975
+#    disabled
+#    user system
+#    group system
+#    class main
 
-service akmd8963 /system/bin/akmd8963
-    disabled
-    user system
-    group system
+#service akmd8963 /system/bin/akmd8963
+#    disabled
+#    user system
+#    group system
 
 service AcdApiDaemon /system/bin/AcdApiDaemon
     disabled
@@ -1436,23 +1446,23 @@ service AcdApiDaemon /system/bin/AcdApiDaemon
     user system
     group system
 
-service bmm050d /system/bin/bmm050d
-    disabled
-    user system
-    group system
-    class main
+#service bmm050d /system/bin/bmm050d
+#    disabled
+#    user system
+#    group system
+#    class main
 
-service orientationd /system/bin/orientationd
-    disabled
-    user system
-    group system input
-    class main
+#service orientationd /system/bin/orientationd
+#    disabled
+#    user system
+#    group system input
+#    class main
 
-service geomagneticd /system/bin/geomagneticd
-    disabled
-    user system
-    group system input
-    class main
+#service geomagneticd /system/bin/geomagneticd
+#    disabled
+#    user system
+#    group system input
+#   class main
 #
 #sensor service (end)
 #
@@ -1543,10 +1553,10 @@ service backuprestore /system/bin/br_app_data_service
 	user root
 
 #Open NFC server
-service server_open_nfc /system/bin/server_open_nfc
-    class main
-    user root
-    group root
+#service server_open_nfc /system/bin/server_open_nfc
+#    class main
+#    user root
+#    group root
 
 #add for power-off alarm
 service poad /system/bin/poad
