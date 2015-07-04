@@ -762,12 +762,6 @@ extern void mt_usb_disconnect(void);
 #endif
 extern void BAT_UpdateChargerStatus(void);
 
-/*lenovo-sw weiweij add for oreg protect*/
-#ifdef MTK_FAN5405_SUPPORT
-extern int fan5405_check_r2(void);//ww_debug
-#endif
-/*lenovo-sw weiweij add for oreg protect end*/
-
 void do_chrdet_int_task(void)
 {
     U32 ret=0;
@@ -823,21 +817,10 @@ void do_chrdet_int_task(void)
     wake_lock(&battery_suspend_lock);
     g_chr_event = 1;
 
-/*lenovo-sw weiweij add for oreg protect*/
-#ifdef MTK_FAN5405_SUPPORT
-    if(g_bat_init_flag==1){
-		fan5405_check_r2();
-        wake_up_bat();
-    }else
-        xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[do_chrdet_int_task] battery thread not ready, will do after bettery init.\n");    
-#else
     if(g_bat_init_flag==1)
         wake_up_bat();
     else
         xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[do_chrdet_int_task] battery thread not ready, will do after bettery init.\n");  
-#endif
-/*lenovo-sw weiweij add for oreg protect end*/
-
     #endif
 }
 

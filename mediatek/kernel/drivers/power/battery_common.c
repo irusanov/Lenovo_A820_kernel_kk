@@ -2710,7 +2710,7 @@ int charger_hv_detect_sw_thread_handler(void *unused)
     
        	if ((upmu_is_chr_det() == KAL_TRUE))
         {
-            check_battery_exist();
+            //check_battery_exist();
         }
 		
 	 	charger_hv_detect_flag = KAL_FALSE;
