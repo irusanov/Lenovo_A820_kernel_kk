@@ -476,6 +476,10 @@ BATTERY_PROFILE_STRUC battery_profile_temperature[] =
 	{0  , 0 },
 	{0  , 0 },
 	{0  , 0 },
+	{0  , 0 },
+	{0  , 0 },
+	{0  , 0 },
+	{0  , 0 },
 	{0  , 0 }
 };      
 
@@ -867,6 +871,10 @@ R_PROFILE_STRUC r_profile_temperature[] =
 	{0  , 0 },
 	{0  , 0 },
 	{0  , 0 },  
+	{0  , 0 },
+	{0  , 0 },
+	{0  , 0 },
+	{0  , 0 },
 	{0  , 0 },
 	{0  , 0 },
 	{0  , 0 },
