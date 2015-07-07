@@ -221,7 +221,7 @@ HAVE_AACENCODE_FEATURE=yes
 HAVE_ADPCMENCODE_FEATURE=yes
 
 # AEE (Android Exception Engine) that designed by Mediatek is an exception catching and debugging information generation mechanism.It can collect and dump information to filesystem (/sdcard/mtklog/aee_exp) when fatel occur(E.g. kernel panic/android system server crash and ..) HAVE_AEE_FEATURE will decide this feature enable or not.
-HAVE_AEE_FEATURE=yes
+HAVE_AEE_FEATURE=no
 
 # In Audio record,  Enable/disable AWB encode, yes: enable
 # no:disable
@@ -351,8 +351,8 @@ MTK_BEAM_PLUS_SUPPORT=no
 # no, turn off benchmark boost thermal policy.
 MTK_BENCHMARK_BOOST_TP=yes
 MTK_BESLOUDNESS_SUPPORT=no
-MTK_BG_POWER_SAVING_SUPPORT=no
-MTK_BG_POWER_SAVING_UI_SUPPORT=no
+MTK_BG_POWER_SAVING_SUPPORT=yes
+MTK_BG_POWER_SAVING_UI_SUPPORT=yes
 MTK_BICR_SUPPORT=yes
 
 # Support TCP server and TCP client mode channel
@@ -705,6 +705,9 @@ MTK_FENCE_SUPPORT=yes
 # use this feature option to enable/disable File Manager App
 MTK_FILEMANAGER_APP=yes
 
+# Add CyanogenMod FileManager app
+CM_FILE_MANAGER_APP=no
+
 # MTK_FLIGHT_MODE_POWER_OFF_MD is used to control if modem is powered off when entering flight mode MTK_TELEPHONY_MODE is used for specify current telephony mode MTK_FIRST_MD is used to specify the high priority modem
 MTK_FIRST_MD=1
 
@@ -920,7 +923,7 @@ MTK_MT8193_NFI_SUPPORT=no
 MTK_MT8193_SUPPORT=no
 
 # yes: to include MTKLogger
-MTK_MTKLOGGER_SUPPORT=yes
+MTK_MTKLOGGER_SUPPORT=no
 
 # enable/disable ogm and mtkps playback feature
 MTK_MTKPS_PLAYBACK_SUPPORT=no
@@ -1243,7 +1246,7 @@ MTK_TER_SERVICE=no
 MTK_TETHERINGIPV6_SUPPORT=yes
 
 # support tethering over eem in Linux or MacOS PC
-MTK_TETHERING_EEM_SUPPORT=no
+MTK_TETHERING_EEM_SUPPORT=yes
 
 # Whether to enable/disable ThemeManager feature, ThemeManager is a feature which maintains themes exist in device, and make it possible for user to change the current skin of device.
 MTK_THEMEMANAGER_APP=no
@@ -1293,7 +1296,7 @@ MTK_VIDEO_HEVC_SUPPORT=yes
 MTK_VIDEO_THUMBNAIL_PLAY_SUPPORT=yes
 
 # To enable/disable feature Video Wallpaper on the project. If MTK_VLW_APP=yes MtkVideoLiveWallpaper.apk will be built into bootimage and users can use this feature on their device, vice versa.
-MTK_VLW_APP=yes
+MTK_VLW_APP=no
 MTK_VOICE_CONTACT_SEARCH_SUPPORT=no
 MTK_VOICE_UI_SUPPORT=yes
 MTK_VOICE_UNLOCK_SUPPORT=yes
@@ -1507,5 +1510,5 @@ LENOVO_PRODUCT_DEVICE=A830
 LENOVO_FLASH_ADP1650=yes
 LENOVO_PROJECT_A830=yes
 LENOVO_STD_LINECTL_EARPHONE=yes
-HIGH_BATTERY_VOLTAGE_SUPPORT=yes
+HIGH_BATTERY_VOLTAGE_SUPPORT=no
 # LENOVO_LEDS_GPIO_SUPPORT is not defined

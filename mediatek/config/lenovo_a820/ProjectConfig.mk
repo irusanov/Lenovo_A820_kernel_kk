@@ -220,7 +220,7 @@ HAVE_AACENCODE_FEATURE=yes
 HAVE_ADPCMENCODE_FEATURE=yes
 
 # AEE (Android Exception Engine) that designed by Mediatek is an exception catching and debugging information generation mechanism.It can collect and dump information to filesystem (/sdcard/mtklog/aee_exp) when fatel occur(E.g. kernel panic/android system server crash and ..) HAVE_AEE_FEATURE will decide this feature enable or not.
-HAVE_AEE_FEATURE=yes
+HAVE_AEE_FEATURE=no
 
 # In Audio record,  Enable/disable AWB encode, yes: enable
 # no:disable
@@ -1503,7 +1503,7 @@ MTK_RESOURCE_OPTIMIZATION=hdpi
 # The Wlan switch for the wlan feature in the Android(app, framework, native, kernel).
 MTK_WLAN_SUPPORT=yes
 #CREATE_PROJECT_INFO=20140326971
-MTK_BUILD_VERNO=PROTON.KK.V1.0.DEV
+MTK_BUILD_VERNO=PROTON.KK.V1.0
 
 LENOVO_PRODUCT_DEVICE=A820
 LENOVO_PROJECT_ALTAI=yes
