@@ -224,7 +224,7 @@ int aee_dump_stack_top_binary(char *buf, int buf_len,
 }
 
 //extern void mt_fiq_printf(const char *fmt, ...);
-//void *aee_excp_regs;
+void *aee_excp_regs;
 static atomic_t nested_panic_time = ATOMIC_INIT(0);
 
 inline void aee_print_regs(struct pt_regs *regs){
@@ -319,7 +319,7 @@ void aee_stop_nested_panic(struct pt_regs *regs)
 		/* if thread invalid, which means wrong sp or thread_info corrupted,
 		   check global aee_excp_regs instead */
 		aee_nested_printf("invalid thread [%x], excp_regs [%x]\n", thread, aee_excp_regs);
-		//excp_regs = aee_excp_regs;
+		excp_regs = aee_excp_regs;
 	}
 	
 	aee_nested_printf("Nested panic\n");

@@ -389,7 +389,7 @@ asmlinkage void __exception do_undefinstr(struct pt_regs *regs)
 	siginfo_t info;
 	void __user *pc;
 
-	/*if (!user_mode(regs)) {
+	if (!user_mode(regs)) {
 		thread->cpu_excp++;
 		if (thread->cpu_excp == 1) {
 			thread->regs_on_excp = (void *)regs;
@@ -398,7 +398,7 @@ asmlinkage void __exception do_undefinstr(struct pt_regs *regs)
 		if (thread->cpu_excp >= 2) {
 			aee_stop_nested_panic(regs);
 		}
-	}*/
+	}
 
 	pc = (void __user *)instruction_pointer(regs);
 

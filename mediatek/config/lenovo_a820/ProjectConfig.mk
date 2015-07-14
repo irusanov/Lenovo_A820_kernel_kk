@@ -220,7 +220,7 @@ HAVE_AACENCODE_FEATURE=yes
 HAVE_ADPCMENCODE_FEATURE=yes
 
 # AEE (Android Exception Engine) that designed by Mediatek is an exception catching and debugging information generation mechanism.It can collect and dump information to filesystem (/sdcard/mtklog/aee_exp) when fatel occur(E.g. kernel panic/android system server crash and ..) HAVE_AEE_FEATURE will decide this feature enable or not.
-HAVE_AEE_FEATURE=no
+HAVE_AEE_FEATURE=yes
 
 # In Audio record,  Enable/disable AWB encode, yes: enable
 # no:disable
