@@ -41,6 +41,7 @@
 #include <cust_alsps.h>
 #include "APDS9930.h"
 #include <linux/sched.h>
+#include <linux/proxy_sensor.h>
 /******************************************************************************
  * configuration
 *******************************************************************************/
@@ -992,6 +993,22 @@ static int APDS9930_get_ps_value(struct APDS9930_priv *obj, u16 ps)
 	}	
 }
 
+int pocket_detection_check(void)
+{
+	struct APDS9930_priv *obj = APDS9930_obj;
+
+	printk("[SWEEP2WAKE]: enabling sensor \n");
+	APDS9930_power(obj->hw, 1); // power on sensor
+	int ps_err = APDS9930_enable_ps(obj->client, true); //enable near detection
+	msleep(50); // wait for ps to enable
+	APDS9930_read_ps(obj->client, &obj->ps); // read data
+	int far = APDS9930_get_ps_value(obj, obj->ps); //read ps value
+//	wake_unlock(&tmd2771_lock);
+//	printk("[sensor]: error %d, valore %d\n", ps_err, far);
+//	APDS9930_enable_ps(obj->client, false); //disable ps detection
+//	APDS9930_power(obj->hw, 0); //turn off sensor
+	return far;
+}
 
 /*----------------------------------------------------------------------------*/
 /*for interrup work mode support -- by liaoxl.lenovo 12.08.2011*/

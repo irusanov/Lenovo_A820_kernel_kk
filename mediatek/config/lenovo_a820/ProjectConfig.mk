@@ -629,7 +629,7 @@ MTK_DOLBY_DAP_SUPPORT=no
 MTK_DP_FRAMEWORK=yes
 
 # Enable or disable the DRM1.0 feature this feature is implemented according to OMA DRM v1.0 specification, and is used for dealing with Digital Rights Management (DRM) if any media content provider require it.
-MTK_DRM_APP=yes
+MTK_DRM_APP=no
 
 # MTK_DRM_KEY_MNG_SUPPORT=yes means,enabling MTK DRM Key Management
 # MTK_IN_HOUSE_TEE_SUPPORT=no means,disabling MTK DRM Key Management.
@@ -1367,7 +1367,7 @@ MTK_WORLD_PHONE=no
 MTK_WVDRM_L1_SUPPORT=no
 
 # yes: to enable this WV-DRM feature no: to disable this WV-DRM feature
-MTK_WVDRM_SUPPORT=yes
+MTK_WVDRM_SUPPORT=no
 MTK_YAML_SCATTER_FILE_SUPPORT=no
 
 # multi-channel audio playback support

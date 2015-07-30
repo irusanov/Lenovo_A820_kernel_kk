@@ -29,13 +29,13 @@ extern kal_bool pmic_chrdet_status(void);
 #ifndef NO_POWER_OFF
 void mt6575_power_off(void)
 {
-	printf("mt_power_off\n");
+	//printf("mt_power_off\n");
 
 	/* pull PWRBB low */
 	rtc_bbpu_power_down();
 
 	while (1) {
-		printf("mt_power_off : check charger\n");
+		//printf("mt_power_off : check charger\n");
 		if (pmic_chrdet_status() == KAL_TRUE)
 			mtk_arch_reset(0);
 	}
