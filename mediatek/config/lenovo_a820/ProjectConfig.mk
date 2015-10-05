@@ -269,7 +269,7 @@ MTK_3GDONGLE_SUPPORT=no
 
 # yes: enable this feature
 # no: disable this feature
-MTK_AAL_SUPPORT=yes
+MTK_AAL_SUPPORT=no
 
 # For ACMT DEUG use
 MTK_ACMT_DEBUG=no
@@ -1481,7 +1481,7 @@ LCM_HEIGHT=960
 LCM_WIDTH=540
 
 # To control resource build. The value would be assigned to PRODUCT_LOCALES under build/target/product/XXX.mk (XXX is each project's name)
-MTK_PRODUCT_LOCALES=en_US es_ES zh_CN zh_TW ru_RU bg_BG pt_BR fr_FR de_DE tr_TR it_IT in_ID ms_MY vi_VN ar_EG th_TH pt_PT pl_PL nl_NL el_GR hu_HU tl_PH ro_RO cs_CZ ko_KR iw_IL my_MM km_KH hdpi
+MTK_PRODUCT_LOCALES=en_US es_ES zh_CN zh_TW ru_RU bg_BG pt_BR fi_FI fr_FR de_DE tr_TR it_IT in_ID ms_MY vi_VN ar_EG th_TH pt_PT pl_PL nl_NL el_GR hu_HU tl_PH ro_RO cs_CZ ko_KR iw_IL my_MM km_KH uk_UA hdpi
 
 # mATV feature control option which is used for swithing on/off mATV feature: switch on:  HAVE_MATV_FEATURE=yes switch off: HAVE_MATV_FEATURE=no
 HAVE_MATV_FEATURE=no
@@ -1503,7 +1503,7 @@ MTK_RESOURCE_OPTIMIZATION=hdpi
 # The Wlan switch for the wlan feature in the Android(app, framework, native, kernel).
 MTK_WLAN_SUPPORT=yes
 #CREATE_PROJECT_INFO=20140326971
-MTK_BUILD_VERNO=PROTON.KK.V1.0.1
+MTK_BUILD_VERNO=PROTON.KK.V1.1
 
 LENOVO_PRODUCT_DEVICE=A820
 LENOVO_PROJECT_ALTAI=yes

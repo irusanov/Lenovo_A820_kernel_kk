@@ -88,7 +88,7 @@ key 12    MINUS
 key 13    EQUALS
 key 215   AT
 
-key 164   MEDIA_PLAY_PAUSE    WAKE
+key 164   HEADSETHOOK         WAKE
 key 128   MEDIA_STOP          WAKE
 key 163   MEDIA_NEXT          WAKE
 key 165   MEDIA_PREVIOUS      WAKE

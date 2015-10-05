@@ -21,15 +21,6 @@
 
 #ifdef __KERNEL__
 
-#if defined(FORCE_CACHED_LOCK)
-#if !defined(force_clock)
-extern void __force_clock(u32 l);
-#define force_clock __force_clock
-#endif
-#else
-#define force_clock(l)
-#endif
-
 /*
  * On ARM, ordinary assignment (str instruction) doesn't clear the local
  * strex/ldrex monitor on some implementations. The reason we can use it for
@@ -37,7 +28,6 @@ extern void __force_clock(u32 l);
  */
 #define atomic_read(v)	(*(volatile int *)&(v)->counter)
 #define atomic_set(v,i)	(((v)->counter) = (i))
-#define cpu_relaxed_read_atomic(v)	atomic_read(v)
 
 #if __LINUX_ARM_ARCH__ >= 6
 
@@ -50,8 +40,6 @@ static inline void atomic_add(int i, atomic_t *v)
 {
 	unsigned long tmp;
 	int result;
-
-	force_clock((u32)v);
 
 	__asm__ __volatile__("@ atomic_add\n"
 "1:	ldrex	%0, [%3]\n"
@@ -68,8 +56,6 @@ static inline int atomic_add_return(int i, atomic_t *v)
 {
 	unsigned long tmp;
 	int result;
-
-	force_clock((u32)v);
 
 	smp_mb();
 
@@ -93,8 +79,6 @@ static inline void atomic_sub(int i, atomic_t *v)
 	unsigned long tmp;
 	int result;
 
-	force_clock((u32)v);
-
 	__asm__ __volatile__("@ atomic_sub\n"
 "1:	ldrex	%0, [%3]\n"
 "	sub	%0, %0, %4\n"
@@ -110,8 +94,6 @@ static inline int atomic_sub_return(int i, atomic_t *v)
 {
 	unsigned long tmp;
 	int result;
-
-	force_clock((u32)v);
 
 	smp_mb();
 
@@ -134,8 +116,6 @@ static inline int atomic_cmpxchg(atomic_t *ptr, int old, int new)
 {
 	unsigned long oldval, res;
 
-	force_clock((u32)ptr);
-
 	smp_mb();
 
 	do {
@@ -157,8 +137,6 @@ static inline int atomic_cmpxchg(atomic_t *ptr, int old, int new)
 static inline void atomic_clear_mask(unsigned long mask, unsigned long *addr)
 {
 	unsigned long tmp, tmp2;
-
-	force_clock((u32)*addr);
 
 	__asm__ __volatile__("@ atomic_clear_mask\n"
 "1:	ldrex	%0, [%3]\n"
@@ -265,11 +243,9 @@ typedef struct {
 
 #define ATOMIC64_INIT(i) { (i) }
 
-static inline u64 atomic64_read(const atomic64_t *v)
+static inline u64 atomic64_read(atomic64_t *v)
 {
 	u64 result;
-
-	force_clock((u32)v);
 
 	__asm__ __volatile__("@ atomic64_read\n"
 "	ldrexd	%0, %H0, [%1]"
@@ -283,8 +259,6 @@ static inline u64 atomic64_read(const atomic64_t *v)
 static inline void atomic64_set(atomic64_t *v, u64 i)
 {
 	u64 tmp;
-
-	force_clock((u32)v);
 
 	__asm__ __volatile__("@ atomic64_set\n"
 "1:	ldrexd	%0, %H0, [%2]\n"
@@ -300,8 +274,6 @@ static inline void atomic64_add(u64 i, atomic64_t *v)
 {
 	u64 result;
 	unsigned long tmp;
-
-	force_clock((u32)v);
 
 	__asm__ __volatile__("@ atomic64_add\n"
 "1:	ldrexd	%0, %H0, [%3]\n"
@@ -319,8 +291,6 @@ static inline u64 atomic64_add_return(u64 i, atomic64_t *v)
 {
 	u64 result;
 	unsigned long tmp;
-
-	force_clock((u32)v);
 
 	smp_mb();
 
@@ -345,8 +315,6 @@ static inline void atomic64_sub(u64 i, atomic64_t *v)
 	u64 result;
 	unsigned long tmp;
 
-	force_clock((u32)v);
-
 	__asm__ __volatile__("@ atomic64_sub\n"
 "1:	ldrexd	%0, %H0, [%3]\n"
 "	subs	%0, %0, %4\n"
@@ -363,8 +331,6 @@ static inline u64 atomic64_sub_return(u64 i, atomic64_t *v)
 {
 	u64 result;
 	unsigned long tmp;
-
-	force_clock((u32)v);
 
 	smp_mb();
 
@@ -388,8 +354,6 @@ static inline u64 atomic64_cmpxchg(atomic64_t *ptr, u64 old, u64 new)
 {
 	u64 oldval;
 	unsigned long res;
-
-	force_clock((u32)ptr);
 
 	smp_mb();
 
@@ -415,8 +379,6 @@ static inline u64 atomic64_xchg(atomic64_t *ptr, u64 new)
 	u64 result;
 	unsigned long tmp;
 
-	force_clock((u32)ptr);
-
 	smp_mb();
 
 	__asm__ __volatile__("@ atomic64_xchg\n"
@@ -437,8 +399,6 @@ static inline u64 atomic64_dec_if_positive(atomic64_t *v)
 {
 	u64 result;
 	unsigned long tmp;
-
-	force_clock((u32)v);
 
 	smp_mb();
 
@@ -466,8 +426,6 @@ static inline int atomic64_add_unless(atomic64_t *v, u64 a, u64 u)
 	u64 val;
 	unsigned long tmp;
 	int ret = 1;
-
-	force_clock((u32)v);
 
 	smp_mb();
 

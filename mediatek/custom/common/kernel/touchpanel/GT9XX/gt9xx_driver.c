@@ -10,10 +10,6 @@
 #include <linux/sensors_io.h>
 #endif
 
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-#include <linux/input/sweep2wake.h>
-#endif
-
 #include <linux/mmprofile.h>
 #include <linux/device.h>
 #include <linux/proc_fs.h>  /*proc*/
@@ -23,9 +19,6 @@ extern int tpd_v_magnify_x;
 extern int tpd_v_magnify_y;
 #endif
 static int tpd_flag = 0;
-/*#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-static int s2w_st_flag=0;
-#endif*/
 static int tpd_halt = 0;
 static int tpd_eint_mode=1;
 static int tpd_polling_time=50;
@@ -1325,15 +1318,6 @@ static void tpd_down(s32 x, s32 y, s32 size, s32 id)
     input_mt_sync(tpd->dev);
     TPD_DEBUG_SET_TIME;
     TPD_EM_PRINT(x, y, x, y, id, 1);
-
-// printk("[SWEEP2WAKE]: tpd down\n");
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-		if (sweep2wake) {
-printk("[SWEEP2WAKE]: detecting sweep\n");
-			detect_sweep2wake(x, y, jiffies, id);
-		}
-#endif
-
     tpd_history_x=x;
     tpd_history_y=y;
 
@@ -1355,23 +1339,7 @@ static void tpd_up(s32 x, s32 y, s32 id)
     //input_report_abs(tpd->dev, ABS_MT_TOUCH_MAJOR, 0);
     input_mt_sync(tpd->dev);
     TPD_DEBUG_SET_TIME;
-    TPD_EM_PRINT(tpd_history_x, tpd_history_y, tpd_history_x, tpd_history_y, id, 0);
-
-// printk("[SWEEP2WAKE]: inside tpd up\n");
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-s2w_st_flag = 0;
-				if (sweep2wake > 0) {
-					tripoff = 0;
-					tripon = 0;
-					triptime = 0;
-				}
-				// 20150621 jwchen119 - Add menu2wake to trigger DT2W
-				if (doubletap2wake || menu2wake) {
-printk("[SWEEP2WAKE]: detecting d2w\n");
-					doubletap2wake_func(tpd_history_x, tpd_history_y, jiffies);
-				}
-#endif
-
+    TPD_EM_PRINT(tpd_history_x, tpd_history_y, tpd_history_x, tpd_history_y, id, 0);    
     tpd_history_x=0;
     tpd_history_y=0;
     MMProfileLogEx(MMP_TouchPanelEvent, MMProfileFlagPulse, 0, x+y);
@@ -1492,7 +1460,7 @@ static int touch_event_handler(void *unused)
 #endif
 
         touch_num = finger & 0x0f;
-s2w_st_flag = touch_num;
+
         if (touch_num > GTP_MAX_TOUCH)
         {
             GTP_ERROR("Bad number of fingers!");
@@ -1760,12 +1728,6 @@ static s8 gtp_wakeup_sleep(struct i2c_client *client)
 /* Function to manage low power suspend */
 static void tpd_suspend(struct early_suspend *h)
 {
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	scr_suspended = true;
-// printk("[SWEEP2WAKE]: early suspend\n");
-	if ((sweep2wake == 0 || sweep2wake == 3) && doubletap2wake == 0 && (menu2wake == 0 || menu2wake == 3)) {
-#endif
-
     s32 ret = -1;
     mutex_lock(&i2c_access);
     mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
@@ -1793,22 +1755,11 @@ static void tpd_suspend(struct early_suspend *h)
     }
 
 #endif
-
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	} else if ((sweep2wake > 0 && sweep2wake < 3) || doubletap2wake > 0 || (menu2wake > 0 && menu2wake < 3))
-	mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
-#endif
 }
 
 /* Function to manage power-on resume */
 static void tpd_resume(struct early_suspend *h)
 {
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-// printk("[SWEEP2WAKE]: resume\n");
-	scr_suspended = false;
-	if ((sweep2wake == 0 || sweep2wake == 3) && doubletap2wake == 0 && (menu2wake == 0 || menu2wake == 3)) {
-#endif
-
     s32 ret = -1;
 
     ret = gtp_wakeup_sleep(i2c_client_point);
@@ -1840,10 +1791,6 @@ static void tpd_resume(struct early_suspend *h)
     queue_delayed_work(gtp_charger_check_workqueue, &gtp_charger_check_work, TPD_CHARGER_CHECK_CIRCLE);
 #endif
 
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	} else if ((sweep2wake > 0 && sweep2wake < 3) || doubletap2wake > 0 || (menu2wake > 0 && menu2wake < 3))
-		mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
-#endif
 }
 
 static void tpd_off(void)

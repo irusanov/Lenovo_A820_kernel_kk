@@ -205,18 +205,14 @@ void __cpu_die(unsigned int cpu)
 void __ref cpu_die(void)
 {
 	unsigned int cpu = smp_processor_id();
-	aee_rr_rec_hoplug(cpu, 51, 0);
 
 	idle_task_exit();
-	aee_rr_rec_hoplug(cpu, 52, 0);
 
 	local_irq_disable();
 	mb();
-	aee_rr_rec_hoplug(cpu, 53, 0);
 
 	/* Tell __cpu_die() that this CPU is now safe to dispose of */
 	complete(&cpu_died);
-	aee_rr_rec_hoplug(cpu, 54, 0);
 
 	/*
 	 * actual CPU shutdown procedure is at least platform (if not
@@ -259,9 +255,8 @@ static void percpu_timer_setup(void);
 asmlinkage void __cpuinit secondary_start_kernel(void)
 {
 	struct mm_struct *mm = &init_mm;
-	unsigned int cpu = smp_processor_id();
+	unsigned int cpu;
 
-	aee_rr_rec_hoplug(cpu, 1, 0);
 	/*
 	 * The identity mapping is uncached (strongly ordered), so
 	 * switch away from it before attempting any exclusive accesses.
@@ -269,39 +264,32 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	cpu_switch_mm(mm->pgd, mm);
 	enter_lazy_tlb(mm, current);
 	local_flush_tlb_all();
-	aee_rr_rec_hoplug(cpu, 2, 0);
 
 	/*
 	 * All kernel threads share the same mm context; grab a
 	 * reference and switch to it.
 	 */
+	cpu = smp_processor_id();
 	atomic_inc(&mm->mm_count);
 	current->active_mm = mm;
 	cpumask_set_cpu(cpu, mm_cpumask(mm));
-	aee_rr_rec_hoplug(cpu, 3, 0);
 
 	printk("CPU%u: Booted secondary processor\n", cpu);
 
 	cpu_init();
-	aee_rr_rec_hoplug(cpu, 4, 0);
 	preempt_disable();
-	aee_rr_rec_hoplug(cpu, 5, 0);
 	trace_hardirqs_off();
-	aee_rr_rec_hoplug(cpu, 6, 0);
 
 	/*
 	 * Give the platform a chance to do its own initialisation.
 	 */
 	platform_secondary_init(cpu);
-	aee_rr_rec_hoplug(cpu, 7, 0);
 
 	notify_cpu_starting(cpu);
-	aee_rr_rec_hoplug(cpu, 8, 0);
 
 	calibrate_delay();
 
 	smp_store_cpu_info(cpu);
-	aee_rr_rec_hoplug(cpu, 9, 0);
 
 	/*
 	 * OK, now it's safe to let the boot CPU continue.  Wait for
@@ -309,20 +297,15 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	 * before we continue - which happens after __cpu_up returns.
 	 */
 	set_cpu_online(cpu, true);
-	aee_rr_rec_hoplug(cpu, 10, 0);
 	complete(&cpu_running);
-	aee_rr_rec_hoplug(cpu, 11, 0);
 
 	/*
 	 * Setup the percpu timer for this CPU.
 	 */
 	percpu_timer_setup();
-	aee_rr_rec_hoplug(cpu, 12, 0);
 
 	local_irq_enable();
-	aee_rr_rec_hoplug(cpu, 13, 0);
 	local_fiq_enable();
-	aee_rr_rec_hoplug(cpu, 14, 0);
 
 	/*
 	 * OK, it's off to the idle thread for us
@@ -614,99 +597,37 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
 		__inc_irq_stat(cpu, ipi_irqs[ipinr - IPI_TIMER]);
 
 	switch (ipinr) {
-        case IPI_CPU_START:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_CPU_START, "IPI_CPU_START");
-#endif
-            mt_trace_ISR_start(ipinr);
-            mt_trace_ISR_end(ipinr);
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_exit(IPI_CPU_START);
-#endif
-            break;
 	case IPI_TIMER:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-            trace_ipi_handler_entry(IPI_TIMER, "IPI_TIMER");
-#endif
-        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		ipi_timer();
-        mt_trace_ISR_end(ipinr);
-#ifdef CONFIG_MTK_SCHED_TRACERS
-            trace_ipi_handler_exit(IPI_TIMER);
-#endif
 		irq_exit();
 		break;
 
 	case IPI_RESCHEDULE:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_RESCHEDULE, "IPI_RESCHEDULE");
-#endif
 		scheduler_ipi();
 		break;
 
 	case IPI_CALL_FUNC:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_CALL_FUNC, "IPI_CALL_FUNC");
-#endif
-        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		generic_smp_call_function_interrupt();
-        mt_trace_ISR_end(ipinr);
-#ifdef  CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_exit(IPI_CALL_FUNC);
-#endif
 		irq_exit();
 		break;
 
 	case IPI_CALL_FUNC_SINGLE:
-#ifdef  CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_CALL_FUNC_SINGLE, "IPI_CALL_FUNC_SINGLE");
-#endif
-        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		generic_smp_call_function_single_interrupt();
-        mt_trace_ISR_end(ipinr);
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_exit(IPI_CALL_FUNC_SINGLE);
-#endif
 		irq_exit();
 		break;
 
 	case IPI_CPU_STOP:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_CPU_STOP, "IPI_CPU_STOP");
-#endif
-        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		ipi_cpu_stop(cpu);
-        mt_trace_ISR_end(ipinr);
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_exit(IPI_CPU_STOP);
-#endif
 		irq_exit();
 		break;
 
-	case IPI_CPU_BACKTRACE:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_CPU_BACKTRACE, "IPI_CPU_BACKTRACE");
-#endif
-        mt_trace_ISR_start(ipinr);
-		ipi_cpu_backtrace(cpu, regs);
-        mt_trace_ISR_end(ipinr);
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_exit(IPI_CPU_BACKTRACE);
-#endif
-		break;
-
 	default:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_unnamed_irq(ipinr);
-#endif
-        mt_trace_ISR_start(ipinr);
 		printk(KERN_CRIT "CPU%u: Unknown IPI message 0x%x\n",
 		       cpu, ipinr);
-        mt_trace_ISR_end(ipinr);
 		break;
 	}
 	set_irq_regs(old_regs);
@@ -739,10 +660,7 @@ void smp_send_stop(void)
 	cpumask_copy(&mask, cpu_online_mask);
 	cpumask_clear_cpu(smp_processor_id(), &mask);
 	if (!cpumask_empty(&mask))
-	{
-		printk("Send IPI to stop CPUs...\n");
 		smp_cross_call(&mask, IPI_CPU_STOP);
-	}
 
 	/* Wait up to one second for other CPUs to stop */
 	timeout = USEC_PER_SEC;

@@ -2001,7 +2001,7 @@ void ChargerHwInit_fan5405(void)
         }
         else
             fan5405_config_interface_liao(0x06,0x70);
-#if 1
+#if 0
 /*lenovo-sw weiweij modified for keep led state as some as ui soc*/
 		if(g_bat_full_user_view)
     	fan5405_config_interface_liao(0x00,0x80);   
@@ -2063,7 +2063,7 @@ void ChargerHwInit_fan5405(void)
     	fan5405_config_interface_liao(0x00,0x80);   
 #endif	
     }
-	}
+}
 
 /*lenovo-sw weiweij modified 20120816*/
 #if 1
