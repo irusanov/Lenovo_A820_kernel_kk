@@ -2625,6 +2625,3 @@ CONFIG_INTELLI_PLUG=n
 
 # add config according to sprout: for INTELLI_PLUG
 # CONFIG_MTK_SCHED_RQAVG_KS is not set
-
-# add sweep2wake, doubletap2wake and sweep2sleep feature
-CONFIG_TOUCHSCREEN_SWEEP2WAKE=n

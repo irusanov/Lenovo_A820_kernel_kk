@@ -630,7 +630,7 @@ MTK_DOLBY_DAP_SUPPORT=no
 MTK_DP_FRAMEWORK=yes
 
 # Enable or disable the DRM1.0 feature this feature is implemented according to OMA DRM v1.0 specification, and is used for dealing with Digital Rights Management (DRM) if any media content provider require it.
-MTK_DRM_APP=yes
+MTK_DRM_APP=no
 
 # MTK_DRM_KEY_MNG_SUPPORT=yes means,enabling MTK DRM Key Management
 # MTK_IN_HOUSE_TEE_SUPPORT=no means,disabling MTK DRM Key Management.
@@ -1368,7 +1368,7 @@ MTK_WORLD_PHONE=no
 MTK_WVDRM_L1_SUPPORT=no
 
 # yes: to enable this WV-DRM feature no: to disable this WV-DRM feature
-MTK_WVDRM_SUPPORT=yes
+MTK_WVDRM_SUPPORT=no
 MTK_YAML_SCATTER_FILE_SUPPORT=no
 
 # multi-channel audio playback support
@@ -1482,7 +1482,7 @@ LCM_HEIGHT=960
 LCM_WIDTH=540
 
 # To control resource build. The value would be assigned to PRODUCT_LOCALES under build/target/product/XXX.mk (XXX is each project's name)
-MTK_PRODUCT_LOCALES=en_US es_ES zh_CN zh_TW ru_RU bg_BG pt_BR fr_FR de_DE tr_TR it_IT in_ID ms_MY vi_VN ar_EG th_TH pt_PT pl_PL nl_NL el_GR hu_HU tl_PH ro_RO cs_CZ ko_KR iw_IL my_MM km_KH hdpi
+MTK_PRODUCT_LOCALES=en_US es_ES zh_CN zh_TW ru_RU bg_BG pt_BR fi_FI fr_FR de_DE tr_TR it_IT in_ID ms_MY vi_VN ar_EG th_TH pt_PT pl_PL nl_NL el_GR hu_HU tl_PH ro_RO cs_CZ ko_KR iw_IL my_MM km_KH uk_UA hdpi
 
 # mATV feature control option which is used for swithing on/off mATV feature: switch on:  HAVE_MATV_FEATURE=yes switch off: HAVE_MATV_FEATURE=no
 HAVE_MATV_FEATURE=no
@@ -1504,11 +1504,12 @@ MTK_RESOURCE_OPTIMIZATION=hdpi
 # The Wlan switch for the wlan feature in the Android(app, framework, native, kernel).
 MTK_WLAN_SUPPORT=yes
 #CREATE_PROJECT_INFO=20140326971
-MTK_BUILD_VERNO=PROTON.KK.V1.0
+MTK_BUILD_VERNO=PROTON.KK.V1.1
 
 LENOVO_PRODUCT_DEVICE=A830
 LENOVO_FLASH_ADP1650=yes
 LENOVO_PROJECT_A830=yes
+LENOVO_NEON_OPTIMIZATION=yes
 LENOVO_STD_LINECTL_EARPHONE=yes
 HIGH_BATTERY_VOLTAGE_SUPPORT=no
 # LENOVO_LEDS_GPIO_SUPPORT is not defined
