@@ -1453,7 +1453,7 @@ static void ksm_do_scan(unsigned int scan_npages)
 			return;
 		if (!PageKsm(page) || !in_stable_tree(rmap_item)) {
  			if (!is_page_scanned(page))
- 				cmp_and_merge_page(page, rmap_item);
+			cmp_and_merge_page(page, rmap_item);
         }
 		put_page(page);
 	}
@@ -1519,7 +1519,7 @@ static int ksm_scan_thread(void *nothing)
 				deferred_schedule_timeout(
 				msecs_to_jiffies(ksm_thread_sleep_millisecs));
 			else
-				schedule_timeout_interruptible(
+			schedule_timeout_interruptible(
 				msecs_to_jiffies(ksm_thread_sleep_millisecs));
 		} else {
 			wait_event_freezable(ksm_thread_wait,

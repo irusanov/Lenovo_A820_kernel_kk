@@ -19,7 +19,10 @@
 #include <linux/kpd.h>
 
 #define KPD_NAME	"mtk-kpd"
-#define MTK_KP_WAKESOURCE//this is for auto set wake up source
+#define USE_EARLY_SUSPEND
+/* begin, lenovo-sw wengjun1 20130728 delete for avoid close keypad as wake up source. */
+//#define MTK_KP_WAKESOURCE//this is for auto set wake up source
+/* end, lenovo-sw wengjun1 20130728 delete for avoid close keypad as wake up source. */
 
 struct input_dev *kpd_input_dev;
 static bool kpd_suspend = false;

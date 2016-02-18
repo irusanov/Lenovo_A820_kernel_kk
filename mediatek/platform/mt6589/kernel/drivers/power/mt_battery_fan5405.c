@@ -100,8 +100,8 @@ extern int g_temp_charging_blue_flag;
 ///////////////////////////////////////////////////////////////////////////////////////////
 //// Thermal related flags
 ///////////////////////////////////////////////////////////////////////////////////////////
-//lenovo_sw liaohj open chrtimer detect 2013-10-01
-int g_battery_thermal_throttling_flag=1; // 0:nothing, 1:enable batTT&chrTimer, 2:disable batTT&chrTimer, 3:enable batTT, disable chrTimer
+
+int g_battery_thermal_throttling_flag=3; // 0:nothing, 1:enable batTT&chrTimer, 2:disable batTT&chrTimer, 3:enable batTT, disable chrTimer
 int battery_cmd_thermal_test_mode=0;
 int battery_cmd_thermal_test_mode_value=0;
 int g_battery_tt_check_flag=0; // 0:default enable check batteryTT, 1:default disable check batteryTT
@@ -1476,7 +1476,7 @@ INT16 BattThermistorConverTemp(INT32 Res)
 		{ 45,4852},
 		{ 50,4101},
 		{ 55,3482},
-		{ 60,2970}			
+		{ 60,2970}		
 	};
 #elif defined(LENOVO_PROJECT_A830)
 	BATT_TEMPERATURE Batt_Temperature_Table[] = {
@@ -2009,7 +2009,7 @@ void ChargerHwInit_fan5405(void)
 			fan5405_config_interface_liao(0x00,0xc0);
 /*lenovo-sw weiweij modified for keep led state as some as ui soc end*/
 #else		     
-    	fan5405_config_interface_liao(0x00,0x80);   
+        fan5405_config_interface_liao(0x00,0x80);
 #endif		
         fan5405_config_interface_liao(0x01,0xb9);
 
@@ -2050,8 +2050,8 @@ void ChargerHwInit_fan5405(void)
 				}
 				else
 				{
-					fan5405_config_interface_liao(0x00,0x80);
-				}
+        fan5405_config_interface_liao(0x00,0x80);
+    }
 
 			#else
 				fan5405_config_interface_liao(0x00,0xc0);
@@ -2146,7 +2146,7 @@ static int set_current_as_temp_fan5405(void)
 		flag = flag;	
 //		charging_flag = 3;
 		charging_flag = 2;
-	}
+}
 #endif
 	else
 		return -1;
@@ -2968,7 +2968,7 @@ int BAT_CheckBatteryStatus_fan5405(void)
 
     /* Calculate the charging current */
     BMT_status.ICharging = g_Get_I_Charging();
-	
+
     /*Lenovo-sw begin yexh1 add 2013-04-12,add for bat charging current */ 
     //BMT_status.ICharging has latency, so I put it here.
     battery_chg_current =  BMT_status.ICharging;  
@@ -3673,7 +3673,7 @@ void BAT_thread_fan5405(void)
 			}
 			else
 			{
-				fan5405_config_interface_liao(0x00,0x80);
+    fan5405_config_interface_liao(0x00,0x80);
 			}
 
 		#else
@@ -3743,7 +3743,7 @@ void BAT_thread_fan5405(void)
             {
                 mt_usb_connect();
             }
-        }    
+        }        
 
 /*lenovo-sw weiweij added for charging sleep in as charger*/
 #ifdef LENOVO_PROJECT_SEINE
@@ -3761,7 +3761,7 @@ void BAT_thread_fan5405(void)
     else 
     {   
         wake_unlock(&battery_suspend_lock);
-
+    
 /*lenovo-sw weiweij added for charging sleep in as charger*/
 	battery_period = SPM_WAKE_PERIOD;
 /*lenovo-sw weiweij added for charging sleep in as charger end*/
@@ -5555,7 +5555,7 @@ static int mt_batteryNotify_probe(struct platform_device *dev)
     ret_device_file = device_create_file(&(dev->dev), &dev_attr_BatteryNotify);
     ret_device_file = device_create_file(&(dev->dev), &dev_attr_BN_TestMode);
     ret_device_file = device_create_file(&(dev->dev), &dev_attr_ChargeCurrent);
-
+    
     battery_dir = proc_mkdir("mtk_battery_cmd", NULL);
     if (!battery_dir)
     {

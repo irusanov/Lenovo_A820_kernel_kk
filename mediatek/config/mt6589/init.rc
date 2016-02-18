@@ -264,7 +264,7 @@ on fs_property:ro.mount.fs=UBIFS
     mount ubifs ubi@system /system ro remount
     mount ubifs ubi@userdata /data nosuid nodev
     mount ubifs ubi@cache /cache nosuid nodev
-	mount ubifs ubi@secstatic /system/secro ro
+	  mount ubifs ubi@secstatic /system/secro ro
     write /proc/bootprof "INIT:NAND:Mount_END"
 
 # mount different fs end
@@ -764,7 +764,7 @@ on boot
     chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/input_boost
     chown system system /sys/devices/system/cpu/cpufreq/hotplug/cpu_num_base
     chmod 0660 /sys/devices/system/cpu/cpufreq/hotplug/cpu_num_base
-    
+
     # Hotplug
     mkdir /data/data/hotplug
     write /data/data/hotplug/cmd 0
@@ -1313,7 +1313,7 @@ service dpfd /system/bin/dpfd
 service emd_daemon /system/bin/emd_daemon
     user root
     oneshot
-    
+
 # sysinit (/system/etc/init.d)
 service sysinit /system/bin/sysinit
     user root

@@ -835,7 +835,7 @@ void do_chrdet_int_task(void)
     if(g_bat_init_flag==1)
         wake_up_bat();
     else
-        xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[do_chrdet_int_task] battery thread not ready, will do after bettery init.\n");  
+        xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[do_chrdet_int_task] battery thread not ready, will do after bettery init.\n");    
 #endif
 /*lenovo-sw weiweij add for oreg protect end*/
 

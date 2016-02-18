@@ -283,7 +283,7 @@ foreach $uAct (@acts)
              $TARGET_BUILD_VARIANT = $temp[1];
           }
         }
-        if ($TARGET_BUILD_VARIANT eq "") { $TARGET_BUILD_VARIANT = "eng"; }
+        if ($TARGET_BUILD_VARIANT eq "") { $TARGET_BUILD_VARIANT = "user"; }
         if ($build_mode ne $TARGET_BUILD_VARIANT) { print "WARNING *** : Previous build is $build_mode build, and now is $TARGET_BUILD_VARIANT build\n"; }  
      }
   }

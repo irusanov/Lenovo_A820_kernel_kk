@@ -865,7 +865,7 @@ static int APDS9930_get_als_value(struct APDS9930_priv *obj, u16 als)
         else
             value = (level_diff * value_low + (als - level_low) * value_diff + ((level_diff + 1) >> 1)) / level_diff;
 
-		APS_DBG("ALS: %d [%d, %d] => %d [%d, %d] \n", als, level_low, level_high, value, value_low, value_high);
+		//APS_DBG("ALS: %d [%d, %d] => %d [%d, %d] \n", als, level_low, level_high, value, value_low, value_high);
 		return value;
 #endif			        
 		//APS_ERR("ALS: %05d => %05d\n", als, obj->hw->als_value[idx]);	

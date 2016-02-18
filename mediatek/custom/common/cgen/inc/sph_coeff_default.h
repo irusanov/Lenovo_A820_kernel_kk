@@ -98,20 +98,20 @@
 
 
 #define DEFAULT_SPEECH_NORMAL_MODE_PARA \
-    96,   253, 16388,    31, 57351,    31,   400,    64,\
-    80,  4325,   611,     0, 20488,     0|SPEECH_MODE_PARA13,     0|SPEECH_MODE_PARA14,  8192
+   96,   253,  16388,     SPEECH_MODE_PARA03,   57351,     799,   400,     64, \
+   SPEECH_MODE_PARA08,  4325,      611,       0,   20488,      0|SPEECH_MODE_PARA13,     0|SPEECH_MODE_PARA14,  8192
 
 #define DEFAULT_SPEECH_EARPHONE_MODE_PARA \
     0,        189,  10756,      31,   57351,     31,   400,     64, \
     80,  4325,    611,     0, 20488,     0,     0,     0  
 
 #define DEFAULT_SPEECH_BT_EARPHONE_MODE_PARA \
-   128,   253, 10756,    31, 53255,    31,   400,   159,\
-    80,  4325,   611,     0, 53256|BT_COMP_FILTER,     0,     0,BT_SYNC_DELAY
+     0,   253, 10756,    31, 53255,  31,   400,     0, \
+    80,  4325,    611,     0, 20488 | BT_COMP_FILTER,  0,     0,     BT_SYNC_DELAY
 
 #define DEFAULT_SPEECH_LOUDSPK_MODE_PARA \
-    96,   224,  5256,    31, 57351, 24607,   400,   132, \
-    84,  4325,    611,     0, 20488,     0,     0,     0
+    96|MANUAL_CLIPPING ,   224,  5256,    31, 57351, 24607,   400,   132, \
+    84,  4325,    611,     0, 20488|NXP_DELAY_REF,     0,     0,     0
 
 #define DEFAULT_SPEECH_CARKIT_MODE_PARA \
     96,   224,  5256,    31, 57351, 24607,   400,   132, \
@@ -130,7 +130,7 @@
     0,      0,      0,      0,      0,      0,      0,      0
 
 #define DEFAULT_SPEECH_COMMON_PARA \
-    0,  55997,  31000,    10752,      32769,      0,      0,      0, \
+    0,  55997,  31000,    PRE_CLIPPING_LEVEL,      32769,      0,      0,      0, \
     0,      0,      0,      0
 
 #define DEFAULT_SPEECH_VOL_PARA \
@@ -147,8 +147,8 @@
 #define MICBAIS     1900
 
 #define DEFAULT_WB_SPEECH_NORMAL_MODE_PARA \
-    96,   253, 16388,    31, 57607,    31,   400,    64,\
-    80,  4325,   611,     0, 16392,     0|SPEECH_MODE_PARA13,     0|SPEECH_MODE_PARA14,  8192
+    96,   253, 16388,    SPEECH_MODE_PARA03, 57607,    799,   400,     64, \
+    SPEECH_MODE_PARA08,  4325,   611,     0,  16392,    0|SPEECH_MODE_PARA13,     0|SPEECH_MODE_PARA14,  8192  
 
 #define DEFAULT_WB_SPEECH_EARPHONE_MODE_PARA \
      0,   189, 10756,    31, 57607,     31,  400,     64, \
@@ -156,7 +156,7 @@
 
 #define DEFAULT_WB_SPEECH_BT_EARPHONE_MODE_PARA \
      0,   253, 10756,    31, 53511,  31,   400,     0, \
-    80,  4325,   611,     0, 49160|BT_COMP_FILTER,     0,     0,BT_SYNC_DELAY
+    80,  4325,   611,     0,  16392 | BT_COMP_FILTER,  0,     0, BT_SYNC_DELAY  
 
 #define DEFAULT_WB_SPEECH_LOUDSPK_MODE_PARA \
     96|MANUAL_CLIPPING,   224,  5256,    31, 57607, 24607,   400,   132, \
@@ -166,16 +166,12 @@
     96,   224,  5256,    31, 57607, 24607,   400,   132, \
     84,  4325,   611,     0,  16392,     0,     0,     0  
 
-#define DEFAULT_WB_SPEECH_CARKIT_MODE_PARA \
-     0,     0,     0,     0,     0,     0,     0,     0,\
-     0,     0,     0,     0,     0,     0,     0,     0
 #define DEFAULT_WB_SPEECH_BT_CORDLESS_MODE_PARA \
- 32767,     0,     0,     0,     0,     0,     0,     0,\
-     0,     0,     0,     0,     0,     0,     0,     0
+    0,      479,     16388,    0,       24839,     8192,     400,     0, \
+    4048, 4341  ,       611,    0,              0,         0,     0,     0
 
 #define DEFAULT_WB_SPEECH_AUX1_MODE_PARA \
-     0,     0,     0,     0,     0,     0,     0,     0,\
-     0,     0,     0,     0,     0,     0,     0,     0
+    96,   224,  5256,    31, 57607,     0,   400,     0,  4112,  4325,    11,     0,     0,     0,     0,     0 
 
 #define DEFAULT_WB_SPEECH_AUX2_MODE_PARA \
     0,      0,     0,     0,       0,     0,     0,     0, \

@@ -73,7 +73,7 @@ __rwsem_do_wake(struct rw_semaphore *sem, enum rwsem_wake_type wake_type)
 			 * grant it the lock yet as we want other writers
 			 * to be able to steal it.  Readers, on the other hand,
 			 * will block as they will notice the queued writer.
-			 */
+		 */
 			wake_up_process(waiter->task);
 		goto out;
 	}
@@ -86,12 +86,12 @@ __rwsem_do_wake(struct rw_semaphore *sem, enum rwsem_wake_type wake_type)
 	if (wake_type != RWSEM_WAKE_READ_OWNED) {
 		adjustment = RWSEM_ACTIVE_READ_BIAS;
  try_reader_grant:
-		oldcount = rwsem_atomic_update(adjustment, sem) - adjustment;
+	oldcount = rwsem_atomic_update(adjustment, sem) - adjustment;
 		if (unlikely(oldcount < RWSEM_WAITING_BIAS)) {
 			/* A writer stole the lock. Undo our reader grant. */
 			if (rwsem_atomic_update(-adjustment, sem) &
 						RWSEM_ACTIVE_MASK)
-				goto out;
+		goto out;
 			/* Last active locker left. Retry waking readers. */
 			goto try_reader_grant;
 		}
@@ -119,7 +119,7 @@ __rwsem_do_wake(struct rw_semaphore *sem, enum rwsem_wake_type wake_type)
 		adjustment -= RWSEM_WAITING_BIAS;
 
 	if (adjustment)
-		rwsem_atomic_add(adjustment, sem);
+	rwsem_atomic_add(adjustment, sem);
 
 	next = sem->wait_list.next;
 	loop = woken;
@@ -228,7 +228,7 @@ struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
 			if (cmpxchg(&sem->count, RWSEM_WAITING_BIAS, count) ==
 							RWSEM_WAITING_BIAS)
 				break;
-		}
+}
 
 		raw_spin_unlock_irq(&sem->wait_lock);
 

@@ -29,6 +29,6 @@ struct alsps_hw *get_cust_alsps_hw(void) {
 //int APDS9930_CMM_PPCOUNT_VALUE = 0x08;
 //int APDS9930_CMM_CONTROL_VALUE = 0xE4;
 /* I.nfraR.ed: 02.08.2015 Extract values from stock S150 kernel */
-int APDS9930_CMM_PPCOUNT_VALUE = 0x06;
-int APDS9930_CMM_CONTROL_VALUE = 0x68;
+int APDS9930_CMM_PPCOUNT_VALUE = 0x08;//0x06;
+int APDS9930_CMM_CONTROL_VALUE = 0xE4;//0x68;
 int ZOOM_TIME = 4;

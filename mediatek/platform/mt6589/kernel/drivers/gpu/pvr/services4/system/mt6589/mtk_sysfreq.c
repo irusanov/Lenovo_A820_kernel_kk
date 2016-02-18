@@ -108,39 +108,39 @@ PVRSRV_ERROR MTKSetFreqInfo(unsigned int freq, unsigned int tbltype)
 		mt_gpufreq_set_initial(freq, voltage);
         //mt_gpufreq_set_initial(freq, GPU_POWER_VRF18_1_05V);
         mt65xx_reg_sync_writel((readl(CLK_CFG_8)&0xffcffff)|0x30000, CLK_CFG_8);
-		
+        
 		if (dvfs_on) {
 			mt_gpufreq_keep_frequency_non_OD_init(GPU_KEEP_FREQ_NON_OD_BYPASS, GPU_KEEP_VOLT_NON_OD_BYPASS);
 		} else {
-			switch (freq)
-			{
-				case GPU_DVFS_F1: // 476MHz
-					pll = GPU_MMPLL_D3;
-					break;
-				case GPU_DVFS_F2: // 403MHz
-					pll = GPU_SYSPLL_D2;
-					break;
-				case GPU_DVFS_F3: // 357MHz
-					pll = GPU_MMPLL_D4;
-					break;
-				case GPU_DVFS_F4: // 312MHz
-					pll = GPU_UNIVPLL1_D2;
-					break;
-				default: // set in the default parameter initialization anyway
-				case GPU_DVFS_F5: // 286MHz
-					pll = GPU_MMPLL_D5;
-					break;
-				case GPU_DVFS_F6: // 268MHz
-					pll = GPU_SYSPLL_D3;
-					break;
-				case GPU_DVFS_F7: // 238MHz
-					pll = GPU_MMPLL_D6;
-					break;
-				case GPU_DVFS_F8: // 156MHz
-					pll = GPU_UNIVPLL1_D4;
-					break;
-			}
-			mt_gpufreq_keep_frequency_non_OD_init(pll, voltage);
+        switch (freq)
+        {
+        	case GPU_DVFS_F1: // 476MHz
+        		pll = GPU_MMPLL_D3;
+        		break;
+        	case GPU_DVFS_F2: // 403MHz
+        		pll = GPU_SYSPLL_D2;
+        		break;
+        	case GPU_DVFS_F3: // 357MHz
+        		pll = GPU_MMPLL_D4;
+        		break;
+        	case GPU_DVFS_F4: // 312MHz
+        		pll = GPU_UNIVPLL1_D2;
+        		break;
+        	default: // set in the default parameter initialization anyway
+        	case GPU_DVFS_F5: // 286MHz
+        		pll = GPU_MMPLL_D5;
+        		break;
+        	case GPU_DVFS_F6: // 268MHz
+        		pll = GPU_SYSPLL_D3;
+        		break;
+        	case GPU_DVFS_F7: // 238MHz
+        		pll = GPU_MMPLL_D6;
+        		break;
+        	case GPU_DVFS_F8: // 156MHz
+        		pll = GPU_UNIVPLL1_D4;
+        		break;
+        }
+		mt_gpufreq_keep_frequency_non_OD_init(pll, voltage);
 		}
 		
 //    }

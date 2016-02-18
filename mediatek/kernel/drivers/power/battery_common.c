@@ -1874,8 +1874,8 @@ static PMU_STATUS mt_battery_CheckBatteryTemp(void)
     if (BMT_status.temperature >= MAX_CHARGE_TEMPERATURE)
     {
         battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] Battery Over Temperature !!\n\r");                
-        status = PMU_STATUS_FAIL;       
-    }    
+        status = PMU_STATUS_FAIL;  
+    }  
 #endif
 
 #endif

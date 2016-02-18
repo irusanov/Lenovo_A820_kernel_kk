@@ -2444,14 +2444,14 @@ void fgauge_Normal_Mode_Work(void)
 
 			xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "gFG_current_auto_detect_R_fg_total=0, need double check [3]\n");
 
-			gFG_current_auto_detect_R_fg_count = 0;
-
-			for(i=0;i<10;i++)
-			{
-			gFG_current_auto_detect_R_fg_total+= fgauge_read_current();
-			gFG_current_auto_detect_R_fg_count++;
-			}
-		}
+            gFG_current_auto_detect_R_fg_count = 0;
+            
+            for(i=0;i<10;i++)
+            {
+                gFG_current_auto_detect_R_fg_total+= fgauge_read_current();
+                gFG_current_auto_detect_R_fg_count++;            
+            }
+        }
 /*lenovo-sw weiweij added 20130427 end*/   
 
         gFG_current_auto_detect_R_fg_result = gFG_current_auto_detect_R_fg_total / gFG_current_auto_detect_R_fg_count;
