@@ -1431,13 +1431,13 @@ void task_dirty_inc(struct task_struct *tsk);
 /* readahead.c */
 #ifdef CONFIG_DYNAMIC_READ_AHEAD
 #define VM_MAX_READAHEAD	2048	/* kbytes */
-#define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
+#define VM_MIN_READAHEAD	32	/* kbytes (includes current page) */
 
 extern unsigned long max_readahead_pages;
 
 #else
 #define VM_MAX_READAHEAD	1024	/* kbytes */
-#define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
+#define VM_MIN_READAHEAD	32	/* kbytes (includes current page) */
 #endif
 
 int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
@@ -1470,7 +1470,7 @@ extern int expand_downwards(struct vm_area_struct *vma,
 #if VM_GROWSUP
 extern int expand_upwards(struct vm_area_struct *vma, unsigned long address);
 #else
-  #define expand_upwards(vma, address) do { } while (0)
+  #define expand_upwards(vma, address) (0)
 #endif
 
 /* Look up the first VMA which satisfies  addr < vm_end,  NULL if none. */

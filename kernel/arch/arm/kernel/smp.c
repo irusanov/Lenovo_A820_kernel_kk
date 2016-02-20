@@ -205,18 +205,14 @@ void __cpu_die(unsigned int cpu)
 void __ref cpu_die(void)
 {
 	unsigned int cpu = smp_processor_id();
-	aee_rr_rec_hoplug(cpu, 51, 0);
 
 	idle_task_exit();
-	aee_rr_rec_hoplug(cpu, 52, 0);
 
 	local_irq_disable();
 	mb();
-	aee_rr_rec_hoplug(cpu, 53, 0);
 
 	/* Tell __cpu_die() that this CPU is now safe to dispose of */
 	complete(&cpu_died);
-	aee_rr_rec_hoplug(cpu, 54, 0);
 
 	/*
 	 * actual CPU shutdown procedure is at least platform (if not
@@ -601,99 +597,37 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
 		__inc_irq_stat(cpu, ipi_irqs[ipinr - IPI_TIMER]);
 
 	switch (ipinr) {
-        case IPI_CPU_START:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_CPU_START, "IPI_CPU_START");
-#endif
-            mt_trace_ISR_start(ipinr);
-            mt_trace_ISR_end(ipinr);
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_exit(IPI_CPU_START);
-#endif
-            break;
 	case IPI_TIMER:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-            trace_ipi_handler_entry(IPI_TIMER, "IPI_TIMER");
-#endif
-        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		ipi_timer();
-        mt_trace_ISR_end(ipinr);
-#ifdef CONFIG_MTK_SCHED_TRACERS
-            trace_ipi_handler_exit(IPI_TIMER);
-#endif
 		irq_exit();
 		break;
 
 	case IPI_RESCHEDULE:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_RESCHEDULE, "IPI_RESCHEDULE");
-#endif
 		scheduler_ipi();
 		break;
 
 	case IPI_CALL_FUNC:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_CALL_FUNC, "IPI_CALL_FUNC");
-#endif
-        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		generic_smp_call_function_interrupt();
-        mt_trace_ISR_end(ipinr);
-#ifdef  CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_exit(IPI_CALL_FUNC);
-#endif
 		irq_exit();
 		break;
 
 	case IPI_CALL_FUNC_SINGLE:
-#ifdef  CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_CALL_FUNC_SINGLE, "IPI_CALL_FUNC_SINGLE");
-#endif
-        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		generic_smp_call_function_single_interrupt();
-        mt_trace_ISR_end(ipinr);
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_exit(IPI_CALL_FUNC_SINGLE);
-#endif
 		irq_exit();
 		break;
 
 	case IPI_CPU_STOP:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_CPU_STOP, "IPI_CPU_STOP");
-#endif
-        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		ipi_cpu_stop(cpu);
-        mt_trace_ISR_end(ipinr);
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_exit(IPI_CPU_STOP);
-#endif
 		irq_exit();
 		break;
 
-	case IPI_CPU_BACKTRACE:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_entry(IPI_CPU_BACKTRACE, "IPI_CPU_BACKTRACE");
-#endif
-        mt_trace_ISR_start(ipinr);
-		ipi_cpu_backtrace(cpu, regs);
-        mt_trace_ISR_end(ipinr);
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_exit(IPI_CPU_BACKTRACE);
-#endif
-		break;
-
 	default:
-#ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_unnamed_irq(ipinr);
-#endif
-        mt_trace_ISR_start(ipinr);
 		printk(KERN_CRIT "CPU%u: Unknown IPI message 0x%x\n",
 		       cpu, ipinr);
-        mt_trace_ISR_end(ipinr);
 		break;
 	}
 	set_irq_regs(old_regs);

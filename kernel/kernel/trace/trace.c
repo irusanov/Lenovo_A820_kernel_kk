@@ -618,9 +618,12 @@ int trace_get_user(struct trace_parser *parser, const char __user *ubuf,
 	if (isspace(ch)) {
 		parser->buffer[parser->idx] = 0;
 		parser->cont = false;
-	} else {
+	} else if (parser->idx < parser->size - 1) {
 		parser->cont = true;
 		parser->buffer[parser->idx++] = ch;
+	} else {
+		ret = -EINVAL;
+		goto out;
 	}
 
 	*ppos += read;
@@ -1012,8 +1015,15 @@ void tracing_reset_current_online_cpus(void)
 
 #define SIZEOF_MAP_PID_TO_CMDLINE (sizeof(unsigned)*(PID_MAX_DEFAULT+1))
 #define SIZEOF_MAP_CMDLINE_TO_PID (sizeof(unsigned)*(SAVED_CMDLINES))
+
+#ifdef CONFIG_MTK_EXTMEM
+extern void* extmem_malloc_page_align(size_t bytes);
+static unsigned * map_pid_to_cmdline = NULL;
+static unsigned * map_cmdline_to_pid = NULL;
+#else
 static unsigned map_pid_to_cmdline[PID_MAX_DEFAULT+1];
 static unsigned map_cmdline_to_pid[SAVED_CMDLINES];
+#endif
 
 static char saved_cmdlines[SAVED_CMDLINES][TASK_COMM_LEN];
 static unsigned saved_tgids[SAVED_CMDLINES];
@@ -1025,8 +1035,22 @@ static atomic_t trace_record_cmdline_disabled __read_mostly;
 
 static void trace_init_cmdlines(void)
 {
+#ifdef CONFIG_MTK_EXTMEM
+	map_pid_to_cmdline = (unsigned *) extmem_malloc_page_align(SIZEOF_MAP_PID_TO_CMDLINE);
+	if(map_pid_to_cmdline == NULL)
+		panic("%s[%s] memory alloc failed!!!\n", __FILE__, __FUNCTION__);
+
+	map_cmdline_to_pid = (unsigned *) extmem_malloc_page_align(SIZEOF_MAP_CMDLINE_TO_PID);
+	if(map_pid_to_cmdline == NULL)
+		panic("%s[%s] memory alloc failed!!!\n", __FILE__, __FUNCTION__);
+	
+	memset(map_pid_to_cmdline, NO_CMDLINE_MAP, SIZEOF_MAP_PID_TO_CMDLINE);
+	memset(map_cmdline_to_pid, NO_CMDLINE_MAP, SIZEOF_MAP_CMDLINE_TO_PID);	
+#else    
 	memset(&map_pid_to_cmdline, NO_CMDLINE_MAP, sizeof(map_pid_to_cmdline));
 	memset(&map_cmdline_to_pid, NO_CMDLINE_MAP, sizeof(map_cmdline_to_pid));
+#endif
+
 	cmdline_idx = 0;
 }
 
@@ -1091,7 +1115,6 @@ void tracing_start(void)
 
 	arch_spin_unlock(&ftrace_max_lock);
 
-	ftrace_start();
  out:
 	raw_spin_unlock_irqrestore(&tracing_start_lock, flags);
     
@@ -1112,8 +1135,6 @@ void tracing_stop(void)
 {
 	struct ring_buffer *buffer;
 	unsigned long flags;
-
-	ftrace_stop();
 
 	raw_spin_lock_irqsave(&tracing_start_lock, flags);
 	if (trace_stop_count++)
@@ -2603,6 +2624,7 @@ static int tracing_release(struct inode *inode, struct file *file)
 	if (iter->trace && iter->trace->close)
 		iter->trace->close(iter);
 
+    printk("[ftrace]end reading trace file\n");
 	/* reenable tracing if it was previously enabled */
 	tracing_start();
 	mutex_unlock(&trace_types_lock);
@@ -2632,6 +2654,7 @@ static int tracing_open(struct inode *inode, struct file *file)
 	}
 
 	if (file->f_mode & FMODE_READ) {
+        printk("[ftrace]start reading trace file\n");
 		iter = __tracing_open(inode, file);
 		if (IS_ERR(iter))
 			ret = PTR_ERR(iter);
@@ -2918,8 +2941,12 @@ int set_tracer_flag(unsigned int mask, int enabled)
 	if (mask == TRACE_ITER_RECORD_CMD)
 		trace_event_enable_cmd_record(enabled);
 
-	if (mask == TRACE_ITER_OVERWRITE)
+	if (mask == TRACE_ITER_OVERWRITE) {
 		ring_buffer_change_overwrite(global_trace.buffer, enabled);
+#ifdef CONFIG_TRACER_MAX_TRACE
+		ring_buffer_change_overwrite(max_tr.buffer, enabled);
+#endif
+	}
 
 	return 0;
 }

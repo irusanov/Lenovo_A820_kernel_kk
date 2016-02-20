@@ -401,7 +401,8 @@ chip_ver_t platform_chip_ver(void)
 
     /* mt6589/mt6583 share the same hw_code/hw_sub_code/hw_version/sw_version currently */
 
-    chip_ver_t ver = CHIP_6583_E1;
+    //chip_ver_t ver = CHIP_6583_E1;
+    chip_ver_t ver = CHIP_6583_E2;
 
     return ver;
 }

@@ -425,7 +425,6 @@ android_getaddrinfo_proxy(
 	     strcspn(hostname, " \n\r\t^'\"") != strlen(hostname)) ||
 	    (servname != NULL &&
 	     strcspn(servname, " \n\r\t^'\"") != strlen(servname))) {
-	    debug_log("getaddrinfo: dnsproxy bogus hostname >>\n");		
 		return EAI_NODATA;
 	}
 
@@ -736,12 +735,12 @@ android_getaddrinfoforiface(const char *hostname, const char *servname,
 		// we're not the proxy - pass the request to them
 		if ((proxy_res=android_getaddrinfo_proxy(hostname, servname, hints, res, iface)) == 0)
 		{
-			debug_log("getaddrinfo: %s get result from proxy >>\n",hostname);
+			//debug_log("getaddrinfo: %s get result from proxy >>\n",hostname);
 			return 0;
 		}
 		else
 		{
-            debug_log("getaddrinfo: %s NO result from proxy \n",hostname);
+            //debug_log("getaddrinfo: %s NO result from proxy \n",hostname);
 			return proxy_res;
 		}
 	}
@@ -1942,7 +1941,6 @@ _dns_getaddrinfo(void *rv, void	*cb_data, va_list ap)
 			if (_using_default_dns(iface)) {
 				query_ipv6 = _have_ipv6();
 				query_ipv4 = _have_ipv4();
-				debug_log("default dns: query_ipv6=%d, query_ipv4=%d\n", query_ipv6, query_ipv4);
 			}
 		}
 		if (query_ipv6) {
@@ -2200,8 +2198,6 @@ res_queryN(const char *name, /* domain name */ struct res_target *target,
 			printf(";; res_nquery(%s, %d, %d)\n", name, class, type);
 #endif
 
-        debug_log("res_queryN name = %s, class = %d, type = %d", name, class, type);
-
 		n = res_nmkquery(res, QUERY, name, class, type, NULL, 0, NULL,
 		    buf, sizeof(buf));
 #ifdef RES_USE_EDNS0
@@ -2264,7 +2260,6 @@ res_queryN(const char *name, /* domain name */ struct res_target *target,
 		return -1;
 	}
 
-    debug_log("res_queryN name = %s succeed", name);
 	return ancount;
 }
 

@@ -252,8 +252,8 @@ static inline int check_obf(struct si_sm_data *kcs, unsigned char status,
 		kcs->obf_timeout -= time;
 		if (kcs->obf_timeout < 0) {
 			kcs->obf_timeout = OBF_RETRY_TIMEOUT;
-			start_error_recovery(kcs, "OBF not ready in time");
-			return 1;
+		    start_error_recovery(kcs, "OBF not ready in time");
+		    return 1;
 		}
 		return 0;
 	}

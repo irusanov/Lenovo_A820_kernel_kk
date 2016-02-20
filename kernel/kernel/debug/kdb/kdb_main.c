@@ -2612,7 +2612,7 @@ static int kdb_summary(int argc, const char **argv)
 #define K(x) ((x) << (PAGE_SHIFT - 10))
 	kdb_printf("\nMemTotal:       %8lu kB\nMemFree:        %8lu kB\n"
 		   "Buffers:        %8lu kB\n",
-		   val.totalram, val.freeram, val.bufferram);
+		   K(val.totalram), K(val.freeram), K(val.bufferram));
 	return 0;
 }
 
@@ -2931,6 +2931,9 @@ static void __init kdb_cmd_init(void)
 	}
 }
 
+#ifdef CONFIG_MTK_EXTMEM
+extern void init_debug_alloc_pool_aligned(void);
+#endif
 /* Initialize kdb_printf, breakpoint tables and kdb state */
 void __init kdb_init(int lvl)
 {
@@ -2939,6 +2942,11 @@ void __init kdb_init(int lvl)
 
 	if (kdb_init_lvl == KDB_INIT_FULL || lvl <= kdb_init_lvl)
 		return;
+
+#ifdef CONFIG_MTK_EXTMEM
+	init_debug_alloc_pool_aligned();
+#endif
+
 	for (i = kdb_init_lvl; i < lvl; i++) {
 		switch (i) {
 		case KDB_NOT_INITIALIZED:

@@ -62,6 +62,55 @@ static void twd_set_mode(enum clock_event_mode mode,
 
 	__raw_writel(ctrl, twd_base + TWD_TIMER_CONTROL);
 }
+#define LOCAL_TIME_DEBUG
+#ifdef LOCAL_TIME_DEBUG
+unsigned long long sched_clock(void);
+static unsigned long long save_data[4][4] = {{0},{0},{0},{0}};//max cpu 4
+void save_localtimer_register(unsigned long count, unsigned long ctrl, unsigned long dpidle)
+{
+	int cpu = smp_processor_id();
+	save_data[cpu][0] = count;
+	save_data[cpu][1] = ctrl;
+	save_data[cpu][2] = dpidle;
+	save_data[cpu][3] = sched_clock();
+}
+/*
+void dump_localtimer_register(void)
+{
+	int i;
+	for(i = 0; i < nr_cpu_ids; i++)
+		printk("[local timer]old:cpu:%d,count:0x%x, ctrl:0x%x,dpidle:%d, time:%llu\n", i, (int)save_data[i][0], (int)save_data[i][1], (int)save_data[i][2], save_data[i][3]);
+	printk("[local timer]new: count:0x%x,control:0x%x,load:0x%x\n", __raw_readl(twd_base + TWD_TIMER_COUNTER), __raw_readl(twd_base + TWD_TIMER_CONTROL), __raw_readl(twd_base + TWD_TIMER_LOAD));
+	printk("[local timer]NTSTAT:0x%x\n", __raw_readl(twd_base + TWD_TIMER_INTSTAT));
+	printk("[local timer]twd_timer_rate:%d\n", (int)twd_timer_rate);
+}
+*/
+int  dump_localtimer_register(char* buffer, int size)
+{
+	int i =0;
+	int len =0;
+	if(NULL == buffer)
+	{
+	    return -1;
+	}
+	
+	for(i = 0; i < nr_cpu_ids; i++)
+	{
+	     len += snprintf(buffer+len, size, "[local timer]old:cpu:%d,count:0x%x, ctrl:0x%x,dpidle:%d, time:%llu\n", i, (int)save_data[i][0], (int)save_data[i][1], (int)save_data[i][2], save_data[i][3]);
+	}
+	len += snprintf(buffer+len, size, "[local timer]new: count:0x%x,control:0x%x,load:0x%x\n", *((volatile u32*)(twd_base + TWD_TIMER_COUNTER)), *((volatile u32*)(twd_base + TWD_TIMER_CONTROL)), *((volatile u32*)(twd_base + TWD_TIMER_LOAD)));
+	len += snprintf(buffer+len, size, "[local timer]NTSTAT:0x%x\n",*((volatile u32*)(twd_base + TWD_TIMER_INTSTAT)));
+	len += snprintf(buffer+len, size, "[local timer]twd_timer_rate:%d\n", (int)twd_timer_rate);
+
+      if(len >= size)
+      	{
+      	   return -2;// buffer is full
+      	}
+	  
+	return len;
+}
+
+#endif
 
 static int twd_set_next_event(unsigned long evt,
 			struct clock_event_device *unused)
@@ -72,10 +121,18 @@ static int twd_set_next_event(unsigned long evt,
 
 	__raw_writel(evt, twd_base + TWD_TIMER_COUNTER);
 	__raw_writel(ctrl, twd_base + TWD_TIMER_CONTROL);
+#ifdef LOCAL_TIME_DEBUG
+	save_localtimer_register(evt, ctrl, 0);
+#endif
+	return 0;
+}
 
 int localtimer_set_next_event(unsigned long evt)
 {
 	twd_set_next_event(evt,NULL);
+#ifdef LOCAL_TIME_DEBUG	
+	save_localtimer_register(evt, 0, 1);
+#endif
 	return 0;
 }
 
@@ -96,7 +153,7 @@ static int twd_timer_ack(void)
 		__raw_writel(1, twd_base + TWD_TIMER_INTSTAT);
 		return 1;
 	}
-
+	printk("warning: localtimer, bad news INTSTAT = 0, restart read:0x%x\n", __raw_readl(twd_base + TWD_TIMER_INTSTAT));
 	return 0;
 }
 
@@ -186,7 +243,6 @@ static void __cpuinit twd_calibrate_rate(void)
 			udelay(10);
 
 		count = __raw_readl(twd_base + TWD_TIMER_COUNTER);
-
 		twd_timer_rate = (0xFFFFFFFFU - count) * (HZ / 5);
 
 		printk("%lu.%02luMHz.\n", twd_timer_rate / 1000000,

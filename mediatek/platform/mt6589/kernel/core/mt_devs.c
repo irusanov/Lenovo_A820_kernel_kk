@@ -1452,6 +1452,25 @@ static struct platform_device mt65xx_leds_device = {
 	.name = "leds-mt65xx",
 	.id = -1
 };
+
+#if defined(LENOVO_LP5560_SUPPORT)//lenovo jixu add blue leds 20130513
+static struct platform_device lp5560_leds_device = {
+	.name = "leds-lp5560",
+	.id = -1
+};
+#elif defined(LENOVO_LEDS_GPIO_SUPPORT)//lenovo add by jixu@lenovo.com
+static struct platform_device leds_gpio_device = {
+	.name = "leds-gpio",
+	.id = -1
+};
+#elif defined(LENOVO_SN3193_LED_SUPPORT)//lenovo add by jixu@lenovo.com
+static struct platform_device sn3193_leds_device = {
+	.name = "leds-sn3193",
+	.id = -1
+};
+#endif
+
+
 /*=======================================================================*/
 /* NFC                                                                          */
 /*=======================================================================*/
@@ -1695,6 +1714,23 @@ __init int mt6589_board_init(void)
 	if (retval != 0)
 		return retval;
 	printk("bei:device LEDS register\n");
+#endif
+
+#if defined(LENOVO_LP5560_SUPPORT)//lenovo jixu add blue leds 20130513
+	retval = platform_device_register(&lp5560_leds_device);
+	if (retval != 0)
+		return retval;
+	printk("[JX]:device lp5560_leds_device register\n");
+#elif defined(LENOVO_LEDS_GPIO_SUPPORT)//lenovo add by jixu@lenovo.com
+	retval = platform_device_register(&leds_gpio_device);
+	if (retval != 0)
+		return retval;
+	printk("[JX]:device leds gpio register\n");
+#elif defined(LENOVO_SN3193_LED_SUPPORT)//lenovo add by jixu@lenovo.com
+	retval = platform_device_register(&sn3193_leds_device);
+	if (retval != 0)
+		return retval;
+	printk("[JX]:device sn3193 leds register\n");
 #endif
 
 #ifdef MTK_HDMI_SUPPORT

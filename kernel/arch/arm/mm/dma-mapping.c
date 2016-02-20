@@ -176,6 +176,9 @@ static int __init consistent_init(void)
 		return -ENOMEM;
 	}
 
+	BUG_ON(base < VMALLOC_END);
+	printk(KERN_ALERT"DMA memory: 0x%08lx - 0x%08lx:\n", 
+                base, CONSISTENT_END);
 	pr_debug("DMA memory: 0x%08lx - 0x%08lx:\n", base, CONSISTENT_END);
 	consistent_head.vm_start = base;
 

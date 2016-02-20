@@ -29,6 +29,13 @@ The buffer-user
    in memory, mapped into its own address space, so it can access the same area
    of memory.
 
+*IMPORTANT*: [see https://lkml.org/lkml/2011/12/20/211 for more details]
+For this first version, A buffer shared using the dma_buf sharing API:
+- *may* be exported to user space using "mmap" *ONLY* by exporter, outside of
+  this framework.
+- with this new iteration of the dma-buf api cpu access from the kernel has been
+  enable, see below for the details.
+
 dma-buf operations for device dma only
 --------------------------------------
 

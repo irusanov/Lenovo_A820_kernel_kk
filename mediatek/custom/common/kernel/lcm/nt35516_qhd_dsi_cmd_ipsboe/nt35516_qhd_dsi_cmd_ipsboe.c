@@ -194,8 +194,6 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0xEB, 4,{0x03,0xFD,0x03,0xFF}},
 	//<2013/01/09-20009-stevenchen, [Pelican] Modify LCM initial code.
 	{0x35,1,{0x00}}, /* Tearing ON */
-	//<2013/01/09-20061-stevenchen, [Pelican] LCM display rotates 180 degree.
-	{0x36,1,{0x03}}, /* Rotate 180 */
 	//>2013/01/09-20061-stevenchen
 	{0x11,1,{0x00}},
 	{REGFLAG_DELAY, 120, {}},

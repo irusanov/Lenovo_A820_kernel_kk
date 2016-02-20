@@ -88,11 +88,11 @@ static ssize_t hidraw_read(struct file *file, char __user *buffer, size_t count,
 			count : list->buffer[list->tail].len;
 
 		if (list->buffer[list->tail].value) {
-			if (copy_to_user(buffer, list->buffer[list->tail].value, len)) {
-				ret = -EFAULT;
-				goto out;
-			}
-			ret = len;
+		if (copy_to_user(buffer, list->buffer[list->tail].value, len)) {
+			ret = -EFAULT;
+			goto out;
+		}
+		ret = len;
 		}
 
 		kfree(list->buffer[list->tail].value);

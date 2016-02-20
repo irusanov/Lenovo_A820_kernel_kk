@@ -45,6 +45,7 @@
 #include <linux/bitops.h>
 #include <linux/gfp.h>
 #include <linux/kmemcheck.h>
+#include <linux/aee.h>
 
 #include <asm/sections.h>
 
@@ -67,6 +68,12 @@ module_param(lock_stat, int, 0644);
 #define lock_stat 0
 #endif
 
+static void lockdep_aee(void)
+{
+    char aee_str[40];
+    snprintf( aee_str, 40, "[%s]LockProve Warning", current->comm);
+    aee_kernel_warning_api(__FILE__, __LINE__, DB_OPT_DUMMY_DUMP | DB_OPT_FTRACE, aee_str,"LockProve Debug\n");
+}
 /*
  * lockdep_lock: protects the lockdep graph, the hashes and the
  *               class/list/hash allocators.
@@ -543,9 +550,12 @@ static void print_lockdep_cache(struct lockdep_map *lock)
 
 static void print_lock(struct held_lock *hlock)
 {
-	print_lock_name(hlock_class(hlock));
-	printk(", at: ");
-	print_ip_sym(hlock->acquire_ip);
+    struct lock_class *lock = hlock_class(hlock);
+    if(lock != NULL){
+        print_lock_name(lock);
+        printk(", at: ");
+        print_ip_sym(hlock->acquire_ip);
+    }
 }
 
 static void lockdep_print_held_locks(struct task_struct *curr)
@@ -556,6 +566,9 @@ static void lockdep_print_held_locks(struct task_struct *curr)
 		printk("no locks held by %s/%d.\n", curr->comm, task_pid_nr(curr));
 		return;
 	}
+    if (curr->state == TASK_RUNNING)
+        printk("[Caution!] %s/%d is runable state\n", curr->comm, curr->pid);
+
 	printk("%d lock%s held by %s/%d:\n",
 		depth, depth > 1 ? "s" : "", curr->comm, task_pid_nr(curr));
 
@@ -729,9 +742,9 @@ register_lock_class(struct lockdep_map *lock, unsigned int subclass, int force)
  	 */
 	if (!static_obj(lock->key)) {
 		debug_locks_off();
-		printk("INFO: trying to register non-static key.\n");
-		printk("the code is fine but needs lockdep annotation.\n");
-		printk("turning off the locking correctness validator.\n");
+		printk(KERN_EMERG"INFO: trying to register non-static key.\n");
+		printk(KERN_EMERG"the code is fine but needs lockdep annotation.\n");
+		printk(KERN_EMERG"turning off the locking correctness validator.\n");
 		dump_stack();
 
 		return NULL;
@@ -1018,6 +1031,10 @@ static int __bfs(struct lock_list *source_entry,
 			head = &lock->class->locks_before;
 
 		list_for_each_entry(entry, head, entry) {
+            if(entry == NULL){
+                printk("=======\nlocklist entry is NULL\n=======\n");
+                return -1;
+            }
 			if (!lock_accessed(entry)) {
 				unsigned int cq_depth;
 				mark_lock_accessed(entry, lock);
@@ -1146,9 +1163,10 @@ print_circular_bug_header(struct lock_list *entry, unsigned int depth,
 	if (debug_locks_silent)
 		return 0;
 
+
 	printk("\n");
 	printk("======================================================\n");
-	printk("[ INFO: possible circular locking dependency detected ]\n");
+	printk("[ ProveLock INFO: possible circular locking dependency detected ]\n");
 	print_kernel_ident();
 	printk("-------------------------------------------------------\n");
 	printk("%s/%d is trying to acquire lock:\n",
@@ -1205,6 +1223,9 @@ static noinline int print_circular_bug(struct lock_list *this,
 
 	printk("\nstack backtrace:\n");
 	dump_stack();
+
+    //Add by Mtk
+    lockdep_aee();
 
 	return 0;
 }
@@ -1484,9 +1505,12 @@ print_bad_irq_dependency(struct task_struct *curr,
 	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
 		return 0;
 
+    //Add by Mtk
+    lockdep_aee();
+
 	printk("\n");
 	printk("======================================================\n");
-	printk("[ INFO: %s-safe -> %s-unsafe lock order detected ]\n",
+	printk("[ ProveLock INFO: %s-safe -> %s-unsafe lock order detected ]\n",
 		irqclass, irqclass);
 	print_kernel_ident();
 	printk("------------------------------------------------------\n");
@@ -1714,9 +1738,12 @@ print_deadlock_bug(struct task_struct *curr, struct held_lock *prev,
 	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
 		return 0;
 
+    //Add by Mtk
+    lockdep_aee();
+
 	printk("\n");
 	printk("=============================================\n");
-	printk("[ INFO: possible recursive locking detected ]\n");
+	printk("[ ProveLock INFO: possible recursive locking detected ]\n");
 	print_kernel_ident();
 	printk("---------------------------------------------\n");
 	printk("%s/%d is trying to acquire lock:\n",
@@ -2221,9 +2248,12 @@ print_usage_bug(struct task_struct *curr, struct held_lock *this,
 	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
 		return 0;
 
+    //Add by Mtk
+    lockdep_aee();
+
 	printk("\n");
 	printk("=================================\n");
-	printk("[ INFO: inconsistent lock state ]\n");
+	printk("[ ProveLock INFO: inconsistent lock state ]\n");
 	print_kernel_ident();
 	printk("---------------------------------\n");
 
@@ -2286,9 +2316,12 @@ print_irq_inversion_bug(struct task_struct *curr,
 	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
 		return 0;
 
+    //Add by Mtk
+    lockdep_aee();
+
 	printk("\n");
 	printk("=========================================================\n");
-	printk("[ INFO: possible irq lock inversion dependency detected ]\n");
+	printk("[ ProveLock INFO: possible irq lock inversion dependency detected ]\n");
 	print_kernel_ident();
 	printk("---------------------------------------------------------\n");
 	printk("%s/%d just changed the state of lock:\n",
@@ -3018,9 +3051,6 @@ static int __lock_acquire(struct lockdep_map *lock, unsigned int subclass,
 	if (!prove_locking)
 		check = 1;
 
-	if (unlikely(!debug_locks))
-		return 0;
-
 	/*
 	 * Lockdep should run with IRQs disabled, otherwise we could
 	 * get an interrupt which would want to take locks, which would
@@ -3172,9 +3202,12 @@ print_unlock_inbalance_bug(struct task_struct *curr, struct lockdep_map *lock,
 	if (debug_locks_silent)
 		return 0;
 
+    //Add by Mtk
+    lockdep_aee();
+
 	printk("\n");
 	printk("=====================================\n");
-	printk("[ BUG: bad unlock balance detected! ]\n");
+	printk("[ ProveLock BUG: bad unlock balance detected! ]\n");
 	print_kernel_ident();
 	printk("-------------------------------------\n");
 	printk("%s/%d is trying to release lock (",
@@ -3547,6 +3580,9 @@ void lock_acquire(struct lockdep_map *lock, unsigned int subclass,
 	if (unlikely(current->lockdep_recursion))
 		return;
 
+	if (unlikely(lock->skip==1))
+		return;
+
 	raw_local_irq_save(flags);
 	check_flags(flags);
 
@@ -3565,6 +3601,9 @@ void lock_release(struct lockdep_map *lock, int nested,
 	unsigned long flags;
 
 	if (unlikely(current->lockdep_recursion))
+		return;
+
+	if (unlikely(lock->skip==1))
 		return;
 
 	raw_local_irq_save(flags);
@@ -3617,9 +3656,12 @@ print_lock_contention_bug(struct task_struct *curr, struct lockdep_map *lock,
 	if (debug_locks_silent)
 		return 0;
 
+    //Add by Mtk
+    lockdep_aee();
+
 	printk("\n");
 	printk("=================================\n");
-	printk("[ BUG: bad contention detected! ]\n");
+	printk("[ ProveLock BUG: bad contention detected! ]\n");
 	print_kernel_ident();
 	printk("---------------------------------\n");
 	printk("%s/%d is trying to contend lock (",
@@ -3993,9 +4035,12 @@ print_freed_lock_bug(struct task_struct *curr, const void *mem_from,
 	if (debug_locks_silent)
 		return;
 
+    //Add by Mtk
+    lockdep_aee();
+
 	printk("\n");
 	printk("=========================\n");
-	printk("[ BUG: held lock freed! ]\n");
+	printk("[ ProveLock BUG: held lock freed! ]\n");
 	print_kernel_ident();
 	printk("-------------------------\n");
 	printk("%s/%d is freeing memory %p-%p, with a lock still held there!\n",
@@ -4044,31 +4089,33 @@ void debug_check_no_locks_freed(const void *mem_from, unsigned long mem_len)
 }
 EXPORT_SYMBOL_GPL(debug_check_no_locks_freed);
 
-static void print_held_locks_bug(struct task_struct *curr)
+static void print_held_locks_bug(void)
 {
 	if (!debug_locks_off())
 		return;
 	if (debug_locks_silent)
 		return;
 
+    //Add by Mtk
+    lockdep_aee();
+
 	printk("\n");
 	printk("=====================================\n");
-	printk("[ BUG: lock held at task exit time! ]\n");
+	printk("[ ProveLock BUG: %s/%d still has locks held! ]\n",
+	       current->comm, task_pid_nr(current));
 	print_kernel_ident();
 	printk("-------------------------------------\n");
-	printk("%s/%d is exiting with locks still held!\n",
-		curr->comm, task_pid_nr(curr));
-	lockdep_print_held_locks(curr);
-
+	lockdep_print_held_locks(current);
 	printk("\nstack backtrace:\n");
 	dump_stack();
 }
 
-void debug_check_no_locks_held(struct task_struct *task)
+void debug_check_no_locks_held(void)
 {
-	if (unlikely(task->lockdep_depth > 0))
-		print_held_locks_bug(task);
+	if (unlikely(current->lockdep_depth > 0))
+		print_held_locks_bug();
 }
+EXPORT_SYMBOL_GPL(debug_check_no_locks_held);
 
 void debug_show_all_locks(void)
 {
@@ -4111,8 +4158,10 @@ retry:
 		 * if it's not sleeping (or if it's not the current
 		 * task):
 		 */
-		if (p->state == TASK_RUNNING && p != current)
-			continue;
+		//if (p->state == TASK_RUNNING && p != current){
+        //  printk("[Caution!] %s/%d is running now\n", p->comm, p->pid);
+		//	continue;
+        //}
 		if (p->lockdep_depth)
 			lockdep_print_held_locks(p);
 		if (!unlock)
@@ -4169,9 +4218,13 @@ void lockdep_rcu_suspicious(const char *file, const int line, const char *s)
 		return;
 #endif /* #ifdef CONFIG_PROVE_RCU_REPEATEDLY */
 	/* Note: the following can be executed concurrently, so be careful. */
+
+    //Add by Mtk
+    lockdep_aee();
+
 	printk("\n");
 	printk("===============================\n");
-	printk("[ INFO: suspicious RCU usage. ]\n");
+	printk("[ ProveLock INFO: suspicious RCU usage. ]\n");
 	print_kernel_ident();
 	printk("-------------------------------\n");
 	printk("%s:%d %s!\n", file, line, s);

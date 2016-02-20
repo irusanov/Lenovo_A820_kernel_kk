@@ -726,20 +726,20 @@ static int logi_dj_raw_event(struct hid_device *hdev,
 	}
 
 	spin_lock_irqsave(&djrcv_dev->lock, flags);
-	switch (dj_report->report_type) {
-	case REPORT_TYPE_NOTIF_DEVICE_PAIRED:
-	case REPORT_TYPE_NOTIF_DEVICE_UNPAIRED:
-		logi_dj_recv_queue_notification(djrcv_dev, dj_report);
-		break;
-	case REPORT_TYPE_NOTIF_CONNECTION_STATUS:
-		if (dj_report->report_params[CONNECTION_STATUS_PARAM_STATUS] ==
-		    STATUS_LINKLOSS) {
-			logi_dj_recv_forward_null_report(djrcv_dev, dj_report);
+		switch (dj_report->report_type) {
+		case REPORT_TYPE_NOTIF_DEVICE_PAIRED:
+		case REPORT_TYPE_NOTIF_DEVICE_UNPAIRED:
+			logi_dj_recv_queue_notification(djrcv_dev, dj_report);
+			break;
+		case REPORT_TYPE_NOTIF_CONNECTION_STATUS:
+			if (dj_report->report_params[CONNECTION_STATUS_PARAM_STATUS] ==
+			    STATUS_LINKLOSS) {
+				logi_dj_recv_forward_null_report(djrcv_dev, dj_report);
+			}
+			break;
+		default:
+			logi_dj_recv_forward_report(djrcv_dev, dj_report);
 		}
-		break;
-	default:
-		logi_dj_recv_forward_report(djrcv_dev, dj_report);
-	}
 	spin_unlock_irqrestore(&djrcv_dev->lock, flags);
 
 	return true;

@@ -2657,7 +2657,6 @@ _resolv_populate_res_for_iface(res_state statp)
             }
 
             if ((size_t) ai->ai_addrlen <= sizeof(statp->_u._ext.ext->nsaddrs[0])) {
-				debug_log("iface=%s, dns%d:%s\n", statp->iface, nserv, info->nameservers[nserv]);
                 if (statp->_u._ext.ext != NULL) {
                     memcpy(&statp->_u._ext.ext->nsaddrs[nserv], ai->ai_addr, ai->ai_addrlen);
                     statp->nsaddr_list[nserv].sin_family = AF_UNSPEC;

@@ -148,6 +148,9 @@ extern int g_HW_stop_charging;
 extern int bat_volt_check_point;
 extern int gForceADCsolution;
 extern kal_bool batteryBufferFirst;
+/*Lenovo-sw begin chenlj2 add 2011-06-02,add a enum for current */
+extern int battery_cali_start_status ;
+/*Lenovo-sw end chenlj2 add 2011-06-02,add a enum for current */
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //// Define
@@ -1485,7 +1488,10 @@ void fg_qmax_update_for_aging(void)
 
             // tuning
             gFG_BATT_CAPACITY_aging = (gFG_BATT_CAPACITY_aging * 100) / AGING_TUNING_VALUE;
-            
+			/*Lenovo-sw begin chenlj2 add 2011-06-02,add a enum for current */
+                    battery_cali_start_status = 2;
+		      printk("chenlj2-fg_qmax_update_for_aging 1 cali_status=%d\n",battery_cali_start_status);
+			  /*Lenovo-sw end chenlj2 add 2011-06-02,add a enum for current */
             xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[fg_qmax_update_for_aging] need update : gFG_columb=%d, gFG_DOD0=%d, new_qmax=%d\r\n", 
                 gFG_columb, gFG_DOD0, gFG_BATT_CAPACITY_aging);
         }
@@ -2319,9 +2325,29 @@ void fgauge_Normal_Mode_Work(void)
 				xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[FGADC] get_hw_ocv=%d, HW_SOC=%d, SW_SOC = %d\n", 
 				gFG_voltage, gFG_capacity_by_v, gFG_capacity_by_v_init);
 				// compare with hw_ocv & sw_ocv, check if less than or equal to 25mV tolerance 
+/*lenovo-sw weiweij modified 20130314*/
+#if 0
 				if (abs(gFG_voltageVBAT - gFG_voltage) > 25) {
 						gFG_capacity_by_v = gFG_capacity_by_v_init;
 				}
+#else
+		if(upmu_is_chr_det()==KAL_TRUE) 
+		{
+			xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[FGADC] gFG_Is_Charging = %d, use gFG_capacity_by_v_init(%d)\n", gFG_Is_Charging, gFG_capacity_by_v_init);
+			if (abs(gFG_capacity_by_v_init - gFG_capacity_by_v) > 5) {
+				gFG_capacity_by_v = gFG_capacity_by_v_init;
+			}
+		}
+
+/*lenovo-sw weiweij added for hw_ocv check error in watch dog reboot mode*/
+		xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "ww_debug g_boot_reason(%d)\n", g_boot_reason);		
+		if(g_boot_reason==BR_WDT_BY_PASS_PWK)
+		{
+			xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "ww_debug g_boot_reason(%d), use sw soc (%d)\n", g_boot_reason, gFG_capacity_by_v_init);	
+			gFG_capacity_by_v = gFG_capacity_by_v_init;
+		}
+/*lenovo-sw weiweij added for hw_ocv check error in watch dog reboot mode end*/		
+#endif
 				
 				xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[FGADC] SW_VBAT=%d, HW_VBAT=%d, gFG_capacity_by_v = %d\n", 
 				gFG_voltageVBAT, gFG_voltage, gFG_capacity_by_v);
@@ -2390,9 +2416,16 @@ void fgauge_Normal_Mode_Work(void)
         #endif        
 
         //double check
-        if(gFG_current_auto_detect_R_fg_total <= CURRENT_DETECT_R_FG)
+/*lenovo-sw weiweij modified 20130427*/ 
+        //if(gFG_current_auto_detect_R_fg_total <= CURRENT_DETECT_R_FG)
+        if(gFG_current_auto_detect_R_fg_total <= CURRENT_DETECT_R_FG*gFG_current_auto_detect_R_fg_count)
+/*lenovo-sw weiweij modified 20130427 end*/ 
         {
             xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "gFG_current_auto_detect_R_fg_total=0, need double check [2]\n");
+            
+/*lenovo-sw weiweij added 20130427*/         
+			msleep(1000);
+/*lenovo-sw weiweij added 20130427 end*/  
             
             gFG_current_auto_detect_R_fg_count = 0;
             
@@ -2402,6 +2435,24 @@ void fgauge_Normal_Mode_Work(void)
                 gFG_current_auto_detect_R_fg_count++;            
             }
         }
+
+/*lenovo-sw weiweij added 20130427*/    
+		//third check
+		if(gFG_current_auto_detect_R_fg_total <= CURRENT_DETECT_R_FG*gFG_current_auto_detect_R_fg_count)
+		{
+			msleep(1000);
+
+			xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "gFG_current_auto_detect_R_fg_total=0, need double check [3]\n");
+
+            gFG_current_auto_detect_R_fg_count = 0;
+            
+            for(i=0;i<10;i++)
+            {
+                gFG_current_auto_detect_R_fg_total+= fgauge_read_current();
+                gFG_current_auto_detect_R_fg_count++;            
+            }
+        }
+/*lenovo-sw weiweij added 20130427 end*/   
 
         gFG_current_auto_detect_R_fg_result = gFG_current_auto_detect_R_fg_total / gFG_current_auto_detect_R_fg_count;
         if(gFG_current_auto_detect_R_fg_result <= CURRENT_DETECT_R_FG)
@@ -2575,7 +2626,19 @@ void fgauge_initialization(void)
     get_hw_chip_diff_trim_value();
 
     gFG_BATT_CAPACITY_init_high_current = Q_MAX_POS_25_H_CURRENT;    
+/*lenovo-sw weiweij modified*/  
+#if 0//defined(LENOVO_PROJECT_SNOOPY)||(LENOVO_PROJECT_SNOOPY_CU)||(LENOVO_PROJECT_SNOOPYTD)
+	gFG_BATT_CAPACITY_aging = get_rtc_spare_qmax_value();
+	xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "ww_debug gFG_BATT_CAPACITY_aging(1)=%d\n", gFG_BATT_CAPACITY_aging);	
+	if((gFG_BATT_CAPACITY_aging<=1000)||(gFG_BATT_CAPACITY_aging>=2500))
+	{
     gFG_BATT_CAPACITY_aging = Q_MAX_POS_25;
+	}
+#else
+    gFG_BATT_CAPACITY_aging = Q_MAX_POS_25;
+#endif
+	xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "ww_debug gFG_BATT_CAPACITY_aging(2)=%d\n", gFG_BATT_CAPACITY_aging);	
+/*lenovo-sw weiweij modified end*/  
 
 // 1. HW initialization
 //FGADC clock is 32768Hz from RTC

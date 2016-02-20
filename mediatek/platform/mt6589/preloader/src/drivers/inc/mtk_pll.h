@@ -123,9 +123,9 @@
 
 //#define MEMPLL_CLK_500
 
-#define MEMPLL_CLK_533
+//#define MEMPLL_CLK_533
 
-//#define MEMPLL_CLK_586
+#define MEMPLL_CLK_586
 
 #define DDRPHY_3PLL_MODE
 

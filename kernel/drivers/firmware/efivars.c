@@ -559,11 +559,11 @@ efivar_store_raw(struct efivar_entry *entry, const char *buf, size_t count)
 	       new_var->DataSize + utf16_strsize(new_var->VariableName, 1024));
 
 	if (status == EFI_SUCCESS || status == EFI_UNSUPPORTED)
-		status = efivars->ops->set_variable(new_var->VariableName,
-						    &new_var->VendorGuid,
-						    new_var->Attributes,
-						    new_var->DataSize,
-						    new_var->Data);
+	status = efivars->ops->set_variable(new_var->VariableName,
+					    &new_var->VendorGuid,
+					    new_var->Attributes,
+					    new_var->DataSize,
+					    new_var->Data);
 
 	spin_unlock_irq(&efivars->lock);
 

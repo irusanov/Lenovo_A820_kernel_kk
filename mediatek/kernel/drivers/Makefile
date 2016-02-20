@@ -138,6 +138,8 @@ obj-y += conn_md/
 #obj-y   +=  conn_soc/
 #endif
 
+obj-$(CONFIG_MTK_EXTMEM) +=  exm/
+
 obj-y   +=  accdet/
 obj-y   +=  vibrator/
 obj-y	+=	pwm/
@@ -149,6 +151,8 @@ endif#!CONFIG_MTK_FPGA
 obj-$(CONFIG_MTK_SCHED_CMP_POWER_AWARE_CONTROLLER) +=  pa/
 obj-$(CONFIG_HMP_POWER_AWARE_CONTROLLER) +=  pa_hmp/
 obj-y   += selinux_warning/
+# MTK PASR SW flow
+obj-$(CONFIG_MTKPASR)	+= mtkpasr/
 
 ifeq ($(MTK_RAWFS_NAND_SUPPORT),yes)
 obj-y  +=  rawfs/

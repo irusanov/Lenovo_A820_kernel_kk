@@ -251,7 +251,7 @@ static int __die(const char *str, int err, struct thread_info *thread, struct pt
 	/* trap and error numbers are mostly meaningless on ARM */
 	ret = notify_die(DIE_OOPS, str, regs, err, tsk->thread.trap_no, SIGSEGV);
 	if (ret == NOTIFY_STOP)
-		return ret;
+        return ret;
 
 	print_modules();
 	__show_regs(regs);

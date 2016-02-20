@@ -31,17 +31,21 @@ typedef struct{
 #define MAX_CHARGE_TEMPERATURE  50
 #define MIN_CHARGE_TEMPERATURE  0
 #define ERR_CHARGE_TEMPERATURE  0xFF
+//#define HIGH_BATTERY_VOLTAGE_SUPPORT 1
 
 /* Recharging Battery Voltage */
+#ifdef HIGH_BATTERY_VOLTAGE_SUPPORT
+#define RECHARGING_VOLTAGE      4200
+#else
 #define RECHARGING_VOLTAGE      4110
-
+#endif
 /* Charging Current Setting */
 #define CONFIG_USB_IF 						0   
 #define USB_CHARGER_CURRENT_SUSPEND			Cust_CC_0MA		// def CONFIG_USB_IF
 #define USB_CHARGER_CURRENT_UNCONFIGURED	Cust_CC_70MA	// def CONFIG_USB_IF
 #define USB_CHARGER_CURRENT_CONFIGURED		Cust_CC_450MA	// def CONFIG_USB_IF
 #define USB_CHARGER_CURRENT					Cust_CC_450MA
-#define AC_CHARGER_CURRENT					Cust_CC_650MA	
+#define AC_CHARGER_CURRENT					Cust_CC_700MA	//Cust_CC_800MA	
 
 /* Battery Meter Solution */
 #define CONFIG_ADC_SOLUTION 	1
@@ -59,7 +63,7 @@ VBAT_TO_PERCENT Batt_VoltToPercent_Table[] = {
 	{3891,70},
 	{3960,80},
 	{4044,90},
-	{4183,100},
+	{4183,100}
 };
 
 /* Precise Tunning */

@@ -578,7 +578,8 @@ CHARGER_TYPE hw_charger_type_detection(void)
     //RG_BC11_CMP_EN[1.0] = 01
     ret_val=pmic_config_interface(CHR_CON19,0x1,PMIC_RG_BC11_CMP_EN_MASK,PMIC_RG_BC11_CMP_EN_SHIFT);
 
-    mdelay(100);
+    //lenovo_sw liaohj modify for add delay time to avoid slow plug in and judge as non stand charing 2013-08-01
+    mdelay(600);
         
     ret_val=pmic_read_interface(CHR_CON18,&wChargerAvail,PMIC_RGS_BC11_CMP_OUT_MASK,PMIC_RGS_BC11_CMP_OUT_SHIFT); 
     //xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "mt_charger_type_detection : step A : wChargerAvail=%x\r\n", wChargerAvail);
@@ -762,6 +763,12 @@ extern void mt_usb_disconnect(void);
 #endif
 extern void BAT_UpdateChargerStatus(void);
 
+/*lenovo-sw weiweij add for oreg protect*/
+#ifdef MTK_FAN5405_SUPPORT
+extern int fan5405_check_r2(void);//ww_debug
+#endif
+/*lenovo-sw weiweij add for oreg protect end*/
+
 void do_chrdet_int_task(void)
 {
     U32 ret=0;
@@ -817,10 +824,21 @@ void do_chrdet_int_task(void)
     wake_lock(&battery_suspend_lock);
     g_chr_event = 1;
 
+/*lenovo-sw weiweij add for oreg protect*/
+#ifdef MTK_FAN5405_SUPPORT
+    if(g_bat_init_flag==1){
+		fan5405_check_r2();
+        wake_up_bat();
+    }else
+        xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[do_chrdet_int_task] battery thread not ready, will do after bettery init.\n");    
+#else
     if(g_bat_init_flag==1)
         wake_up_bat();
     else
         xlog_printk(ANDROID_LOG_INFO, "Power/PMIC", "[do_chrdet_int_task] battery thread not ready, will do after bettery init.\n");    
+#endif
+/*lenovo-sw weiweij add for oreg protect end*/
+
     #endif
 }
 

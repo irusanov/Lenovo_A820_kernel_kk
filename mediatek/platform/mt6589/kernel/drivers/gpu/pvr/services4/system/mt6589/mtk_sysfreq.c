@@ -96,6 +96,8 @@ PVRSRV_ERROR MTKSetFreqInfo(unsigned int freq, unsigned int tbltype)
 	unsigned int voltage;
 	unsigned int pll;
 	
+	bool dvfs_on = proton_gpu_dvfs;
+	
 	freq = proton_gpu_frequency_get();
 	tbltype = proton_gpu_tbltype_get();
 	voltage = proton_gpu_voltage_get(0);
@@ -103,9 +105,13 @@ PVRSRV_ERROR MTKSetFreqInfo(unsigned int freq, unsigned int tbltype)
 //#if defined(MTK_FREQ_OD_INIT)
 //    if (freq > GPU_DVFS_F8)
 //    {
-        mt_gpufreq_set_initial(freq, GPU_POWER_VRF18_1_05V);
+		mt_gpufreq_set_initial(freq, voltage);
+        //mt_gpufreq_set_initial(freq, GPU_POWER_VRF18_1_05V);
         mt65xx_reg_sync_writel((readl(CLK_CFG_8)&0xffcffff)|0x30000, CLK_CFG_8);
         
+		if (dvfs_on) {
+			mt_gpufreq_keep_frequency_non_OD_init(GPU_KEEP_FREQ_NON_OD_BYPASS, GPU_KEEP_VOLT_NON_OD_BYPASS);
+		} else {
         switch (freq)
         {
         	case GPU_DVFS_F1: // 476MHz
@@ -134,8 +140,9 @@ PVRSRV_ERROR MTKSetFreqInfo(unsigned int freq, unsigned int tbltype)
         		pll = GPU_UNIVPLL1_D4;
         		break;
         }
-		
 		mt_gpufreq_keep_frequency_non_OD_init(pll, voltage);
+		}
+		
 //    }
 //    else
 //#endif

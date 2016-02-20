@@ -632,14 +632,22 @@ static ssize_t proc_info_read(struct file * file, char __user * buf,
 		count = PROC_BLOCK_SIZE;
 
 	length = -ENOMEM;
+#ifndef CONFIG_MTK_PAGERECORDER
 	if (!(page = __get_free_page(GFP_TEMPORARY)))
 		goto out;
-
+#else
+	if (!(page = __get_free_page_nopagedebug(GFP_TEMPORARY)))
+		goto out;
+#endif
 	length = PROC_I(inode)->op.proc_read(task, (char*)page);
 
 	if (length >= 0)
 		length = simple_read_from_buffer(buf, count, ppos, (char *)page, length);
+#ifndef CONFIG_MTK_PAGERECORDER
 	free_page(page);
+#else
+	free_page_nopagedebug(page);
+#endif
 out:
 	put_task_struct(task);
 out_no_task:

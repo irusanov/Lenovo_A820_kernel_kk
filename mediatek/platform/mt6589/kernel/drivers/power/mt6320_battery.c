@@ -3075,7 +3075,7 @@ void BAT_thread(void)
 	{
 		if(boot_check_once==1)
 		{
-			if( upmu_is_chr_det() == KAL_TRUE && BMT_status.SOC == 100) // && get_rtc_spare_fg_value() == 100)
+			if( upmu_is_chr_det() == KAL_TRUE && BMT_status.SOC == 100 && get_rtc_spare_fg_value() == 100)
 			{
 				g_bat_full_user_view = KAL_TRUE;                
 				printk("[BATTERY] g_bat_full_user_view=%d\n", g_bat_full_user_view);

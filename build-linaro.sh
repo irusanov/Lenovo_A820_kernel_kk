@@ -1,6 +1,6 @@
 ##### https://github.com/Christopher83/arm-cortex_a7-linux-gnueabihf-linaro_4.9
 
-export PATH=$PATH:$(pwd)/../arm-cortex_a7-linux-gnueabihf-linaro_4.9.3-2015.03/bin
+export PATH=$PATH:$(pwd)/../arm-cortex_a7-linux-gnueabihf-linaro_4.9.4-2015.06/bin
 
 export ARCH=arm
 export CROSS_COMPILE=arm-eabi-

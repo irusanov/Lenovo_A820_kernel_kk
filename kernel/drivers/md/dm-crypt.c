@@ -28,7 +28,7 @@
 #include <crypto/algapi.h>
 
 #include <linux/device-mapper.h>
-
+#include <linux/cpu.h>
 #define DM_MSG_PREFIX "crypt"
 
 /*
@@ -185,7 +185,13 @@ static u8 *iv_of_dmreq(struct crypt_config *cc, struct dm_crypt_request *dmreq);
 
 static struct crypt_cpu *this_crypt_config(struct crypt_config *cc)
 {
-	return this_cpu_ptr(cc->cpu);
+    //M
+    struct crypt_cpu *cpu;
+    preempt_disable();
+    cpu = this_cpu_ptr(cc->cpu);
+    preempt_enable();
+    return cpu;
+//	return this_cpu_ptr(cc->cpu);
 }
 
 /*
@@ -703,10 +709,14 @@ static int crypt_convert_block(struct crypt_config *cc,
 	dmreq->iv_sector = ctx->sector;
 	dmreq->ctx = ctx;
 	sg_init_table(&dmreq->sg_in, 1);
+	BUG_ON(bv_in->bv_page == NULL);
 	sg_set_page(&dmreq->sg_in, bv_in->bv_page, 1 << SECTOR_SHIFT,
 		    bv_in->bv_offset + ctx->offset_in);
-
+    
 	sg_init_table(&dmreq->sg_out, 1);
+	
+	//printk(KERN_DEBUG "[device mapper]:out page:0x%x in page:0x%x, sg_out:0x%x\n", bv_out->bv_page, bv_in->bv_page, &dmreq->sg_out);
+	BUG_ON(bv_out->bv_page == NULL);
 	sg_set_page(&dmreq->sg_out, bv_out->bv_page, 1 << SECTOR_SHIFT,
 		    bv_out->bv_offset + ctx->offset_out);
 
@@ -782,11 +792,10 @@ static int crypt_convert(struct crypt_config *cc,
 
 		switch (r) {
 		/* async */
+		case -EINPROGRESS:
 		case -EBUSY:
 			wait_for_completion(&ctx->restart);
 			INIT_COMPLETION(ctx->restart);
-			/* fall through*/
-		case -EINPROGRESS:
 			this_cc->req = NULL;
 			ctx->sector++;
 			continue;
@@ -875,7 +884,7 @@ static void crypt_free_buffer_pages(struct crypt_config *cc, struct bio *clone)
 {
 	unsigned int i;
 	struct bio_vec *bv;
-
+	
 	for (i = 0; i < clone->bi_vcnt; i++) {
 		bv = bio_iovec_idx(clone, i);
 		BUG_ON(!bv->bv_page);
@@ -1195,10 +1204,8 @@ static void kcryptd_async_done(struct crypto_async_request *async_req,
 	struct dm_crypt_io *io = container_of(ctx, struct dm_crypt_io, ctx);
 	struct crypt_config *cc = io->target->private;
 
-	if (error == -EINPROGRESS) {
-		complete(&ctx->restart);
+	if (error == -EINPROGRESS)
 		return;
-	}
 
 	if (!error && cc->iv_gen_ops && cc->iv_gen_ops->post)
 		error = cc->iv_gen_ops->post(cc, iv_of_dmreq(cc, dmreq), dmreq);
@@ -1209,18 +1216,21 @@ static void kcryptd_async_done(struct crypto_async_request *async_req,
 	mempool_free(req_of_dmreq(cc, dmreq), cc->req_pool);
 
 	if (!atomic_dec_and_test(&ctx->pending))
-		return;
+		goto done;
 
 	if (bio_data_dir(io->base_bio) == READ)
 		kcryptd_crypt_read_done(io);
 	else
 		kcryptd_crypt_write_io_submit(io, 1);
+done:
+	if (!completion_done(&ctx->restart))
+		complete(&ctx->restart);
 }
 
 static void kcryptd_crypt(struct work_struct *work)
 {
 	struct dm_crypt_io *io = container_of(work, struct dm_crypt_io, work);
-
+	
 	if (bio_data_dir(io->base_bio) == READ)
 		kcryptd_crypt_read_convert(io);
 	else
@@ -1232,7 +1242,11 @@ static void kcryptd_queue_crypt(struct dm_crypt_io *io)
 	struct crypt_config *cc = io->target->private;
 
 	INIT_WORK(&io->work, kcryptd_crypt);
-	queue_work(cc->crypt_queue, &io->work);
+	
+	//MTK, ALPS00412047. In this kernel version, if there is a work using percpu variable, hotplug caue process migration, percpu variable
+	//can not be protected well during process migration. Since cpu0 can not be unplug, so encrption work bind with cpu0
+	//queue_work(cc->crypt_queue, &io->work);
+	queue_work_on(0, cc->crypt_queue, &io->work);
 }
 
 /*

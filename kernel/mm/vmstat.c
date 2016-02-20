@@ -614,6 +614,9 @@ static char * const migratetype_names[MIGRATE_TYPES] = {
 	"Unmovable",
 	"Reclaimable",
 	"Movable",
+#ifdef CONFIG_MTKPASR
+	"Mtkpasr",
+#endif
 	"Reserve",
 	"Isolate",
 };

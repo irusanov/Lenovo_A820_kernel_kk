@@ -60,14 +60,14 @@ unsigned int mt_get_bus_freq(void)
 
     main_diff = ((mainpll_con1 >> 12) - 0x8009A) / 2;
 
-    if ((mainpll_con0 & 0xFF) == 0x01)
-    {
+   // if ((mainpll_con0 & 0xFF) == 0x01)
+    //{
         output_freq = 1001 + (main_diff * 13); // Mhz
-    }
-    else // if (mainpll_con0 & 0xFF) == 0x41)
-    {
-        output_freq = 1001 + (main_diff * 13) / 2; // Mhz
-    }
+   // }
+    //else // if (mainpll_con0 & 0xFF) == 0x41)
+    //{
+    //    output_freq = 1001 + (main_diff * 13) / 2; // Mhz
+    //}
 
     if ((clk_cfg_0 & 0x7) == 1) // SYSPLL_D3 = MAINPLL / 3 / 2
     {
@@ -850,12 +850,12 @@ int mt_pll_init(void)
     temp = DRV_Reg32(ARMPLL_PWR_CON0);
     DRV_WriteReg32(ARMPLL_PWR_CON0, temp & ~0x2);
     
-    temp = seclib_get_devinfo_with_index(3) & 0x7;
-    if(temp == 6 || temp==7)
-    {	
-        DRV_WriteReg32(ARMPLL_CON1, 0x810F8000);//806MHz
-    }
-    else
+    //temp = seclib_get_devinfo_with_index(3) & 0x7;
+    //if(temp == 6 || temp==7)
+    //{	
+    //    DRV_WriteReg32(ARMPLL_CON1, 0x810F8000);//806MHz
+    //}
+    //else
     {	
         DRV_WriteReg32(ARMPLL_CON1, 0x8009A000); //1001MHz
     }

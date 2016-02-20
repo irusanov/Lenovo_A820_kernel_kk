@@ -316,13 +316,13 @@ static void mmc_wait_for_req_done(struct mmc_host *host,
  *	performed while another request is running on the host.
  */
 static void mmc_pre_req(struct mmc_host *host, struct mmc_request *mrq,
-		 bool is_first_req)
+        bool is_first_req)
 {
-	if (host->ops->pre_req) {
-		mmc_host_clk_hold(host);
-		host->ops->pre_req(host, mrq, is_first_req);
-		mmc_host_clk_release(host);
-	}
+    if (host->ops->pre_req) {
+        mmc_host_clk_hold(host);
+        host->ops->pre_req(host, mrq, is_first_req);
+        mmc_host_clk_release(host);
+    }
 }
 
 /**
@@ -371,7 +371,7 @@ struct mmc_async_req *mmc_start_req(struct mmc_host *host,
 
 	/* Prepare a new request */
 	if (areq)
-		mmc_pre_req(host, areq->mrq, !host->areq);
+        mmc_pre_req(host, areq->mrq, !host->areq);
 
 	if (host->areq) {
 		mmc_wait_for_req_done(host, host->areq->mrq);
@@ -390,7 +390,7 @@ struct mmc_async_req *mmc_start_req(struct mmc_host *host,
 
 		start_err = __mmc_start_req(host, areq->mrq);
 
-    }
+        	}
 	if (host->areq)
 		mmc_post_req(host, host->areq->mrq, 0);
 

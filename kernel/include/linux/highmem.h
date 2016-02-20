@@ -196,9 +196,19 @@ __alloc_zeroed_user_highpage(gfp_t movableflags,
 			struct vm_area_struct *vma,
 			unsigned long vaddr)
 {
+#ifndef CONFIG_MTKPASR
 	struct page *page = alloc_page_vma(GFP_HIGHUSER | movableflags,
 			vma, vaddr);
+#else	/// Is this needed for MTKPASR?
+	struct page *page;
 
+	/* Test whether it will be an unevictable page! */
+	if (vma && unlikely(vma->vm_flags & VM_LOCKED)) {
+		page = alloc_pages(GFP_HIGHUSER | movableflags, 0);
+	} else {
+		page = alloc_page_vma(GFP_HIGHUSER | movableflags, vma, vaddr);
+	}
+#endif
 	if (page)
 		clear_user_highpage(page, vaddr);
 

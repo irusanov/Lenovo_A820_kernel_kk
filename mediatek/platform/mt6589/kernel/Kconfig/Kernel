@@ -203,8 +203,20 @@ config MTK_FORCE_CPU_89T
        default n
        help
 
+config HAS_MEMUTILS
+		bool "Motorola MSM memcpy enhancements"
+        default n
+        help
+        faster memcpy performance for 64 bytes cache line
 endmenu
 
 config VFP_OPT
     bool "VFP OPT"
     default y
+	help
+
+config PVR_TIMER_HIGHPRIO
+	bool "PVR timer high priority workqueue"
+	default n
+	help
+	high priority for PVR workqueue (ALPS01435516)

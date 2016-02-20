@@ -1198,6 +1198,7 @@ static long MTK_M4U_ioctl(struct file * a_pstFile,
             mutex_lock(&(pNode->dataMutex));
             pNode->isM4uDrvConstruct = 1;
             mutex_unlock(&(pNode->dataMutex));
+            return 0;
 
         break;
         
@@ -1205,6 +1206,7 @@ static long MTK_M4U_ioctl(struct file * a_pstFile,
             mutex_lock(&(pNode->dataMutex));
             pNode->isM4uDrvDeconstruct = 1;
             mutex_unlock(&(pNode->dataMutex));
+            return 0;
         break;
 
         case MTK_M4U_T_DUMP_PAGETABLE:
@@ -1283,6 +1285,31 @@ static long MTK_M4U_ioctl(struct file * a_pstFile,
 
         case MTK_M4U_T_CACHE_FLUSH_ALL:
             m4u_dma_cache_flush_all();
+            return 0;
+		break;
+
+        case MTK_M4U_T_REG_GET:
+        {
+            unsigned int para[2];
+            M4U_ASSERT(a_Param);
+            ret = copy_from_user(para, (void*)a_Param , 2*sizeof(unsigned int));
+            
+            para[1] = COM_ReadReg32(para[0]);
+
+            ret=copy_to_user((void*)a_Param, para, 2*sizeof(unsigned int));
+        }
+        break;
+
+
+        case MTK_M4U_T_REG_SET:
+        {
+            unsigned int para[2];
+            M4U_ASSERT(a_Param);
+            ret = copy_from_user(para, (void*)a_Param , 2*sizeof(unsigned int));
+            
+            COM_WriteReg32(para[0], para[1]);
+        }
+
         break;
 
         default :
@@ -4213,16 +4240,16 @@ int m4u_dma_cache_maint(M4U_MODULE_ID_ENUM eModuleID, const void *start, size_t 
         {
             for(i=0; i<page_num; i++,page_start+=DEFAULT_PAGE_SIZE)
             {
-                struct page* page;
+                //struct page* page;
                 pPhy[i] = m4u_user_v2p(page_start);
-                page = phys_to_page(pPhy[i]);
+                //page = phys_to_page(pPhy[i]);
                 
-                if((pPhy[i]==0) || (!PageMlocked(page))) 
+                if((pPhy[i]==0)) // || (!PageMlocked(page))) 
                 {
                     ret=-1;
                     M4UMSG("error: cache_maint() fail, module=%s, start=0x%x, page_start=0x%x, size=%d, pPhy[i]=0x%x\n", 
                             m4u_get_module_name(eModuleID), (unsigned int)start, (unsigned int)page_start, size, pPhy[i]);
-                    dump_page(page);
+                    //dump_page(page);
                     m4u_dump_maps((unsigned int)start);
                     goto out;
                 }

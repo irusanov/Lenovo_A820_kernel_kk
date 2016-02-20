@@ -19,7 +19,10 @@
 #include <linux/kpd.h>
 
 #define KPD_NAME	"mtk-kpd"
-#define MTK_KP_WAKESOURCE//this is for auto set wake up source
+#define USE_EARLY_SUSPEND
+/* begin, lenovo-sw wengjun1 20130728 delete for avoid close keypad as wake up source. */
+//#define MTK_KP_WAKESOURCE//this is for auto set wake up source
+/* end, lenovo-sw wengjun1 20130728 delete for avoid close keypad as wake up source. */
 
 struct input_dev *kpd_input_dev;
 static bool kpd_suspend = false;
@@ -784,6 +787,12 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 #ifdef KPD_PMIC_RSTKEY_MAP
 	__set_bit(KPD_PMIC_RSTKEY_MAP, kpd_input_dev->keybit);
 #endif
+
+/* LENOVO.SW BEGIN.chenyb1,2012.9.4, add for new standard */
+#ifdef LENOVO_STD_LINECTL_EARPHONE
+    __set_bit(KEY_INFO, kpd_input_dev->keybit);
+#endif //LENOVO_STD_LINECTL_EARPHONE
+/* LENOVO.SW END.chenyb1,2012.9.4, add for new standard */
 
 	kpd_input_dev->dev.parent = &pdev->dev;
 	r = input_register_device(kpd_input_dev);

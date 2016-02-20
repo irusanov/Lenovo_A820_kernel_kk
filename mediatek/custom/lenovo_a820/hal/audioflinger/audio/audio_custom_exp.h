@@ -44,6 +44,12 @@
 #define DEVICE_VOLUME_STEP      (256)
 
 /******************************************************************
+** define Vibration SPK Default Center Freq and RMS
+******************************************************************/
+#define VIBSPK_MV_RMS           (350) //280~560, 70 per step
+#define VIBSPK_DEFAULT_FREQ     (156) //141~330 Hz
+
+/******************************************************************
 ** mt6589 , define using which flag
 ******************************************************************/
 #define USING_CLASSD_AMP                // define using which flag

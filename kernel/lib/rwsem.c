@@ -138,6 +138,7 @@ __rwsem_do_wake(struct rw_semaphore *sem, enum rwsem_wake_type wake_type)
 
  out:
 	return sem;
+
 }
 
 /*
@@ -189,6 +190,7 @@ struct rw_semaphore __sched *rwsem_down_read_failed(struct rw_semaphore *sem)
 
 /*
  * wait until we successfully acquire the write lock
+ * wait for the write lock to be granted
  */
 struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
 {

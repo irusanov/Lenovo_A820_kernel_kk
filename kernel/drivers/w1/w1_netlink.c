@@ -62,13 +62,13 @@ static void w1_send_slave(struct w1_master *dev, u64 rn)
 	avail = dev->priv_size - cmd->len;
 
 	if (avail < 8) {
-		msg->ack++;
-		cn_netlink_send(msg, 0, GFP_KERNEL);
+	msg->ack++;
+	cn_netlink_send(msg, 0, GFP_KERNEL);
 
 		msg->len = sizeof(struct w1_netlink_msg) +
 			sizeof(struct w1_netlink_cmd);
-		hdr->len = sizeof(struct w1_netlink_cmd);
-		cmd->len = 0;
+	hdr->len = sizeof(struct w1_netlink_cmd);
+	cmd->len = 0;
 	}
 
 	data = (void *)(cmd + 1) + cmd->len;

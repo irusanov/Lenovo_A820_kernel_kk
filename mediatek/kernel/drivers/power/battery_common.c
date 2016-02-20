@@ -1840,7 +1840,7 @@ void mt_battery_GetBatteryData(void)
 
 }
 
-static KAL_BOOL g_overTemp = KAL_FALSE;
+
 static PMU_STATUS mt_battery_CheckBatteryTemp(void)
 {	
 	PMU_STATUS status = PMU_STATUS_OK;
@@ -1875,16 +1875,7 @@ static PMU_STATUS mt_battery_CheckBatteryTemp(void)
     {
         battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] Battery Over Temperature !!\n\r");                
         status = PMU_STATUS_FAIL;  
-        g_overTemp = KAL_TRUE;  //add here      
     }  
-	if((g_overTemp == KAL_TRUE) && (BMT_status.temperature <= RECOVERY_CHARGING_TEMPERATURE))
-	{
-	     battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] recovery charging after over temperature!! \n\r");
-	     g_overTemp = KAL_FALSE; 
-	     status = PMU_STATUS_OK;
-	     BMT_status.bat_charging_state = CHR_PRE;
-	}
-	  
 #endif
 
 #endif

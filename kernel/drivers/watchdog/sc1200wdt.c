@@ -410,7 +410,7 @@ static int __init sc1200wdt_init(void)
 	/* now that the user has specified an IO port and we haven't detected
 	 * any devices, disable pnp support */
 	if (isapnp)
-		pnp_unregister_driver(&scl200wdt_pnp_driver);
+	pnp_unregister_driver(&scl200wdt_pnp_driver);
 	isapnp = 0;
 #endif
 

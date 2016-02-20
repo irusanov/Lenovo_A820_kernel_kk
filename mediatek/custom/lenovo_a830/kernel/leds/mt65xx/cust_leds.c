@@ -131,7 +131,8 @@ static struct cust_mt65xx_led cust_led_list[MT65XX_LED_TYPE_TOTAL] = {
 	{"blue",              MT65XX_LED_MODE_NONE, -1,{0}},
 	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1,{0}},
 	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1,{0}},
-	{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_BUTTON,{0}},
+	/*{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_BUTTON,{0}},*/
+	{"button-backlight",  MT65XX_LED_MODE_PMIC,MT65XX_LED_PMIC_NLED_ISINK0,{0}},
 	#ifdef LENOVO_LCD_BACKLIGHT_CONTROL_BY_LCM//lenovo jixu modify
 	{"lcd-backlight",     MT65XX_LED_MODE_CUST_LCM, (int)Cust_SetBacklight,{0}},//control by cabc
 	#else

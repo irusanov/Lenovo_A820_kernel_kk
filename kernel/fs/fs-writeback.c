@@ -29,14 +29,6 @@
 #include <linux/tracepoint.h>
 #include "internal.h"
 
-#define FEATURE_PRINT_BDIFLUSH_PID
-#ifdef USER_BUILD_KERNEL
-#undef FEATURE_PRINT_BDIFLUSH_PID
-#endif
-
-#include <linux/xlog.h>
-
-
 /*
  * 4MB minimal write chunk size
  */
@@ -410,7 +402,6 @@ writeback_single_inode(struct inode *inode, struct bdi_writeback *wb,
 
 	/* Set I_SYNC, reset I_DIRTY_PAGES */
 	inode->i_state |= I_SYNC;
-	inode->i_state &= ~I_DIRTY_PAGES;
 	spin_unlock(&inode->i_lock);
 	spin_unlock(&wb->list_lock);
 
@@ -433,9 +424,28 @@ writeback_single_inode(struct inode *inode, struct bdi_writeback *wb,
 	 * write_inode()
 	 */
 	spin_lock(&inode->i_lock);
+
 	dirty = inode->i_state & I_DIRTY;
-	inode->i_state &= ~(I_DIRTY_SYNC | I_DIRTY_DATASYNC);
+	inode->i_state &= ~I_DIRTY;
+
+	/*
+	 * Paired with smp_mb() in __mark_inode_dirty().  This allows
+	 * __mark_inode_dirty() to test i_state without grabbing i_lock -
+	 * either they see the I_DIRTY bits cleared or we see the dirtied
+	 * inode.
+	 *
+	 * I_DIRTY_PAGES is always cleared together above even if @mapping
+	 * still has dirty pages.  The flag is reinstated after smp_mb() if
+	 * necessary.  This guarantees that either __mark_inode_dirty()
+	 * sees clear I_DIRTY_PAGES or we see PAGECACHE_TAG_DIRTY.
+	 */
+	smp_mb();
+
+	if (mapping_tagged(mapping, PAGECACHE_TAG_DIRTY))
+		inode->i_state |= I_DIRTY_PAGES;
+
 	spin_unlock(&inode->i_lock);
+
 	/* Don't write the inode if only I_DIRTY_PAGES was set */
 	if (dirty & (I_DIRTY_SYNC | I_DIRTY_DATASYNC)) {
 		int err = write_inode(inode, wbc);
@@ -461,7 +471,6 @@ writeback_single_inode(struct inode *inode, struct bdi_writeback *wb,
 			 * We didn't write back all the pages.  nfs_writepages()
 			 * sometimes bales out without doing anything.
 			 */
-			inode->i_state |= I_DIRTY_PAGES;
 			if (wbc->nr_to_write <= 0) {
 				/*
 				 * slice used up: queue for next turn
@@ -895,98 +904,6 @@ static long wb_check_old_data_flush(struct bdi_writeback *wb)
 	return 0;
 }
 
-#ifdef FEATURE_PRINT_BDIFLUSH_PID
-#define BDI_PRT_TIME_PERIOD	5000000000ULL
-#define ID_CNT 5
-static unsigned char fs_bdi_idx=0;
-static unsigned long long fs_bdi_last_t=0;
-
-static DEFINE_MUTEX(fs_bdi_mutex);
-
-struct
-{
-	pid_t pid;
-	unsigned int cnt; 
-}fs_bdi[ID_CNT];
-static char xlog_buf[ID_CNT*10+50]={0};
-static void fs_bdi_log(void)
-{
-
-	pid_t curr_pid;
-	unsigned int i;
-	unsigned long long time1=0;
-	bool ptr_flag=false;
-
-
-	time1 = sched_clock();
-	mutex_lock(&fs_bdi_mutex);
-	if(fs_bdi_last_t == 0)
-	{
-			fs_bdi_last_t = time1;
-	}
-	if (time1 - fs_bdi_last_t >= (unsigned long long)BDI_PRT_TIME_PERIOD)
-	{
-		sprintf(xlog_buf, "BDI_Flush [(PID):cnt] -- ");		
-		for(i=0;i<ID_CNT;i++)
-		{
-			if(fs_bdi[i].pid==0)
-				break;
-			else
-			{
-				sprintf(xlog_buf+25+i*9, "(%4d):%d ", fs_bdi[i].pid, fs_bdi[i].cnt);	//20=strlen("Sync [(PID):cnt] -- "), 9=strlen("(%4d):%d ")
-				ptr_flag = true;
-			}
-		}	
-		if(ptr_flag)
-		{		
-			xlog_printk(ANDROID_LOG_DEBUG, "BLOCK_TAG", "BDI_Flush statistic in timeline %lld\n", fs_bdi_last_t); 
-			xlog_printk(ANDROID_LOG_DEBUG, "BLOCK_TAG", "%s\n", xlog_buf);			
-		}		
-		for (i=0;i<ID_CNT;i++)	//clear
-		{
-			fs_bdi[i].pid=0;
-			fs_bdi[i].cnt=0;
-		}
-		fs_bdi_last_t = time1;
-	}
-	curr_pid = task_pid_nr(current);	
-	do{
-		if(fs_bdi[0].pid ==0)
-		{
-			fs_bdi[0].pid= curr_pid;
-			fs_bdi[0].cnt ++;
-			fs_bdi_idx=0;
-			break;
-		}
-
-		if(curr_pid == fs_bdi[fs_bdi_idx].pid)
-		{
-			fs_bdi[fs_bdi_idx].cnt++;
-			break;
-		}
-
-		for(i=0;i<ID_CNT;i++)
-		{
-			if(curr_pid == fs_bdi[i].pid)		//found
-			{
-				fs_bdi[i].cnt++;
-				fs_bdi_idx = i;
-				break;
-			}
-			if((fs_bdi[i].pid ==0) || (i==ID_CNT-1) )		//found empty space or (full and NOT found)
-			{
-				fs_bdi[i].pid = curr_pid;
-				fs_bdi[i].cnt=1;
-				fs_bdi_idx=i;			
-				break;
-			}
-		}
-	}while(0);
-	
-	mutex_unlock(&fs_bdi_mutex);
-}
-#endif	
-
 /*
  * Retrieve work items and do the writeback they describe
  */
@@ -995,10 +912,6 @@ long wb_do_writeback(struct bdi_writeback *wb, int force_wait)
 	struct backing_dev_info *bdi = wb->bdi;
 	struct wb_writeback_work *work;
 	long wrote = 0;
-
-#ifdef FEATURE_PRINT_BDIFLUSH_PID
-	fs_bdi_log();
-#endif
 
 	set_bit(BDI_writeback_running, &wb->bdi->state);
 	while ((work = get_next_work_item(bdi)) != NULL) {
@@ -1178,12 +1091,11 @@ void __mark_inode_dirty(struct inode *inode, int flags)
 	}
 
 	/*
-	 * make sure that changes are seen by all cpus before we test i_state
-	 * -- mikulas
+	 * Paired with smp_mb() in __writeback_single_inode() for the
+	 * following lockless i_state test.  See there for details.
 	 */
 	smp_mb();
 
-	/* avoid the locking if we can */
 	if ((inode->i_state & flags) == flags)
 		return;
 

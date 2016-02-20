@@ -69,7 +69,7 @@ extern "C" {
 
 };
 
-#if defined(HAVE_AEE_FEATURE)
+#if 0 //defined(HAVE_AEE_FEATURE)
 #include <signal.h>
 #include <sys/system_properties.h>
 #include <pthread.h>
@@ -126,7 +126,7 @@ __attribute__((constructor)) static void __libc_preinit() {
   mmap_debug_init();
 #endif
 
-#if defined(HAVE_AEE_FEATURE)
+#if 0// defined(HAVE_AEE_FEATURE)
   core_direct_debug_init();
 #endif
 }
