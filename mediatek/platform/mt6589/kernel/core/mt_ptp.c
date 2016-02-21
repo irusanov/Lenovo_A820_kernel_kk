@@ -50,7 +50,7 @@ u32 val_1 = 0xf6AAAAAA;
 u32 val_2 = 0x14AAAAAA;
 u32 val_3 = 0x60260000;
 
-#if PROTON_UNDERVOLT
+#if defined(PROTON_UNDERVOLT)
 unsigned int ptpod_pmic_volt[8] = {DVFS_PKV0, DVFS_PKV1, DVFS_PKV2, DVFS_PKV3, DVFS_PKV4, 0,0,0};
 #else
 unsigned int ptpod_pmic_volt[8] = {0x51, 0x47, 0x37, 0x27, 0x17, 0,0,0};

@@ -92,6 +92,10 @@ ifneq ($(MTK_TABLET_HARDWARE), )
 ccflags-y += -DMTK_TABLET_PLATFORM=\"$(shell echo $(MTK_TABLET_HARDWARE) | tr a-z A-Z )\"
 endif
 
+ifeq ($(CONFIG_KERNEL_UNDERVOLT),yes)
+ccflags-y += -DPROTON_UNDERVOLT
+endif
+
 KBUILD_AFLAGS	:=$(KBUILD_AFLAGS:-msoft-float=-Wa,-mfpu=neon)
 
 
