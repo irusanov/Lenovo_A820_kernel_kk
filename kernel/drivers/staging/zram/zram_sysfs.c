@@ -59,7 +59,7 @@ static ssize_t disksize_store(struct device *dev,
 	struct zram_meta *meta;
 	struct zram *zram = dev_to_zram(dev);
 
-#if 0
+#if 1
 	disksize = memparse(buf, NULL);
 	/*
 	if (!disksize)

@@ -1,7 +1,7 @@
 #include "conn_md_log.h"
 
 
-int g_conn_md_dbg_lvl = CONN_MD_LOG_DBG;//CONN_MD_LOG_INFO;
+int g_conn_md_dbg_lvl = CONN_MD_LOG_INFO;//CONN_MD_LOG_DBG;
 
 
 /*Log defination*/
