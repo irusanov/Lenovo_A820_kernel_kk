@@ -1,12 +1,11 @@
 #ifndef _PROTON_CPU_H
 #define _PROTON_CPU_H
 
-/***************************
-* CPU Undervolt
-****************************/
-#define PROTON_UNDERVOLT 1
+/**
+ * Chipset Undervolt
+ */
 
-#if PROTON_UNDERVOLT
+#if defined(PROTON_UNDERVOLT)
 	#define DVFS_V0 (1075)  // mV
 	#define DVFS_V1 (1050)  // mV
 	#define DVFS_V2 ( 950)  // mV

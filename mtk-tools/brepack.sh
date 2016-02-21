@@ -2,11 +2,18 @@
 #Stop script if something is broken
 set -e
 
-DEVICE_TREE="`cat ../DEVICE_TREE`"
+if [ -f kernel.conf ]
+  then
+    source "kernel.conf"
+  else
+	echo "Kernel configuration file (kernel.conf) does not exist!"
+	echo "Using default configuration..."
+	DEVICE=lenovo_a820
+fi
 
-./mkbootfs ./"$DEVICE_TREE"/boot.img-ramdisk/ | gzip > ramdisk.gz
+./mkbootfs ./"$DEVICE"/boot.img-ramdisk/ | gzip > ramdisk.gz
 ./mkimage ramdisk.gz ROOTFS > ramdisk.img
-./mkbootimg --kernel ../out/target/product/"$DEVICE_TREE"/kernel_"$DEVICE_TREE".bin --ramdisk ramdisk.img -o boot.img
+./mkbootimg --kernel ../out/target/product/"$DEVICE"/kernel_"$DEVICE".bin --ramdisk ramdisk.img -o boot.img
 
 rm ramdisk.gz
 rm ramdisk.img
