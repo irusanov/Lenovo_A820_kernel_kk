@@ -10,4 +10,5 @@ echo 500 > /sys/kernel/mm/ksm/sleep_millisecs
 echo 1 > /sys/kernel/mm/ksm/run
 echo 1 > /sys/kernel/mm/ksm/deferred_timer
 
-echo 60 > /proc/sys/vm/swappiness
+#Use default value in kernel 
+#echo 60 > /proc/sys/vm/swappiness
