@@ -34,6 +34,8 @@ static const unsigned default_disksize_perc_ram = 50;	/* 25 */
 #define	DISKSIZE_ALIGNMENT	0x4000000		/* 64MB */
 /* Is totalram_pages less than SUPPOSED_TOTALRAM? */
 #define SUPPOSED_TOTALRAM	0x20000			/* 512MB */
+/* Allowable max size */
+#define	MAX_DISKSIZE		0x20000000		/* 512MB */
 
 /*
  * Pages that compress to size greater than this are stored

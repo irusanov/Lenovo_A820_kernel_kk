@@ -96,6 +96,6 @@ ifeq ($(CONFIG_KERNEL_UNDERVOLT),yes)
 ccflags-y += -DPROTON_UNDERVOLT
 endif
 
-KBUILD_AFLAGS	:=$(KBUILD_AFLAGS:-msoft-float=-Wa,-mfpu=neon)
+KBUILD_AFLAGS	:=$(KBUILD_AFLAGS:-msoft-float=-Wa,-mfpu=neon-vfpv4)
 
 

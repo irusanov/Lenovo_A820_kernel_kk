@@ -75,6 +75,10 @@ static ssize_t disksize_store(struct device *dev,
 	disksize = round_up(disksize, DISKSIZE_ALIGNMENT);
 #endif
 
+	/* Give it a max size */
+	if (disksize > MAX_DISKSIZE)
+		disksize = MAX_DISKSIZE;
+
 	disksize = PAGE_ALIGN(disksize);
 	meta = zram_meta_alloc(disksize);
 	/* Check whether meta is null */
@@ -221,8 +225,10 @@ static ssize_t mem_used_total_show(struct device *dev,
 	struct zram *zram = dev_to_zram(dev);
 	struct zram_meta *meta = zram->meta;
 
+	down_read(&zram->init_lock);
 	if (zram->init_done)
 		val = zs_get_total_size_bytes(meta->mem_pool);
+	up_read(&zram->init_lock);
 
 	return sprintf(buf, "%llu\n", val);
 }

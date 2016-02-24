@@ -359,11 +359,7 @@ static void free_zspage(struct page *first_page)
 	head_extra = (struct page *)page_private(first_page);
 
 	reset_page(first_page);
-#ifndef CONFIG_MTK_PAGERECORDER
 	__free_page(first_page);
-#else
-	__free_page_nopagedebug(first_page);
-#endif
 
 	/* zspage with only 1 system page */
 	if (!head_extra)
@@ -372,18 +368,10 @@ static void free_zspage(struct page *first_page)
 	list_for_each_entry_safe(nextp, tmp, &head_extra->lru, lru) {
 		list_del(&nextp->lru);
 		reset_page(nextp);
-#ifndef CONFIG_MTK_PAGERECORDER
 		__free_page(nextp);
-#else
-		__free_page_nopagedebug(nextp);
-#endif
 	}
 	reset_page(head_extra);
-#ifndef CONFIG_MTK_PAGERECORDER
 	__free_page(head_extra);
-#else
-	__free_page_nopagedebug(head_extra);
-#endif
 }
 
 /* Initialize a newly allocated zspage */
@@ -454,12 +442,8 @@ static struct page *alloc_zspage(struct size_class *class, gfp_t flags)
 	error = -ENOMEM;
 	for (i = 0; i < class->pages_per_zspage; i++) {
 		struct page *page;
-		#ifndef CONFIG_MTK_PAGERECORDER
-			page = alloc_page(flags);
-		#else
-			page = alloc_page_nopagedebug(flags);
-		#endif
 
+		page = alloc_page(flags);
 		if (!page)
 			goto cleanup;
 
@@ -887,9 +871,6 @@ void *zs_map_object(struct zs_pool *pool, unsigned long handle,
 	BUG_ON(!handle);
 
 	/*
-	 * https://git.kernel.org/
-	 * c60369f011251c60de506994aab088f1afb90bf4
-	 *
 	 * Because we use per-cpu mapping areas shared among the
 	 * pools/users, we can't allow mapping in interrupt context
 	 * because it can corrupt another users mappings.
