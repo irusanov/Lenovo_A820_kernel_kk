@@ -30,6 +30,7 @@
 #include <linux/init.h>
 #include <linux/err.h>
 #include <linux/input/sweep2wake.h>
+#include <linux/alsps_sensor.h>
 
 /* Tuneables */
 #define DEBUG                   		0
@@ -44,7 +45,7 @@
 bool is_single_touch(void);
 
 /* Resources */
-int sweep2wake = 1;
+int sweep2wake = 2;
 int s2w_st_flag = 0;
 int doubletap2wake = 1;
 int dt2w_switch_temp = 1;
@@ -129,25 +130,29 @@ printk("[SWEEP2WAKE]: ressetting in s2w\n");
 /* PowerKey work func */
 static void sweep2wake_presspwr(struct work_struct * sweep2wake_presspwr_work) {
 	if (!mutex_trylock(&pwrkeyworklock))
-                return;
-printk("[SWEEP2WAKE]: pressing power\n");
-        reset_sweep2wake();
+		return;
+	
+	printk("[SWEEP2WAKE]: pressing power\n");
+    reset_sweep2wake();
 	input_event(sweep2wake_pwrdev, EV_KEY, KEY_POWER, 1);
 	input_event(sweep2wake_pwrdev, EV_SYN, 0, 0);
 	msleep(DEFAULT_S2W_PWRKEY_DUR);
 	input_event(sweep2wake_pwrdev, EV_KEY, KEY_POWER, 0);
 	input_event(sweep2wake_pwrdev, EV_SYN, 0, 0);
 	msleep(DEFAULT_S2W_PWRKEY_DUR);
-        mutex_unlock(&pwrkeyworklock);
+    mutex_unlock(&pwrkeyworklock);
 	return;
 }
 static DECLARE_WORK(sweep2wake_presspwr_work, sweep2wake_presspwr);
 
 /* PowerKey trigger */
 void sweep2wake_pwrtrigger(void) {
-printk("[SWEEP2WAKE]: power triggered\n");
-	schedule_work(&sweep2wake_presspwr_work);
-        return;
+	if (pocket_detection_check() == 1) {
+		printk("[SWEEP2WAKE]: power triggered\n");
+		schedule_work(&sweep2wake_presspwr_work);
+	}
+	
+	return;
 }
 
 bool is_single_touch(void)
