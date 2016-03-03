@@ -29,13 +29,17 @@
 extern int sweep2wake;
 extern int s2w_st_flag;
 extern int doubletap2wake;
-// 20150621 jwchen119 - Add external parameter
-extern int menu2wake;
 extern bool scr_suspended;
+extern bool scr_on_touch;
+extern bool exec_count;
+extern bool barrier[2];
 extern int tripon;
 extern int tripoff;
 extern unsigned long triptime;
-
+extern unsigned long initial_time;
+extern unsigned long dt2w_time[2];
+extern unsigned int dt2w_x[2];
+extern unsigned int dt2w_y[2];
 /* Sweep2wake main function */
 extern void detect_sweep2wake(int, int, unsigned long, int);
 extern void doubletap2wake_func(int, int, unsigned long);

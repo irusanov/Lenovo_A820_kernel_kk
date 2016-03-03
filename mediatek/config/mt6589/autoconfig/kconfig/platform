@@ -2627,3 +2627,6 @@ CONFIG_MTK_SCHED_RQAVG_KS=y
 
 # High priority for PVR workqueue: ALPS01435516
 CONFIG_PVR_TIMER_HIGHPRIO=y
+
+# sweep2wake, doubletap2wake and sweep2sleep
+CONFIG_TOUCHSCREEN_SWEEP2WAKE=y
