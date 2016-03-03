@@ -236,7 +236,7 @@ void* ipanic_next_write(void* (*next)(void *data, unsigned char *buffer, size_t 
 static int ipanic_write_android_buf(unsigned int off, int type)
 {
 	unsigned int copy_count = 0;
-
+#if defined(CONFIG_ANDROID_LOGGER)
 	while (1) {
 		int rc = panic_dump_android_log(emmc_bounce, PAGE_SIZE, type);
 		BUG_ON(rc < 0);
@@ -254,6 +254,7 @@ static int ipanic_write_android_buf(unsigned int off, int type)
 		off += PAGE_SIZE;
 	}
 	xlog_printk(ANDROID_LOG_DEBUG, IPANIC_LOG_TAG, "%s: dump droid log type %d, count %d\n", __FUNCTION__, type, copy_count);
+#endif
 	return copy_count;
 }
 

@@ -6,7 +6,9 @@
 #include <linux/xlog.h>
 #include <linux/kmsg_dump.h>
 //#include "partition_define.h"
+#ifdef ANDROID_LOGGER
 #include "../../../../../../kernel/drivers/staging/android/logger.h"
+#endif
 #include "ipanic_version.h"
 
 #define AEE_IPANIC_PLABEL "expdb"
@@ -125,7 +127,9 @@ int DumpNativeInfo(void);
 
 //int card_dump_func_write(unsigned char* buf, unsigned int len, unsigned int offset, unsigned int dev);
 
+#ifdef ANDROID_LOGGER
 int panic_dump_android_log(char *buf, size_t size, int type);
+#endif
 
 /*
 *  to check expdb parition size bigger than the buffer size.

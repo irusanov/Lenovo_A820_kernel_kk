@@ -365,6 +365,7 @@ static int ipanic_write_android_buf(struct mtd_info *mtd, unsigned int off, int 
 	int rc, rc2;
 	unsigned int last_chunk = 0, copy_count = 0;
 
+#if defined(CONFIG_ANDROID_LOGGER)
 	while (!last_chunk) {
 		saved_oip = oops_in_progress;
 		oops_in_progress = 1;
@@ -386,6 +387,7 @@ static int ipanic_write_android_buf(struct mtd_info *mtd, unsigned int off, int 
 		}
 		off += rc2;
 	}
+#endif
 
 	return copy_count;
 }
