@@ -62,7 +62,8 @@ static void twd_set_mode(enum clock_event_mode mode,
 
 	__raw_writel(ctrl, twd_base + TWD_TIMER_CONTROL);
 }
-#define LOCAL_TIME_DEBUG
+// Disable local time debug
+//#define LOCAL_TIME_DEBUG
 #ifdef LOCAL_TIME_DEBUG
 unsigned long long sched_clock(void);
 static unsigned long long save_data[4][4] = {{0},{0},{0},{0}};//max cpu 4
