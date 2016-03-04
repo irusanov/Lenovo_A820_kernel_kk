@@ -17,7 +17,7 @@
 ##  or the value is invalid
 
 # uncomment next line (def: 0)
-#echo 0 > /sys/android_touch/sweep2wake
+#echo 2 > /sys/android_touch/sweep2wake
 
 
 ##################################
@@ -35,7 +35,7 @@
 ##  or the value is invalid
 
 # uncomment next line (def: 0)
-#echo 0 > /sys/android_touch/doubletap2wake
+#echo 1 > /sys/android_touch/doubletap2wake
 
 
 ##################################

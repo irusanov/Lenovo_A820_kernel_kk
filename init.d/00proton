@@ -16,7 +16,7 @@
 ##  or the value is invalid
 
 # uncomment next line (def: 0)
-#echo "0" > /sys/module/proton_control/parameters/proton_gpu_dvfs
+#echo "1" > /sys/module/proton_control/parameters/proton_gpu_dvfs
 
 ##################################
 ##
@@ -25,7 +25,7 @@
 ## 	Possible values: 
 ##	156, 238, 268, 286, 312, 357, 403, 476
 ##	
-##	If you're experiencing l0wer 3D performance
+##	If you're experiencing lower 3D performance
 ## 	set back to 286 and reboot.
 ##	Most GPUs can't be overclocked.
 ##	
@@ -34,7 +34,7 @@
 ##	or the value is invalid
 
 # uncomment next line to control (def: 286)
-#echo "286" > /sys/module/proton_control/parameters/proton_gpu_frequency
+#echo "476" > /sys/module/proton_control/parameters/proton_gpu_frequency
 
 ##################################
 ##
@@ -47,7 +47,7 @@
 ##	chipset at 286MHz.
 ##	
 ##  You can control voltage for 3 DVFS states 
-##	in this order (highest->middle->lowest).
+##	in this order (highest > middle > lowest).
 ##	
 ##  For example, if 476MHz is the target freq, 
 ##	DVFS states are 476 - 357 - 286.
@@ -58,7 +58,7 @@
 ##  If frequency is set to 286MHz or lower, 
 ##	only first and last value are used
 ##
-##	GPU @ 156MHz does not support DVFS, since 
+##	GPU@156MHz does not support DVFS, since 
 ##	this is the minimum possible frequency
 ##	
 ## 	Default is the minimum of 1050mV
