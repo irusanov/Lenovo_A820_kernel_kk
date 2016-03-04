@@ -45,9 +45,10 @@
 bool is_single_touch(void);
 
 /* Resources */
-int sweep2wake = 2;
+int pocket_detect = 1;
+int sweep2wake = 0;
 int s2w_st_flag = 0;
-int doubletap2wake = 1;
+int doubletap2wake = 0;
 int dt2w_switch_temp = 1;
 int dt2w_changed = 0;
 bool scr_suspended = false, exec_count = true;
@@ -147,7 +148,7 @@ static DECLARE_WORK(sweep2wake_presspwr_work, sweep2wake_presspwr);
 
 /* PowerKey trigger */
 void sweep2wake_pwrtrigger(void) {
-	if (pocket_detection_check() == 1) {
+	if (pocket_detection_check() == 1 && pocket_detect == 1) {
 		printk("[SWEEP2WAKE]: power triggered\n");
 		schedule_work(&sweep2wake_presspwr_work);
 	}
@@ -390,6 +391,23 @@ static ssize_t sweep2wake_store(struct kobject *kobj,
 	return count;
 }
 
+static ssize_t pocket_detect_show(struct kobject *kobj,
+	struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%i\n", pocket_detect);
+}
+
+static ssize_t pocket_detect_store(struct kobject *kobj,
+	struct kobj_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+		pocket_detect = data;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
+	return count;
+}
+
 static ssize_t doubletap2wake_show(struct kobject *kobj,
 	struct kobj_attribute *attr, char *buf)
 {
@@ -449,6 +467,12 @@ static struct kobj_attribute sweep2wake_attribute =
 		sweep2wake_show,
 		sweep2wake_store);
 
+static struct kobj_attribute pocket_detect_attribute =
+	__ATTR(pocket_detect,
+		0666,
+		pocket_detect_show,
+		pocket_detect_store);
+
 static struct kobj_attribute doubletap2wake_attribute =
 	__ATTR(doubletap2wake,
 		0666,
@@ -463,6 +487,7 @@ static struct attribute *s2w_parameters_attrs[] =
 		&s2w_threshold_attribute.attr,
 		&s2w_swap_coord_attribute.attr,
 		&sweep2wake_attribute.attr,
+		&pocket_detect_attribute.attr,
 		&doubletap2wake_attribute.attr,
 		&s2w_height_adjust_attribute.attr,
 		NULL,

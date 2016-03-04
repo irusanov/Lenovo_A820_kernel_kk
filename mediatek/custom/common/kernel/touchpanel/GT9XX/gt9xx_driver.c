@@ -1324,13 +1324,13 @@ static void tpd_down(s32 x, s32 y, s32 size, s32 id)
     TPD_DEBUG_SET_TIME;
     TPD_EM_PRINT(x, y, x, y, id, 1);
 
-// printk("[SWEEP2WAKE]: tpd down\n");
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-		/* Check for sweep2wake only when not in pocket */
-		if (sweep2wake && (pocket_detection_check() == 1)) {
-			printk("[SWEEP2WAKE]: detecting sweep\n");
-			detect_sweep2wake(x, y, jiffies, size);
-		}
+    // printk("[SWEEP2WAKE]: tpd down\n");
+    /* Check for sweep2wake only when not in pocket */
+    if (sweep2wake && ((pocket_detection_check() == 1) || pocket_detect == 0)) {
+    	printk("[SWEEP2WAKE]: detecting sweep\n");
+    	detect_sweep2wake(x, y, jiffies, size);
+    }
 #endif
 
     tpd_history_x=x;
@@ -1369,7 +1369,7 @@ static void tpd_up(s32 x, s32 y, s32 id)
 		triptime = 0;
 	}
 	/* Check for doubletap2wake only when not in pocket */
-	if (doubletap2wake && scr_suspended && (pocket_detection_check() == 1)) {
+	if (doubletap2wake && scr_suspended && ((pocket_detection_check() == 1) || pocket_detect == 0)) {
 		printk("[SWEEP2WAKE]: detecting d2w\n");
 		doubletap2wake_func(tpd_history_x, tpd_history_y, jiffies);
 	}
@@ -1417,22 +1417,22 @@ static int touch_event_handler(void *unused)
 
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
 	
-	if (pocket_detection_check() == 1) {
+	if ((pocket_detection_check() == 1) || pocket_detect == 0) {
 #endif
     sched_setscheduler(current, SCHED_RR, &param);
 
     do
     {
         set_current_state(TASK_INTERRUPTIBLE);
-	if(tpd_eint_mode)
-	{
-    	wait_event_interruptible(waiter, tpd_flag != 0);
-    	tpd_flag = 0;
-	}
-	else
-	{
-		msleep(tpd_polling_time);
-	}
+    	if(tpd_eint_mode)
+    	{
+        	wait_event_interruptible(waiter, tpd_flag != 0);
+        	tpd_flag = 0;
+    	}
+    	else
+    	{
+    		msleep(tpd_polling_time);
+    	}
         set_current_state(TASK_RUNNING);
 
     	mutex_lock(&i2c_access);
@@ -1531,10 +1531,10 @@ static int touch_event_handler(void *unused)
 				}
             }
 			
-	    if((pre_key!=0)&&(key_value ==0))
-	    {
-		tpd_up( 0, 0, 0);
-	    }
+    	    if((pre_key!=0)&&(key_value ==0))
+    	    {
+    		  tpd_up( 0, 0, 0);
+    	    }
 
             touch_num = 0;
             pre_touch = 0;
@@ -1573,10 +1573,10 @@ static int touch_event_handler(void *unused)
             GTP_DEBUG("Touch Release!");
             tpd_up(0, 0, 0);
         }
-	else
-	{
-	    GTP_DEBUG("Additional Eint!");
-	}
+    	else
+    	{
+    	    GTP_DEBUG("Additional Eint!");
+    	}
         pre_touch = touch_num;
         //input_report_key(tpd->dev, BTN_TOUCH, (touch_num || key_value));
 
@@ -1772,7 +1772,7 @@ static s8 gtp_wakeup_sleep(struct i2c_client *client)
 static void tpd_suspend(struct early_suspend *h)
 {
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	printk("[SWEEP2WAKE]: resume\n");
+	printk("[SWEEP2WAKE]: suspend\n");
 	scr_suspended = true;
 	if (sweep2wake == 0 && doubletap2wake == 0) {
 #endif
@@ -1951,4 +1951,3 @@ static void __exit tpd_driver_exit(void)
 
 module_init(tpd_driver_init);
 module_exit(tpd_driver_exit);
-

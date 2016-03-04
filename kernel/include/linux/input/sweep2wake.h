@@ -29,6 +29,7 @@
 extern int sweep2wake;
 extern int s2w_st_flag;
 extern int doubletap2wake;
+extern int pocket_detect;
 extern bool scr_suspended;
 extern bool scr_on_touch;
 extern bool exec_count;
