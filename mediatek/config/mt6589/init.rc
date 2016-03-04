@@ -264,7 +264,7 @@ on fs_property:ro.mount.fs=UBIFS
     mount ubifs ubi@system /system ro remount
     mount ubifs ubi@userdata /data nosuid nodev
     mount ubifs ubi@cache /cache nosuid nodev
-	  mount ubifs ubi@secstatic /system/secro ro
+	mount ubifs ubi@secstatic /system/secro ro
     write /proc/bootprof "INIT:NAND:Mount_END"
 
 # mount different fs end

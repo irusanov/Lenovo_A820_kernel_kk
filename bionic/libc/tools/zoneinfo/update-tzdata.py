@@ -29,7 +29,7 @@ print 'Found bionic in %s...' % bionic_dir
 
 
 regions = ['africa', 'antarctica', 'asia', 'australasia', 'backward',
-           'etcetera', 'europe', 'northamerica', 'southamerica']
+           'etcetera', 'europe', 'pacificnew', 'northamerica', 'southamerica']
 
 
 def GetCurrentTzDataVersion():
@@ -125,7 +125,8 @@ def ExtractAndCompile(data_filename):
   os.mkdir('data')
   for region in regions:
     if region != 'backward':
-      subprocess.check_call(['zic', '-d', 'data', 'extracted/%s' % region])
+      #subprocess.check_call(['zic', '-d', 'data', 'extracted/%s' % region])
+      subprocess.check_call(['/usr/sbin/zic', '-d', 'data', 'extracted/%s' % region])
 
   WriteSetupFile()
 
@@ -172,6 +173,8 @@ def main():
   # one by one.
   current_version = GetCurrentTzDataVersion()
   current_filename = '%s.tar.gz' % current_version
+  # Compile the latest one
+  tzdata_filenames = tzdata_filenames[-1:]
   for filename in tzdata_filenames:
     if filename > current_filename:
       print 'Found new tzdata: %s' % filename
