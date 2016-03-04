@@ -1,0 +1,64 @@
+#!/system/bin/sh
+
+##################################
+##
+##	sweep2wake/sweep2sleep
+## 
+## 	Possible values: 
+##	0 (disabled)
+##	1 (enable sweep2wake only)
+##	2 (enable both sweep2wake/sweep2sleep)
+##	3 (enable sweep2sleep only)
+##
+##	Controls sweep gestures.
+## 	
+## 	Default in kernel is 0 (disabled)
+## 	Default is used when no value set by script
+##  or the value is invalid
+
+# uncomment next line (def: 0)
+#echo 0 > /sys/android_touch/sweep2wake
+
+
+##################################
+##
+##	doubletap2wake
+##
+## 	Possible values:
+## 	0 (disabled)
+##	1 (enabled)
+##
+##	Controls doubletap2wake gesture
+##
+## 	Default in kernel is 0 (disabled)
+## 	Default is used when no value set by script
+##  or the value is invalid
+
+# uncomment next line (def: 0)
+#echo 0 > /sys/android_touch/doubletap2wake
+
+
+##################################
+##
+##	Pocket detection
+## 
+## 	Possible values:
+## 	0 (disabled)
+##	1 (enabled)
+##
+##	Controls pocket detect feature
+##
+## 	Default in kernel is 1 (enabled)
+## 	Default is used when no value set by script
+##  or the value is invalid
+
+# uncomment next line (def: 1)
+#echo 1 > /sys/android_touch/pocket_detect
+
+
+LOG_FILE=/data/Sweep2Wake.log
+    if [ -e $LOG_FILE ]; then
+    	rm $LOG_FILE;
+    fi;
+
+echo "Proton S2W Control" | tee -a $LOG_FILE;

@@ -1,0 +1,80 @@
+#!/system/bin/sh
+
+##################################
+##
+##	GPU DVFS 
+##	(dynamic voltage and frequency states)
+##
+## 	Possible values: 
+##	1 (enable), 0 (disabled)
+## 	
+##	Might save some battery when GPU is 
+##	overclocked.
+## 	
+## 	Default is 0 (disabled)
+## 	Default is used when no value set by script
+##  or the value is invalid
+
+# uncomment next line (def: 0)
+#echo "0" > /sys/module/proton_control/parameters/proton_gpu_dvfs
+
+##################################
+##
+## 	GPU Frequency (in MHz)
+##
+## 	Possible values: 
+##	156, 238, 268, 286, 312, 357, 403, 476
+##	
+##	If you're experiencing l0wer 3D performance
+## 	set back to 286 and reboot.
+##	Most GPUs can't be overclocked.
+##	
+##	Default in kernel is 286
+## 	Default is used when no value set by script
+##	or the value is invalid
+
+# uncomment next line to control (def: 286)
+#echo "286" > /sys/module/proton_control/parameters/proton_gpu_frequency
+
+##################################
+##
+## 	GPU Voltage (in mV)
+##
+## 	Possible values: 
+##	1050, 1075, 1100, 1125, 1150, 1175, 1200
+##	
+##	Higher voltage might stabilize 6589M
+##	chipset at 286MHz.
+##	
+##  You can control voltage for 3 DVFS states 
+##	in this order (highest->middle->lowest).
+##	
+##  For example, if 476MHz is the target freq, 
+##	DVFS states are 476 - 357 - 286.
+##
+##  When DVFS is disabled, only first voltage 
+##	is used and GPU stays at target frequency.
+##
+##  If frequency is set to 286MHz or lower, 
+##	only first and last value are used
+##
+##	GPU @ 156MHz does not support DVFS, since 
+##	this is the minimum possible frequency
+##	
+## 	Default is the minimum of 1050mV
+## 	Default is used when no value set by script
+##	or the value is invalid
+
+# uncomment next line (def: 1050, 1050, 1050)
+#echo "1050,1050,1050" > /sys/module/proton_control/parameters/proton_gpu_voltage
+
+chmod 666 /dev/frandom
+mv /dev/urandom /dev/urandom.old
+ln /dev/frandom /dev/urandom
+
+LOG_FILE=/data/proton.log
+    if [ -e $LOG_FILE ]; then
+    	rm $LOG_FILE;
+    fi;
+
+echo "Proton GPU Control" | tee -a $LOG_FILE;
