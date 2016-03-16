@@ -99,11 +99,11 @@ loglevel 6
     mkdir /config 0500 root root
 
      #Create CIP mount point
-	mkdir /custom
+    mkdir /custom
 
     # See storage config details at http://source.android.com/tech/storage/
     mkdir /mnt/media_rw 0700 media_rw media_rw
-	mkdir /mnt/shell 0700 shell shell
+    mkdir /mnt/shell 0700 shell shell
     mkdir /storage 0751 root sdcard_r
 
     mkdir /mnt/cd-rom 0000 system system
@@ -241,7 +241,7 @@ on fs_property:ro.mount.fs=EXT4
     mount ext4 /emmc@sec_ro /system/secro ro wait
     # mount cip partitions
     exec /sbin/e2fsck -p /emmc@custom
-	mount ext4 /emmc@custom /custom
+    mount ext4 /emmc@custom /custom
     write /proc/bootprof "INIT:eMMC:Mount_END"
 
 on fs_property:ro.mount.fs=UBIFS
@@ -264,7 +264,7 @@ on fs_property:ro.mount.fs=UBIFS
     mount ubifs ubi@system /system ro remount
     mount ubifs ubi@userdata /data nosuid nodev
     mount ubifs ubi@cache /cache nosuid nodev
-	mount ubifs ubi@secstatic /system/secro ro
+    mount ubifs ubi@secstatic /system/secro ro
     write /proc/bootprof "INIT:NAND:Mount_END"
 
 # mount different fs end
@@ -432,10 +432,10 @@ on post-fs-data
     chown dhcp dhcp /data/misc/dhcp/dnsmasq.leases
     chown dhcp dhcp /data/misc/dhcp/dnsmasq.p2p0.leases
 
-    # dhcpv6 server 
+    # dhcpv6 server
     mkdir /data/misc/wide-dhcpv6 0770 dhcp wifi
     chown dhcp wifi /data/misc/wide-dhcpv6
-    
+
     # radvd
     mkdir /data/misc/radvd 0770 system system
     chmod 444 /etc/radvd/radvd.conf
@@ -609,10 +609,10 @@ on post-fs-data
 
     #chmod 0440 /dev/mtk_gdma
     #chown system /dev/mtk_gdma
-    
+
     #chmod 0440 /dev/mtk_gfmt
     #chown system /dev/mtk_gfmt
-    
+
     chmod 0440 /dev/mtk_almk
     chown system /dev/mtk_almk
 
@@ -629,10 +629,10 @@ on post-fs-data
     chmod 0660 /dev/kd_camera_hw_bus2
     chmod 0660 /dev/FM50AF
     chmod 0660 /dev/A5142AF
-    chmod 0660 /dev/AR0833AF    
-    chmod 0660 /dev/OV5647AF       
-    chmod 0660 /dev/OV8825AF       
-    chmod 0660 /dev/OV12830AF 
+    chmod 0660 /dev/AR0833AF
+    chmod 0660 /dev/OV5647AF
+    chmod 0660 /dev/OV8825AF
+    chmod 0660 /dev/OV12830AF
     chmod 0660 /dev/IMX135AF
     chmod 0660 /dev/IMX111AF
     chmod 0660 /dev/CAM_CAL_DRV
@@ -645,14 +645,14 @@ on post-fs-data
     chown system camera /dev/kd_camera_flashlight
     chown system camera /dev/kd_camera_hw_bus2
     chown system camera /dev/FM50AF
-    chown system camera /dev/A5142AF    
+    chown system camera /dev/A5142AF
     chown system camera /dev/AR0833AF
-    chown system camera /dev/OV5647AF      
+    chown system camera /dev/OV5647AF
     chown system camera /dev/OV8825AF
-    chown system camera /dev/OV12830AF      
+    chown system camera /dev/OV12830AF
     chown system camera /dev/IMX111AF
-    chown system camera /dev/IMX135AF      
-    
+    chown system camera /dev/IMX135AF
+
     chown system camera /dev/CAM_CAL_DRV
 
 
@@ -731,7 +731,7 @@ on boot
     chown radio system /sys/android_power/acquire_full_wake_lock
     chown radio system /sys/android_power/acquire_partial_wake_lock
     chown radio system /sys/android_power/release_wake_lock
-	chown system system /sys/power/autosleep
+    chown system system /sys/power/autosleep
     chown system system /sys/power/state
     chown system system /sys/power/sb_state
     chown system system /sys/power/wakeup_count
@@ -739,7 +739,7 @@ on boot
     chown radio system /sys/power/wake_unlock
     chown system system /proc/smb/ScreenComm
 
-	chmod 0660 /sys/power/autosleep
+    chmod 0660 /sys/power/autosleep
     chmod 0660 /sys/power/state
     chmod 0660 /sys/power/sb_state
     chmod 0660 /sys/power/wake_lock
@@ -764,7 +764,7 @@ on boot
     chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/input_boost
     chown system system /sys/devices/system/cpu/cpufreq/hotplug/cpu_num_base
     chmod 0660 /sys/devices/system/cpu/cpufreq/hotplug/cpu_num_base
-    
+
     # Hotplug
     mkdir /data/data/hotplug
     write /data/data/hotplug/cmd 0
@@ -813,15 +813,15 @@ on boot
     chown root   system /sys/kernel/debug/binder/transaction_log_enable
     chown root radio /proc/cmdline
 
-	chown root   radio  /sys/class/leds/lcd-backlight/duty
-	chown root   radio  /sys/class/leds/lcd-backlight/div
-	chown system system /sys/class/leds/lcd-backlight/trigger
-	chown system system /sys/class/leds/button-backlight/trigger
-	chown system system /sys/class/leds/keyboard-backlight/trigger
-	chown system system /sys/class/leds/jogball-backlight/trigger
-	chown system system /sys/class/leds/red/trigger
-	chown system system /sys/class/leds/green/trigger
-	chown system system /sys/class/leds/blue/trigger
+    chown root   radio  /sys/class/leds/lcd-backlight/duty
+    chown root   radio  /sys/class/leds/lcd-backlight/div
+    chown system system /sys/class/leds/lcd-backlight/trigger
+    chown system system /sys/class/leds/button-backlight/trigger
+    chown system system /sys/class/leds/keyboard-backlight/trigger
+    chown system system /sys/class/leds/jogball-backlight/trigger
+    chown system system /sys/class/leds/red/trigger
+    chown system system /sys/class/leds/green/trigger
+    chown system system /sys/class/leds/blue/trigger
 
     # Permission for hibernation
     chown radio system /sys/power/tuxonice
@@ -875,10 +875,10 @@ on boot
     chown root radio /proc/net/netfilter/nfnetlink_queue
 
 #Define device for ATCID
-    chmod 660 /dev/ttyGS0 
-    chown system /dev/ttyGS0 
-    chmod 660 /dev/ttyGS1 
-    chown system /dev/ttyGS1 
+    chmod 660 /dev/ttyGS0
+    chown system /dev/ttyGS0
+    chmod 660 /dev/ttyGS1
+    chown system /dev/ttyGS1
 # Define TCP buffer sizes for various networks
 #   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
     setprop net.tcp.buffersize.default 4096,87380,110208,4096,16384,110208
@@ -924,7 +924,7 @@ on property:vold.decrypt=trigger_restart_min_framework
 
 on property:vold.decrypt=trigger_restart_framework
     write /sys/power/state on
-    write /sys/class/leds/lcd-backlight/brightness  120 
+    write /sys/class/leds/lcd-backlight/brightness  120
     start msensord
     start permission_check
     class_start main
@@ -1013,9 +1013,9 @@ service mobile_log_d /system/bin/mobile_log_d
 
 # bugreport is triggered by ctl.start bugreport
 service bugreport /system/bin/bugmailer.sh -v
-	class main
-	disabled
-	oneshot
+    class main
+    disabled
+    oneshot
 
 # SGX init
 service pvrsrvctl /system/vendor/bin/pvrsrvctl --no-module --start
@@ -1062,26 +1062,26 @@ service nvram_daemon /system/bin/nvram_daemon
     group nvram system
     oneshot
 
-service atci_service /system/bin/atci_service 
-	socket atci-service stream 660 radio system 
-	socket atci-serv-fw stream 660 radio system 
-	user root 
-	disabled
-	group radio system                         
+service atci_service /system/bin/atci_service
+    socket atci-service stream 660 radio system
+    socket atci-serv-fw stream 660 radio system
+    user root
+    disabled
+    group radio system
 
 service atcid-daemon-u /system/bin/atcid
-	socket adb_atci_socket stream 660 radio system
-	user system
-	group radio system media
-	disabled
-	oneshot
+    socket adb_atci_socket stream 660 radio system
+    user system
+    group radio system media
+    disabled
+    oneshot
 
 service atcid-daemon-e /system/bin/atcid
-	socket adb_atci_socket stream 660 radio system
-	user root
-	group radio system
-	disabled
-	oneshot
+    socket adb_atci_socket stream 660 radio system
+    user root
+    group radio system
+    disabled
+    oneshot
 
 on early_property:ro.build.type=eng
 start atci_service
@@ -1131,7 +1131,7 @@ service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-sys
 #    user system
 #    group system radio mount wifi inet net_admin
 
-# monitor property and power on/off wlan 
+# monitor property and power on/off wlan
 on property:wlan.driver.status=ok
     write /dev/wmtWifi "1"
 
@@ -1187,8 +1187,8 @@ service dhcpcd_bt-pan /system/bin/logwrapper /system/bin/dhcpcd -BK -dd
     disabled
     oneshot
 
-    
-    
+
+
 service dhcpcd_wlan0 /system/bin/logwrapper /system/bin/dhcpcd -BK -dd
     class main
     user dhcp
@@ -1241,8 +1241,8 @@ service pppoe_wlan0 /system/bin/launchpppoe
     disabled
     oneshot
 
-on property:service.pppoe_wlan0.enable=0    
-    stop pppoe_wlan0    
+on property:service.pppoe_wlan0.enable=0
+    stop pppoe_wlan0
 
 on property:service.pppoe_wlan0.enable=1
     start pppoe_wlan0
@@ -1314,16 +1314,16 @@ service bluetoothd /system/bin/bluetoothd -n
     disabled
 
 service mtkbt /system/bin/mtkbt
-	socket bt.int.adp dgram 660 bluetooth net_bt
-	socket bt.a2dp.stream dgram 660 bluetooth net_bt
-	user bluetooth
-	group system net_bt bluetooth net_bt_admin sdcard_rw inet net_admin nvram net_raw vpn net_bt_stack media_rw sdcard_r
-	oneshot
+    socket bt.int.adp dgram 660 bluetooth net_bt
+    socket bt.a2dp.stream dgram 660 bluetooth net_bt
+    user bluetooth
+    group system net_bt bluetooth net_bt_admin sdcard_rw inet net_admin nvram net_raw vpn net_bt_stack media_rw sdcard_r
+    oneshot
 
 
 service dpfd /system/bin/dpfd
-	user root
-	group system media
+    user root
+    group system media
 
 #
 #  External Modme control related services
@@ -1331,7 +1331,7 @@ service dpfd /system/bin/dpfd
 service emd_daemon /system/bin/emd_daemon
     user root
     oneshot
-    
+
 # sysinit (/system/etc/init.d)
 service sysinit /system/bin/sysinit
     user root
@@ -1504,7 +1504,7 @@ service emsvr /system/bin/em_svr
     user root
 
 service afmsvr /system/bin/afm_server
-		user root
+    user root
 
 #monitor battery status
     service batterywarning /system/bin/batterywarning
@@ -1522,8 +1522,8 @@ service shutdown /system/bin/shutdown
     disabled
 
 service NvRAMAgent /system/bin/nvram_agent_binder
-		user system
-		group system nvram
+    user system
+    group system nvram
 
 service thermal_manager /system/bin/thermal_manager
     user root
@@ -1532,7 +1532,7 @@ service thermal_manager /system/bin/thermal_manager
 service thermal /system/bin/thermal
     user system
     group system
-    
+
 service thermald /system/bin/thermald
     user system
     group system
@@ -1566,9 +1566,9 @@ service mdnsd /system/bin/mdnsd
     oneshot
 
 service backuprestore /system/bin/br_app_data_service
-	class main
-	socket backuprestore stream 0660 root sdcard_rw
-	user root
+    class main
+    socket backuprestore stream 0660 root sdcard_rw
+    user root
 
 #Open NFC server
 #service server_open_nfc /system/bin/server_open_nfc

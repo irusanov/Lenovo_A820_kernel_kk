@@ -149,7 +149,9 @@ extern int bat_volt_check_point;
 extern int gForceADCsolution;
 extern kal_bool batteryBufferFirst;
 /*Lenovo-sw begin chenlj2 add 2011-06-02,add a enum for current */
-extern int battery_cali_start_status ;
+#ifdef MTK_FAN5405_SUPPORT
+extern int battery_cali_start_status;
+#endif
 /*Lenovo-sw end chenlj2 add 2011-06-02,add a enum for current */
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -1489,8 +1491,10 @@ void fg_qmax_update_for_aging(void)
             // tuning
             gFG_BATT_CAPACITY_aging = (gFG_BATT_CAPACITY_aging * 100) / AGING_TUNING_VALUE;
 			/*Lenovo-sw begin chenlj2 add 2011-06-02,add a enum for current */
+#ifdef MTK_FAN5405_SUPPORT
                     battery_cali_start_status = 2;
 		      printk("chenlj2-fg_qmax_update_for_aging 1 cali_status=%d\n",battery_cali_start_status);
+#endif
 			  /*Lenovo-sw end chenlj2 add 2011-06-02,add a enum for current */
             xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[fg_qmax_update_for_aging] need update : gFG_columb=%d, gFG_DOD0=%d, new_qmax=%d\r\n", 
                 gFG_columb, gFG_DOD0, gFG_BATT_CAPACITY_aging);
@@ -2326,7 +2330,7 @@ void fgauge_Normal_Mode_Work(void)
 				gFG_voltage, gFG_capacity_by_v, gFG_capacity_by_v_init);
 				// compare with hw_ocv & sw_ocv, check if less than or equal to 25mV tolerance 
 /*lenovo-sw weiweij modified 20130314*/
-#if 0
+#ifndef MTK_FAN5405_SUPPORT
 				if (abs(gFG_voltageVBAT - gFG_voltage) > 25) {
 						gFG_capacity_by_v = gFG_capacity_by_v_init;
 				}
@@ -2417,6 +2421,7 @@ void fgauge_Normal_Mode_Work(void)
 
         //double check
 /*lenovo-sw weiweij modified 20130427*/ 
+#ifdef MTK_FAN5405_SUPPORT
         //if(gFG_current_auto_detect_R_fg_total <= CURRENT_DETECT_R_FG)
         if(gFG_current_auto_detect_R_fg_total <= CURRENT_DETECT_R_FG*gFG_current_auto_detect_R_fg_count)
 /*lenovo-sw weiweij modified 20130427 end*/ 
@@ -2443,7 +2448,6 @@ void fgauge_Normal_Mode_Work(void)
 			msleep(1000);
 
 			xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "gFG_current_auto_detect_R_fg_total=0, need double check [3]\n");
-
             gFG_current_auto_detect_R_fg_count = 0;
             
             for(i=0;i<10;i++)
@@ -2453,7 +2457,20 @@ void fgauge_Normal_Mode_Work(void)
             }
         }
 /*lenovo-sw weiweij added 20130427 end*/   
-
+#else
+        if(gFG_current_auto_detect_R_fg_total <= CURRENT_DETECT_R_FG)
+        {
+            xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "gFG_current_auto_detect_R_fg_total=0, need double check [2]\n");
+            
+            gFG_current_auto_detect_R_fg_count = 0;
+            
+            for(i=0;i<10;i++)
+            {
+                gFG_current_auto_detect_R_fg_total+= fgauge_read_current();
+                gFG_current_auto_detect_R_fg_count++;            
+            }
+        }
+#endif
         gFG_current_auto_detect_R_fg_result = gFG_current_auto_detect_R_fg_total / gFG_current_auto_detect_R_fg_count;
         if(gFG_current_auto_detect_R_fg_result <= CURRENT_DETECT_R_FG)
         {
@@ -2628,16 +2645,14 @@ void fgauge_initialization(void)
     gFG_BATT_CAPACITY_init_high_current = Q_MAX_POS_25_H_CURRENT;    
 /*lenovo-sw weiweij modified*/  
 #if 0//defined(LENOVO_PROJECT_SNOOPY)||(LENOVO_PROJECT_SNOOPY_CU)||(LENOVO_PROJECT_SNOOPYTD)
-	gFG_BATT_CAPACITY_aging = get_rtc_spare_qmax_value();
-	xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "ww_debug gFG_BATT_CAPACITY_aging(1)=%d\n", gFG_BATT_CAPACITY_aging);	
+	gFG_BATT_CAPACITY_aging = get_rtc_spare_qmax_value();	
 	if((gFG_BATT_CAPACITY_aging<=1000)||(gFG_BATT_CAPACITY_aging>=2500))
 	{
     gFG_BATT_CAPACITY_aging = Q_MAX_POS_25;
 	}
 #else
     gFG_BATT_CAPACITY_aging = Q_MAX_POS_25;
-#endif
-	xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "ww_debug gFG_BATT_CAPACITY_aging(2)=%d\n", gFG_BATT_CAPACITY_aging);	
+#endif	
 /*lenovo-sw weiweij modified end*/  
 
 // 1. HW initialization
