@@ -315,7 +315,7 @@ void pmic_dvs_into_suspend_set_before_volt_change(void)
 #endif
 
 /************************************************
-* Limited max frequency in 1.2GHz when early suspend 
+* Limited max frequency in 1.2GHz when early suspend
 *************************************************/
 static unsigned int mt_cpufreq_limit_max_freq_by_early_suspend(void)
 {
@@ -326,7 +326,7 @@ static unsigned int mt_cpufreq_limit_max_freq_by_early_suspend(void)
     if (!policy)
         goto no_policy;
 
-    cpufreq_driver_target(policy, DVFS_F1, CPUFREQ_RELATION_L);
+    cpufreq_driver_target(policy, DVFS_F4, CPUFREQ_RELATION_L);
 
     xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mt_cpufreq limited max freq by early suspend %d\n", DVFS_F1);
 
@@ -341,7 +341,7 @@ no_policy:
 static unsigned int mt_cpufreq_volt_to_pmic_wrap(unsigned int target_volt)
 {
     unsigned int idx = 0;
-	
+
     if(g_cpufreq_get_ptp_level == 0)
     {
         switch (target_volt)
@@ -440,18 +440,18 @@ unsigned int mt_cpufreq_voltage_set_by_ptpod(unsigned int pmic_volt[], unsigned 
     {
         dprintk("mt_cpufreq_voltage_set_by_ptpod: ERROR!array_size is invalide, array_size = %d\n", array_size);
     }
-	
+
     spin_lock_irqsave(&mt_cpufreq_lock, flags);
 
     for (i = 0; i < array_size; i++)
     {
         mt65xx_reg_sync_writel(pmic_volt[i], PMIC_WRAP_DVFS_WDATA_array[i]);
     }
-	
+
     /* Check the mapping for DVFS voltage to pmic wrap voltage */
     idx = mt_cpufreq_volt_to_pmic_wrap(g_cur_cpufreq_volt);
 	dprintk("Previous mt_cpufreq_pmic_volt[%d] = %x\n", idx, mt_cpufreq_pmic_volt[idx]);
-	
+
     /* Check PTP-OD modify voltage UP or DOWN, because PTPOD maybe not change voltage all UP or DOWN. */
     if(mt_cpufreq_pmic_volt[idx] > pmic_volt[idx])
     {
@@ -479,7 +479,7 @@ unsigned int mt_cpufreq_voltage_set_by_ptpod(unsigned int pmic_volt[], unsigned 
         mt_cpufreq_pmic_volt[i] = pmic_volt[i];
         dprintk("mt_cpufreq_pmic_volt[%d] = %x\n", i, mt_cpufreq_pmic_volt[i]);
     }
-	
+
     dprintk("mt_cpufreq_voltage_set_by_ptpod: Set voltage directly by PTP-OD request! mt_cpufreq_ptpod_voltage_down = %d\n", mt_cpufreq_ptpod_voltage_down);
 
     /* If voltage down, need to consider DVS DOWN SW workaround. */
@@ -500,7 +500,7 @@ unsigned int mt_cpufreq_voltage_set_by_ptpod(unsigned int pmic_volt[], unsigned 
         mt_cpufreq_volt_set(g_cur_cpufreq_volt);
 
     spin_unlock_irqrestore(&mt_cpufreq_lock, flags);
-	
+
     return 0;
 }
 EXPORT_SYMBOL(mt_cpufreq_voltage_set_by_ptpod);
@@ -510,19 +510,19 @@ unsigned int mt_cpufreq_max_frequency_by_DVS(unsigned int num)
 {
     int voltage_change_num = 0;
 	int i = 0;
-	
+
     /* Assume mt6589_freqs_e1 voltage will be put in order, and freq will be put from high to low.*/
     if(num == voltage_change_num)
     {
         xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "PTPOD0:num = %d, frequency= %d\n", num, mt_cpu_freqs[0].cpufreq_khz);
-        return mt_cpu_freqs[0].cpufreq_khz;	
+        return mt_cpu_freqs[0].cpufreq_khz;
     }
-	
+
     for (i = 1; i < mt_cpu_freqs_num; i++)
     {
         if(mt_cpu_freqs[i].cpufreq_volt != mt_cpu_freqs[i-1].cpufreq_volt)
             voltage_change_num++;
-		
+
         if(num == voltage_change_num)
         {
             xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "PTPOD1:num = %d, frequency= %d\n", num, mt_cpu_freqs[i].cpufreq_khz);
@@ -541,15 +541,15 @@ static void mt_setup_power_table(int num)
     int i = 0, j = 0, p_dynamic = 0, p_leakage = 0, freq_ratio = 0, volt_square_ratio = 0;
     struct mt_cpu_power_info temp_power_info;
 
-    dprintk("P_MCU_D = %d\n", P_MCU_D);  
+    dprintk("P_MCU_D = %d\n", P_MCU_D);
 
-    dprintk("P_CA7_D_1_CORE = %d, P_CA7_D_2_CORE = %d, P_CA7_D_3_CORE = %d, P_CA7_D_4_CORE = %d\n", 
+    dprintk("P_CA7_D_1_CORE = %d, P_CA7_D_2_CORE = %d, P_CA7_D_3_CORE = %d, P_CA7_D_4_CORE = %d\n",
              P_CA7_D_1_CORE, P_CA7_D_2_CORE, P_CA7_D_3_CORE, P_CA7_D_4_CORE);
 
-    dprintk("P_TOTAL_CORE_L = %d, P_EACH_CORE_L = %d\n", 
+    dprintk("P_TOTAL_CORE_L = %d, P_EACH_CORE_L = %d\n",
              P_TOTAL_CORE_L, P_EACH_CORE_L);
 
-    dprintk("A_1_CORE = %d, A_2_CORE = %d, A_3_CORE = %d, A_4_CORE = %d\n", 
+    dprintk("A_1_CORE = %d, A_2_CORE = %d, A_3_CORE = %d, A_4_CORE = %d\n",
              A_1_CORE, A_2_CORE, A_3_CORE, A_4_CORE);
 
     mt_cpu_power = kzalloc((num * 4) * sizeof(struct mt_cpu_power_info), GFP_KERNEL);
@@ -568,7 +568,7 @@ static void mt_setup_power_table(int num)
         mt_cpu_power[i * 4 + 0].cpufreq_ncpu = 1;
         mt_cpu_power[i * 4 + 0].cpufreq_khz = mt_cpu_freqs[i].cpufreq_khz;
         mt_cpu_power[i * 4 + 0].cpufreq_power = p_dynamic + p_leakage;
-        xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mt_cpu_power[%d]: cpufreq_ncpu = %d, cpufreq_khz = %d, cpufreq_power = %d\n", (i * 4 + 0), 
+        xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mt_cpu_power[%d]: cpufreq_ncpu = %d, cpufreq_khz = %d, cpufreq_power = %d\n", (i * 4 + 0),
                                                      mt_cpu_power[(i * 4 + 0)].cpufreq_ncpu, mt_cpu_power[(i * 4 + 0)].cpufreq_khz, mt_cpu_power[(i * 4 + 0)].cpufreq_power);
 
         // 2 core
@@ -579,7 +579,7 @@ static void mt_setup_power_table(int num)
         mt_cpu_power[i * 4 + 1].cpufreq_ncpu = 2;
         mt_cpu_power[i * 4 + 1].cpufreq_khz = mt_cpu_freqs[i].cpufreq_khz;
         mt_cpu_power[i * 4 + 1].cpufreq_power = p_dynamic + p_leakage;
-        xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mt_cpu_power[%d]: cpufreq_ncpu = %d, cpufreq_khz = %d, cpufreq_power = %d\n", (i * 4 + 1), 
+        xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mt_cpu_power[%d]: cpufreq_ncpu = %d, cpufreq_khz = %d, cpufreq_power = %d\n", (i * 4 + 1),
                                                      mt_cpu_power[(i * 4 + 1)].cpufreq_ncpu, mt_cpu_power[(i * 4 + 1)].cpufreq_khz, mt_cpu_power[(i * 4 + 1)].cpufreq_power);
 
         // 3 core
@@ -590,7 +590,7 @@ static void mt_setup_power_table(int num)
         mt_cpu_power[i * 4 + 2].cpufreq_ncpu = 3;
         mt_cpu_power[i * 4 + 2].cpufreq_khz = mt_cpu_freqs[i].cpufreq_khz;
         mt_cpu_power[i * 4 + 2].cpufreq_power = p_dynamic + p_leakage;
-        xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mt_cpu_power[%d]: cpufreq_ncpu = %d, cpufreq_khz = %d, cpufreq_power = %d\n", (i * 4 + 2), 
+        xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mt_cpu_power[%d]: cpufreq_ncpu = %d, cpufreq_khz = %d, cpufreq_power = %d\n", (i * 4 + 2),
                                                      mt_cpu_power[(i * 4 + 2)].cpufreq_ncpu, mt_cpu_power[(i * 4 + 2)].cpufreq_khz, mt_cpu_power[(i * 4 + 2)].cpufreq_power);
 
         // 4 core
@@ -601,7 +601,7 @@ static void mt_setup_power_table(int num)
         mt_cpu_power[i * 4 + 3].cpufreq_ncpu = 4;
         mt_cpu_power[i * 4 + 3].cpufreq_khz = mt_cpu_freqs[i].cpufreq_khz;
         mt_cpu_power[i * 4 + 3].cpufreq_power = p_dynamic + p_leakage;
-        xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mt_cpu_power[%d]: cpufreq_ncpu = %d, cpufreq_khz = %d, cpufreq_power = %d\n", (i * 4 + 3), 
+        xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mt_cpu_power[%d]: cpufreq_ncpu = %d, cpufreq_khz = %d, cpufreq_power = %d\n", (i * 4 + 3),
                                                      mt_cpu_power[(i * 4 + 3)].cpufreq_ncpu, mt_cpu_power[(i * 4 + 3)].cpufreq_khz, mt_cpu_power[(i * 4 + 3)].cpufreq_power);
     }
 
@@ -662,7 +662,7 @@ static int mt_setup_freqs_table(struct cpufreq_policy *policy, struct mt_cpu_fre
         mt_cpu_freqs = freqs;
         mt_cpu_freqs_num = num;
         mt_cpu_freqs_table = table;
-	
+
         mt_cpufreq_freq_table_allocated = true;
     }
 
@@ -939,7 +939,7 @@ static void mt_cpufreq_set(unsigned int freq_old, unsigned int freq_new, unsigne
         #ifdef CPU_DVS_DOWN_SW_SOL
         pmic_dvs_set_before_volt_change();
         #endif
-		
+
         #ifdef MT_BUCK_ADJUST
         mt_cpufreq_volt_set(target_volt);
         #endif
@@ -1099,7 +1099,7 @@ static int mt_cpufreq_target(struct cpufreq_policy *policy, unsigned int target_
         freqs.new = DVFS_F1;
         dprintk("mt_cpufreq_limit_max_freq_early_suspend, freqs.new = %d\n", freqs.new);
     }
-	
+
     freqs.new = mt_thermal_limited_verify(freqs.new);
 
     if (freqs.new < g_limited_min_freq)
@@ -1217,7 +1217,7 @@ static int mt_cpufreq_init(struct cpufreq_policy *policy)
         ret = mt_setup_freqs_table(policy, ARRAY_AND_SIZE(mt6589_freqs_e1_5));
     else
         ret = mt_setup_freqs_table(policy, ARRAY_AND_SIZE(mt6589_freqs_e1));
-	
+
     if (ret) {
         xlog_printk(ANDROID_LOG_ERROR, "Power/DVFS", "failed to setup frequency table\n");
         return ret;
@@ -1246,7 +1246,7 @@ static struct cpufreq_driver mt_cpufreq_driver = {
 void mt_cpufreq_early_suspend(struct early_suspend *h)
 {
     #ifndef MT_DVFS_RANDOM_TEST
-	
+
     mt_cpufreq_state_set(0);
 
     if(mt_cpufreq_max_freq_overdrive == true)
@@ -1254,7 +1254,7 @@ void mt_cpufreq_early_suspend(struct early_suspend *h)
         mt_cpufreq_limit_max_freq_early_suspend = true;
         mt_cpufreq_limit_max_freq_by_early_suspend();
     }
-	
+
     #endif
 
     return;
@@ -1271,7 +1271,7 @@ void mt_cpufreq_late_resume(struct early_suspend *h)
     {
         mt_cpufreq_limit_max_freq_early_suspend = false;
     }
-		
+
     mt_cpufreq_state_set(1);
 
     #endif
@@ -1344,11 +1344,11 @@ void mt_cpufreq_return_default_DVS_by_ptpod(void)
         mt_cpufreq_pmic_volt[3] = DVFS_PKV3;
         mt_cpufreq_pmic_volt[4] = DVFS_PKV4;
     }
-	
+
     mt65xx_reg_sync_writel(DVFS_PKV5, PMIC_WRAP_DVFS_WDATA5);
     mt65xx_reg_sync_writel(DVFS_PKV6, PMIC_WRAP_DVFS_WDATA6);
     mt65xx_reg_sync_writel(DVFS_PKV7, PMIC_WRAP_DVFS_WDATA7);
-    
+
     xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mt_cpufreq return default DVS by ptpod\n");
 }
 EXPORT_SYMBOL(mt_cpufreq_return_default_DVS_by_ptpod);
@@ -1579,7 +1579,7 @@ static ssize_t mt_cpufreq_debug_write(struct file *file, const char *buffer, uns
 
     if (sscanf(buffer, "%d", &debug) == 1)
     {
-        if (debug == 0) 
+        if (debug == 0)
         {
             mt_cpufreq_debug = 0;
             return count;
@@ -1655,7 +1655,7 @@ static int mt_cpufreq_pdrv_probe(struct platform_device *pdev)
         g_max_freq_by_ptp = DVFS_F2;
     else
         g_max_freq_by_ptp = DVFS_F1;
-	
+
     /************************************************
     * voltage scaling need to wait PMIC driver ready
     *************************************************/
@@ -1671,7 +1671,7 @@ static int mt_cpufreq_pdrv_probe(struct platform_device *pdev)
     {
         mt_cpufreq_max_freq_overdrive = true;
     }
-	
+
     xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mediatek cpufreq initialized\n");
 
     if(g_cpufreq_get_ptp_level == 0)
@@ -1685,7 +1685,7 @@ static int mt_cpufreq_pdrv_probe(struct platform_device *pdev)
     }
     else
         spm_dvfs_ctrl_volt(1); // default set to 1.15V
-        
+
     mt65xx_reg_sync_writel(0x021A, PMIC_WRAP_DVFS_ADR0);
     mt65xx_reg_sync_writel(0x021A, PMIC_WRAP_DVFS_ADR1);
     mt65xx_reg_sync_writel(0x021A, PMIC_WRAP_DVFS_ADR2);
@@ -1702,7 +1702,7 @@ static int mt_cpufreq_pdrv_probe(struct platform_device *pdev)
     #ifdef CPU_DVS_DOWN_SW_SOL
     pmic_dvs_init_setting();
     #endif
-	
+
     return cpufreq_register_driver(&mt_cpufreq_driver);
 }
 
@@ -1712,7 +1712,7 @@ static int mt_cpufreq_suspend(struct device *device)
     #ifdef CPU_DVS_DOWN_SW_SOL
     pmic_dvs_into_suspend_set_before_volt_change();
     #endif
-	
+
     return 0;
 }
 
