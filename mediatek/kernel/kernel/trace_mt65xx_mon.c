@@ -20,11 +20,11 @@ static DEFINE_SPINLOCK(mt65xx_mon_spinlock);
 
 static int mt65xx_mon_stopped = 1;
 
-int timer_initialized; /* default value: 0 */
+int timer_initialized = 0;
 
 static MonitorMode monitor_mode = MODE_SCHED_SWITCH;
-static long mon_period_ns = 1000000L;	/* 1ms */
-static unsigned int is_manual_start;
+static long mon_period_ns = 1000000L; //1ms
+static unsigned int is_manual_start = 0;
 
 static struct hrtimer timer;
 static struct mtk_monitor *mtk_mon;
@@ -35,7 +35,7 @@ static struct mtk_monitor *mtk_mon;
 /* will occur when we call the mtk_smp_call_function        */
 /* in hrtimer ISR                                           */
 /************************************************************/
-static struct workqueue_struct *queue;
+static struct workqueue_struct *queue = NULL;
 static struct work_struct work;
 
 static void work_handler(struct work_struct *data)

@@ -202,9 +202,7 @@ int conn_md_send_msg (ipc_ilm_t *ilm)
 	local_para_struct *p_local_para = NULL;
 	P_CONN_MD_MSG p_new_msg = NULL;
 	uint32 msg_info_len = ilm->local_para_ptr->msg_len;
-	
-	CONN_MD_DBG_FUNC("ilm:0x%08x, msg_len:%d\n", ilm, ilm->local_para_ptr->msg_len);
-	
+		
 	/*malloc message structure for this msg*/
 	msg_str_len = sizeof(CONN_MD_MSG) + msg_info_len;
 	p_new_msg = kmalloc (msg_str_len, GFP_ATOMIC);
@@ -221,8 +219,6 @@ int conn_md_send_msg (ipc_ilm_t *ilm)
 		memcpy (p_local_para, ilm->local_para_ptr, sizeof (local_para_struct));
 		/*copy data from local_para_ptr structure*/
 		memcpy (p_local_para->data, ilm->local_para_ptr->data, msg_info_len);
-		
-		CONN_MD_DBG_FUNC("p_local_para:0x%08x, msg_len:%d\n", p_local_para, p_local_para->msg_len);
 		
 		INIT_LIST_HEAD(&p_new_msg->entry);
 		
@@ -382,7 +378,6 @@ static int conn_md_thread(void *p_data)
 #endif
 				continue;
 			}
-			CONN_MD_DBG_FUNC("p_cur_ilm:0x%08x, local_para_ptr:0x%08x, msg_len:%d\n", p_cur_ilm, &p_cur_ilm->local_para_ptr, p_cur_ilm->local_para_ptr->msg_len);
 			CONN_MD_DBG_FUNC("sending message to user id (0x%08x)\n", p_cur_ilm->dest_mod_id);
 			/*send package to dest module by call corresponding rx callback function*/
 			(*(p_user->ops.rx_cb))(p_cur_ilm);

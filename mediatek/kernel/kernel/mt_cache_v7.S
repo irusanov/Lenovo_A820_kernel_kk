@@ -340,24 +340,8 @@ L1_cl_finished:
         bx      lr
 
 __inner_clean_dcache_L2:
-#if 0
-        mov     r0, sp
-        mcr     p15, 0, r0, c7, c14, 1          @ clean and invalidate D entry
-        dsb
-        sub     r0, r0, #64
-        mcr     p15, 0, r0, c7, c14, 1          @ clean and invalidate D entry 
-        dsb
-#endif
         push    {r0,r1,r2,r3,r4,r5,r7,r9,r10,r11,r14}
         @push    {r4,r5,r7,r9,r10,r11}
-#if 0
-        mov     r0, sp
-        mcr     p15, 0, r0, c7, c14, 1          @ clean and invalidate D entry
-        dsb
-        sub     r0, r0, #64
-        mcr     p15, 0, r0, c7, c14, 1          @ clean and invalidate D entry
-        dsb
-#endif
         dmb                                     @ ensure ordering with previous memory accesses
         mrc     p15, 1, r0, c0, c0, 1           @ read clidr
         ands    r3, r0, #0x7000000              @ extract loc from clidr

@@ -1,3 +1,4 @@
+
 # Copyright (C) 2012 The Android Open Source Project
 #
 # IMPORTANT: Do not create world writable files or directories.
@@ -431,10 +432,10 @@ on post-fs-data
     chown dhcp dhcp /data/misc/dhcp/dnsmasq.leases
     chown dhcp dhcp /data/misc/dhcp/dnsmasq.p2p0.leases
 
-    # dhcpv6 server 
+    # dhcpv6 server
     mkdir /data/misc/wide-dhcpv6 0770 dhcp wifi
     chown dhcp wifi /data/misc/wide-dhcpv6
-    
+
     # radvd
     mkdir /data/misc/radvd 0770 system system
     chmod 444 /etc/radvd/radvd.conf
@@ -611,10 +612,10 @@ on post-fs-data
 
     #chmod 0440 /dev/mtk_gdma
     #chown system /dev/mtk_gdma
-    
+
     #chmod 0440 /dev/mtk_gfmt
     #chown system /dev/mtk_gfmt
-    
+
     chmod 0440 /dev/mtk_almk
     chown system /dev/mtk_almk
 
@@ -631,10 +632,10 @@ on post-fs-data
     chmod 0660 /dev/kd_camera_hw_bus2
     chmod 0660 /dev/FM50AF
     chmod 0660 /dev/A5142AF
-    chmod 0660 /dev/AR0833AF    
-    chmod 0660 /dev/OV5647AF       
-    chmod 0660 /dev/OV8825AF       
-    chmod 0660 /dev/OV12830AF 
+    chmod 0660 /dev/AR0833AF
+    chmod 0660 /dev/OV5647AF
+    chmod 0660 /dev/OV8825AF
+    chmod 0660 /dev/OV12830AF
     chmod 0660 /dev/IMX135AF
     chmod 0660 /dev/IMX111AF
     chmod 0660 /dev/CAM_CAL_DRV
@@ -647,14 +648,14 @@ on post-fs-data
     chown system camera /dev/kd_camera_flashlight
     chown system camera /dev/kd_camera_hw_bus2
     chown system camera /dev/FM50AF
-    chown system camera /dev/A5142AF    
+    chown system camera /dev/A5142AF
     chown system camera /dev/AR0833AF
-    chown system camera /dev/OV5647AF      
+    chown system camera /dev/OV5647AF
     chown system camera /dev/OV8825AF
-    chown system camera /dev/OV12830AF      
+    chown system camera /dev/OV12830AF
     chown system camera /dev/IMX111AF
-    chown system camera /dev/IMX135AF      
-    
+    chown system camera /dev/IMX135AF
+
     chown system camera /dev/CAM_CAL_DRV
 
 
@@ -770,14 +771,27 @@ on boot
     # Hotplug
     mkdir /data/data/hotplug
     write /data/data/hotplug/cmd 0
-    chown root system /data/data/hotplug
-    chown root system /data/data/hotplug/cmd
-    chmod 0666 /data/data/hotplug
-    chmod 0666 /data/data/hotplug/cmd
+    chown system system /data/data/hotplug
+    chown system system /data/data/hotplug/cmd
+    chmod 0660 /data/data/hotplug
+    chmod 0660 /data/data/hotplug/cmd
+    chown system system /sys/devices/system/cpu/cpufreq/hotplug/cpu_boostpulse_duration
+    chmod 0660 /sys/devices/system/cpu/cpufreq/hotplug/cpu_boostpulse_duration
+
+    chown system system /sys/devices/system/cpu/cpufreq/hotplug/cpu_boost_num_base
+    chmod 0660 /sys/devices/system/cpu/cpufreq/hotplug/cpu_boost_num_base
+
+    chown system system /sys/devices/system/cpu/cpufreq/hotplug/boostpulse
 
     # Assume SMP uses shared cpufreq policy for all CPUs
     chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
     chmod 0660 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+
+    chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+    chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+    chown system system /sys/devices/system/cpu/cpu1/online
+    chown system system /sys/devices/system/cpu/cpu2/online
+    chown system system /sys/devices/system/cpu/cpu3/online
 
     chmod 0664 /sys/class/leds/lcd-backlight/brightness
     chown system system /sys/class/timed_output/vibrator/enable
@@ -864,10 +878,10 @@ on boot
     chown root radio /proc/net/netfilter/nfnetlink_queue
 
 #Define device for ATCID
-    chmod 660 /dev/ttyGS0 
-    chown system /dev/ttyGS0 
-    chmod 660 /dev/ttyGS1 
-    chown system /dev/ttyGS1 
+    chmod 660 /dev/ttyGS0
+    chown system /dev/ttyGS0
+    chmod 660 /dev/ttyGS1
+    chown system /dev/ttyGS1
 # Define TCP buffer sizes for various networks
 #   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
     setprop net.tcp.buffersize.default 4096,87380,110208,4096,16384,110208
@@ -913,7 +927,7 @@ on property:vold.decrypt=trigger_restart_min_framework
 
 on property:vold.decrypt=trigger_restart_framework
     write /sys/power/state on
-    write /sys/class/leds/lcd-backlight/brightness  120 
+    write /sys/class/leds/lcd-backlight/brightness  120
     start msensord
     start permission_check
     class_start main
@@ -997,14 +1011,14 @@ service drvbd /system/bin/drvbd
 service debuggerd /system/bin/debuggerd
     class main
 
-service mobile_log_d /system/bin/mobile_log_d
-    class main
+#service mobile_log_d /system/bin/mobile_log_d
+#    class main
 
 # bugreport is triggered by ctl.start bugreport
-service bugreport /system/bin/bugmailer.sh -v
-	class main
-	disabled
-	oneshot
+#service bugreport /system/bin/bugmailer.sh -v
+#	class main
+#	disabled
+#	oneshot
 
 # SGX init
 service pvrsrvctl /system/vendor/bin/pvrsrvctl --no-module --start
@@ -1051,12 +1065,12 @@ service nvram_daemon /system/bin/nvram_daemon
     group nvram system
     oneshot
 
-service atci_service /system/bin/atci_service 
-	socket atci-service stream 660 radio system 
-	socket atci-serv-fw stream 660 radio system 
-	user root 
+service atci_service /system/bin/atci_service
+	socket atci-service stream 660 radio system
+	socket atci-serv-fw stream 660 radio system
+	user root
 	disabled
-	group radio system                         
+	group radio system
 
 service atcid-daemon-u /system/bin/atcid
 	socket adb_atci_socket stream 660 radio system
@@ -1120,7 +1134,7 @@ service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-sys
 #    user system
 #    group system radio mount wifi inet net_admin
 
-# monitor property and power on/off wlan 
+# monitor property and power on/off wlan
 on property:wlan.driver.status=ok
     write /dev/wmtWifi "1"
 
@@ -1176,8 +1190,8 @@ service dhcpcd_bt-pan /system/bin/logwrapper /system/bin/dhcpcd -BK -dd
     disabled
     oneshot
 
-    
-    
+
+
 service dhcpcd_wlan0 /system/bin/logwrapper /system/bin/dhcpcd -BK -dd
     class main
     user dhcp
@@ -1230,8 +1244,8 @@ service pppoe_wlan0 /system/bin/launchpppoe
     disabled
     oneshot
 
-on property:service.pppoe_wlan0.enable=0    
-    stop pppoe_wlan0    
+on property:service.pppoe_wlan0.enable=0
+    stop pppoe_wlan0
 
 on property:service.pppoe_wlan0.enable=1
     start pppoe_wlan0
@@ -1320,7 +1334,7 @@ service dpfd /system/bin/dpfd
 service emd_daemon /system/bin/emd_daemon
     user root
     oneshot
-    
+
 # sysinit (/system/etc/init.d)
 service sysinit /system/bin/sysinit
     user root
@@ -1521,7 +1535,7 @@ service thermal_manager /system/bin/thermal_manager
 service thermal /system/bin/thermal
     user system
     group system
-    
+
 service thermald /system/bin/thermald
     user system
     group system
