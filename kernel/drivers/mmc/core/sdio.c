@@ -527,9 +527,6 @@ static int sdio_set_bus_speed_mode(struct mmc_card *card)
 	if (bus_speed) {
 		mmc_set_timing(card->host, timing);
 		mmc_set_clock(card->host, card->sw_caps.uhs_max_dtr);
-		//Before Auto-K of MT6290m is turn-on, 
-		//use 100M for safety when connect to MT6290m SDIO 3.0 device 
-		//mmc_set_clock(card->host, 100*1000*1000);
 	}
 
 	return 0;

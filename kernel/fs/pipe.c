@@ -576,11 +576,7 @@ redo1:
 			size_t remaining;
 
 			if (!page) {
-				#ifndef CONFIG_MTK_PAGERECORDER
-					page = alloc_page(GFP_HIGHUSER & ~__GFP_HIGHMEM);
-				#else
-					page = alloc_page_nopagedebug(GFP_HIGHUSER & ~__GFP_HIGHMEM);
-				#endif
+				page = alloc_page(GFP_HIGHUSER & ~__GFP_HIGHMEM);
 				if (unlikely(!page)) {
 					ret = ret ? : -ENOMEM;
 					break;

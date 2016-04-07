@@ -6,9 +6,14 @@
 #include <mach/mt_gpio.h>
 #include <mach/mt_pm_ldo.h>
 
+#define CUST_VIBR_LIMIT
 /*----------------------------------------------------------------------------*/
 struct vibrator_hw {
 	int	vib_timer;
+#ifdef CUST_VIBR_LIMIT
+	int	vib_limit;
+#endif
+
 };
 /*----------------------------------------------------------------------------*/
 extern struct vibrator_hw *get_cust_vibrator_hw(void);

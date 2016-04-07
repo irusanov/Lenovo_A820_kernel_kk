@@ -3102,9 +3102,11 @@ static long do_unlinkat(int dfd, const char __user *pathname)
 	struct dentry *dentry;
 	struct nameidata nd;
 	struct inode *inode = NULL;
+
 	error = user_path_parent(dfd, pathname, &nd, &name);
 	if (error)
 		return error;
+
 	error = -EISDIR;
 	if (nd.last_type != LAST_NORM)
 		goto exit1;

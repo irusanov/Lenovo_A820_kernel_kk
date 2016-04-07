@@ -17,9 +17,9 @@
 								\
 	tmp = kmalloc(sizeof(format) + max_alloc, GFP_ATOMIC);	\
 	if (likely(tmp)) {					\
-	sprintf(tmp, format, param);				\
-	strcat(str, tmp);					\
-	kfree(tmp);						\
+		sprintf(tmp, format, param);			\
+		strcat(str, tmp);				\
+		kfree(tmp);					\
 	} else {						\
 		strcat(str, "kmalloc failure in SPRINTFCAT");	\
 	}							\

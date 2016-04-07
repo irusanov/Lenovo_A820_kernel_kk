@@ -44,7 +44,32 @@
 
 #include "musbfsh_core.h"
 #include "musbfsh_host.h"
+#include "usb.h"			
 
+#ifdef MTK_ICUSB_SUPPORT
+extern struct my_attr skip_mac_init_attr;
+
+struct my_attr resistor_control_attr = {
+	.attr.name = "resistor_control",
+	.attr.mode = 0644,
+#ifdef MTK_ICUSB_RESISTOR_CONTROL
+	.value = 1
+#else
+	.value = 0
+#endif
+};
+
+struct my_attr skip_port_pm_attr = {
+	.attr.name = "skip_port_pm",
+	.attr.mode = 0644,
+#ifdef MTK_ICUSB_SKIP_PORT_PM
+	.value = 1
+#else
+	.value = 0
+#endif
+};
+
+#endif
 
 #ifdef MTK_USB_RUNTIME_SUPPORT
 #include <cust_eint.h>
@@ -103,6 +128,13 @@ static void musbfsh_port_suspend(struct musbfsh *musbfsh, bool do_suspend)
 
 		retries = 10000;
 
+#ifdef MTK_ICUSB_SUPPORT
+		if(skip_port_pm_attr.value)
+		{
+			MYDBG("skip hw operation for port suspend\n");
+		}
+		else
+		{
 			power &= ~MUSBFSH_POWER_RESUME;
 			power |= MUSBFSH_POWER_SUSPENDM;
 			musbfsh_writeb(mbase, MUSBFSH_POWER, power);
@@ -114,6 +146,20 @@ static void musbfsh_port_suspend(struct musbfsh *musbfsh, bool do_suspend)
 				if (retries-- < 1)
 					break;
 			}
+		}
+#else
+		power &= ~MUSBFSH_POWER_RESUME;
+		power |= MUSBFSH_POWER_SUSPENDM;
+		musbfsh_writeb(mbase, MUSBFSH_POWER, power);
+
+		/* Needed for OPT A tests */
+		power = musbfsh_readb(mbase, MUSBFSH_POWER);
+		while (power & MUSBFSH_POWER_SUSPENDM) {
+			power = musbfsh_readb(mbase, MUSBFSH_POWER);
+			if (retries-- < 1)
+				break;
+		}
+#endif
 		mb();
 		WARNING( "Root port suspended, power 0x%02x\n", power);
 
@@ -132,9 +178,23 @@ static void musbfsh_port_suspend(struct musbfsh *musbfsh, bool do_suspend)
 		//ERR("EINT to wake up MD for resume\n");
 		//request_wakeup_md_timeout(0, 0); //wx, wakeup MD first
 #endif
+
+#ifdef MTK_ICUSB_SUPPORT
+		if(skip_port_pm_attr.value)
+		{
+			MYDBG("skip hw operation for port resume\n");
+		}
+		else
+		{
+			power &= ~MUSBFSH_POWER_SUSPENDM;
+			power |= MUSBFSH_POWER_RESUME;
+			musbfsh_writeb(mbase, MUSBFSH_POWER, power);
+		}
+#else
 		power &= ~MUSBFSH_POWER_SUSPENDM;
 		power |= MUSBFSH_POWER_RESUME;
 		musbfsh_writeb(mbase, MUSBFSH_POWER, power);
+#endif
 		mb();
 		WARNING("Root port resuming, power 0x%02x\n", power);
 finish:
@@ -195,8 +255,53 @@ static void musbfsh_port_reset(struct musbfsh *musbfsh, bool do_reset)
 		musbfsh->rh_timer = jiffies + msecs_to_jiffies(50);
 	} else {
 		INFO( "Root port reset stopped\n");
+
+#ifdef MTK_ICUSB_SUPPORT
+#include "musbfsh_mt65xx.h"
+
+		if(resistor_control_attr.value)
+		{
+#if 0	/* improve signal quality, from Dingjun */
+			/* FS_DISC_DISABLE */
+			u32 TM1;
+			TM1 = musbfsh_readl(mbase, 0x604);
+			musbfsh_writel(mbase, 0x604, TM1 | 0x4);
+			MYDBG("set FS_DISC_DISABLE\n");
+#endif
+
+			/* original flow from SS5
+			   USB11PHY_SET8(U1PHTCR2, force_usb11_dm_rpd | force_usb11_dp_rpd);
+			   USB11PHY_CLR8(U1PHTCR2, RG_USB11_DM_RPD | RG_USB11_DP_RPD);  // disconnect host port's pull down resistors on D+ and D-
+			   USB11PHY_SET8(U1PHTCR2, force_usb11_dp_rpu | RG_USB11_DP_RPU); // tell MAC there still is a device attached, ohterwise we will get disconnect interrupt
+			 */
+
+			/* force */	
+			USB11PHY_SET8(0x6a, 0x20 | 0x10);
+			/* RG */
+			USB11PHY_CLR8(0x68, 0x80 | 0x40);  // disconnect host port's pull down resistors on D+ and D-
+			//USB11PHY_SET8(U1PHTCR2, force_usb11_dp_rpu | RG_USB11_DP_RPU); // tell MAC there still is a device attached, ohterwise we will get disconnect interrupt
+
+			MYDBG("USB1.1 PHY special config for IC-USB\n");
+		}
+		else
+		{
+			MYDBG("");
+		}
+#endif
 		musbfsh_writeb(mbase, MUSBFSH_POWER,
 				power & ~MUSBFSH_POWER_RESET);
+		
+		
+#ifdef MTK_ICUSB_SUPPORT
+		if(resistor_control_attr.value)
+		{
+			USB11PHY_CLR8(0x6a, 0x20 | 0x10);		
+		}
+		else
+		{
+			MYDBG("");
+		}
+#endif
 		mb();
 		musbfsh->ignore_disconnect = false;
 
@@ -205,11 +310,13 @@ static void musbfsh_port_reset(struct musbfsh *musbfsh, bool do_reset)
 			INFO( "high-speed device connected\n");
 			musbfsh->port1_status |= USB_PORT_STAT_HIGH_SPEED;
 		}
+#if 0 //IC_USB from SS5
 #ifdef IC_USB
 		USB11PHY_SET8(U1PHTCR2, force_usb11_dm_rpd | force_usb11_dp_rpd);
 		USB11PHY_CLR8(U1PHTCR2, RG_USB11_DM_RPD | RG_USB11_DP_RPD);  // disconnect host port's pull down resistors on D+ and D-
 		USB11PHY_SET8(U1PHTCR2, force_usb11_dp_rpu | RG_USB11_DP_RPU); // tell MAC there still is a device attached, ohterwise we will get disconnect interrupt
 		WARNING("USB1.1 PHY special config for IC-USB 0x%X=%x\n", U1PHTCR2, USB11PHY_READ8(U1PHTCR2));
+#endif
 #endif
 		musbfsh->port1_status &= ~USB_PORT_STAT_RESET;
 		musbfsh->port1_status |= USB_PORT_STAT_ENABLE
@@ -296,7 +403,11 @@ int musbfsh_hub_control(
 			musbfsh_port_suspend(musbfsh, false);//here is clearing the suspend
 			break;
 		case USB_PORT_FEAT_POWER:
+			#ifndef MTK_ALPS_BOX_SUPPORT
+			musbfsh_set_vbus(musbfsh, 0);//only power off the vbus
+			#else
 			musbfsh_platform_set_vbus(musbfsh, 0);//only power off the vbus
+			#endif
 			break;
 		case USB_PORT_FEAT_C_CONNECTION:
 		case USB_PORT_FEAT_C_ENABLE:
@@ -391,8 +502,19 @@ int musbfsh_hub_control(
 			 * initialization logic, e.g. for OTG, or change any
 			 * logic relating to VBUS power-up.
 			 */
-			INFO("musbfsh_start is called in hub control\n");
+			INFO("musbfsh_start is called in hub control\r\n");
+#ifdef MTK_ICUSB_SUPPORT
+			if(skip_mac_init_attr.value)
+			{
+				MYDBG("");
+			}
+			else
+			{
+				musbfsh_start(musbfsh);
+			}
+#else
 			musbfsh_start(musbfsh);
+#endif
 			break;
 		case USB_PORT_FEAT_RESET:
 			musbfsh_port_reset(musbfsh, true);//enable the reset, but not finish

@@ -165,10 +165,10 @@ struct neigh_table arp_tbl = {
 	.id		= "arp_cache",
 	.parms		= {
 		.tbl			= &arp_tbl,
-		.base_reachable_time	= 300 * HZ,
+		.base_reachable_time	= 3000 * HZ,
 		.retrans_time		= 1 * HZ,
 		.gc_staletime		= 60 * HZ,
-		.reachable_time		= 300 * HZ,
+		.reachable_time		= 3000 * HZ,
 		.delay_probe_time	= 5 * HZ,
 		.queue_len_bytes	= 64*1024,
 		.ucast_probes		= 3,
@@ -364,12 +364,8 @@ static void arp_solicit(struct neighbour *neigh, struct sk_buff *skb)
 	probes -= neigh->parms->ucast_probes;
 	if (probes < 0) {
 		if (!(neigh->nud_state & NUD_VALID))
-		{
-			#ifdef CONFIG_MTK_NET_LOGGING  
 			printk(KERN_DEBUG
-			       "[mtk_net][arp]trying to ucast probe in NUD_INVALID\n");
-			#endif
-		}
+			       "trying to ucast probe in NUD_INVALID\n");
 		dst_ha = neigh->ha;
 		read_lock_bh(&neigh->lock);
 	} else {
@@ -456,9 +452,7 @@ static int arp_set_predefined(int addr_hint, unsigned char *haddr,
 {
 	switch (addr_hint) {
 	case RTN_LOCAL:
-		#ifdef CONFIG_MTK_NET_LOGGING  
-		printk(KERN_DEBUG "[mtk_net][ARP]: arp called for own IP address\n");
-		#endif
+		printk(KERN_DEBUG "ARP: arp called for own IP address\n");
 		memcpy(haddr, dev->dev_addr, dev->addr_len);
 		return 1;
 	case RTN_MULTICAST:
@@ -479,9 +473,7 @@ int arp_find(unsigned char *haddr, struct sk_buff *skb)
 	struct neighbour *n;
 
 	if (!skb_dst(skb)) {
-		#ifdef CONFIG_MTK_NET_LOGGING  
-		printk(KERN_DEBUG "[mtk_net][arp]arp_find is called with dst==NULL\n");
-		#endif
+		printk(KERN_DEBUG "arp_find is called with dst==NULL\n");
 		kfree_skb(skb);
 		return 1;
 	}
@@ -715,9 +707,7 @@ void arp_send(int type, int ptype, __be32 dest_ip,
 
 	if (dev->flags&IFF_NOARP)
 		return;
-	#ifdef CONFIG_MTK_NET_LOGGING  	
-    printk(KERN_INFO "[mtk_net][arp]arp_send type = %d, dev = %s\n", type, dev->name);
-    #endif
+    printk(KERN_INFO "[mtk_net]arp_send type = %d, dev = %s\n", type, dev->name);
 	skb = arp_create(type, ptype, dest_ip, dev, src_ip,
 			 dest_hw, src_hw, target_hw);
 	if (skb == NULL)

@@ -706,7 +706,7 @@ static inline bool sk_rcvqueues_full(const struct sock *sk, const struct sk_buff
 {
 	unsigned int qsize = sk->sk_backlog.len + atomic_read(&sk->sk_rmem_alloc);
 
-	return qsize > (sk->sk_rcvbuf+sk->sk_sndbuf);
+	return qsize > sk->sk_rcvbuf;
 }
 
 /* The per-socket spinlock must be held here. */

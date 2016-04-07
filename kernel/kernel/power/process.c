@@ -75,7 +75,7 @@ static int try_to_freeze_tasks(bool user_only)
 			todo += wq_busy;
 		}
 
-        if (!todo || time_after(jiffies, end_time))
+		if (!todo || time_after(jiffies, end_time))
 			break;
 
 		if (pm_wakeup_pending()) {
@@ -105,7 +105,7 @@ static int try_to_freeze_tasks(bool user_only)
 		       wakeup ? "aborted" : "failed",
 		       elapsed_msecs / 1000, elapsed_msecs % 1000,
 		       todo - wq_busy, wq_busy);
-		
+
 		if (!wakeup) {
 			read_lock(&tasklist_lock);
 			do_each_thread(g, p) {

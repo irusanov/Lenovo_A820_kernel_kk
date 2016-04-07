@@ -5,8 +5,9 @@
 
 /* SENSOR FULL SIZE */
 #ifndef __SENSOR_H
-#define __SENSOR_H   
+#define __SENSOR_H
 
+#define ZSD15FPS
 
 typedef enum group_enum {
     PRE_GAIN=0,
@@ -54,14 +55,14 @@ typedef struct
 {
 	kal_uint32 DummyPixels;
 	kal_uint32 DummyLines;
-	
+
 	kal_uint32 pvShutter;
 	kal_uint32 pvGain;
-	
+
 	kal_uint32 pvPclk;  // x10 480 for 48MHZ
 	kal_uint32 videoPclk;
 	kal_uint32 capPclk; // x10
-	
+
 	kal_uint32 shutter;
 	kal_uint32 maxExposureLines;
 
@@ -75,39 +76,39 @@ typedef struct
 
 	kal_bool OV8825AutoFlickerMode;
 	kal_bool OV8825VideoMode;
-	
+
 }OV8825_PARA_STRUCT,*POV8825_PARA_STRUCT;
 
 
-	#define OV8825_IMAGE_SENSOR_FULL_WIDTH					(3264-64)	
+	#define OV8825_IMAGE_SENSOR_FULL_WIDTH					(3264-64)
 	#define OV8825_IMAGE_SENSOR_FULL_HEIGHT					(2448-48)
 
 	/* SENSOR PV SIZE */
 	#define OV8825_IMAGE_SENSOR_PV_WIDTH					(1632-32)
 	#define OV8825_IMAGE_SENSOR_PV_HEIGHT					(1224-24)
 
-	#define OV8825_IMAGE_SENSOR_VIDEO_WIDTH					(3264-64)
-	#define OV8825_IMAGE_SENSOR_VIDEO_HEIGHT				(1836-48)
-	
+	#define OV8825_IMAGE_SENSOR_VIDEO_WIDTH					(2160-40)
+	#define OV8825_IMAGE_SENSOR_VIDEO_HEIGHT				(1620-30)
+
 
 	/* SENSOR SCALER FACTOR */
 	#define OV8825_PV_SCALER_FACTOR					    	3
 	#define OV8825_FULL_SCALER_FACTOR					    1
-	                                        	
-	/* SENSOR START/EDE POSITION */         	
+
+	/* SENSOR START/EDE POSITION */
 	#define OV8825_FULL_X_START						    		(2)
-	#define OV8825_FULL_Y_START						    		(8)
-	#define OV8825_FULL_X_END						        	(3264) 
-	#define OV8825_FULL_Y_END						        	(2448) 
+	#define OV8825_FULL_Y_START						    		(2)
+	#define OV8825_FULL_X_END						        	(3264+200)
+	#define OV8825_FULL_Y_END						        	(2448)
 	#define OV8825_PV_X_START						    		(2)
 	#define OV8825_PV_Y_START						    		(2)
-	#define OV8825_PV_X_END						    			(1632) 
-	#define OV8825_PV_Y_END						    			(1224) 
-	
+	#define OV8825_PV_X_END						    			(1632)
+	#define OV8825_PV_Y_END						    			(1224)
+
 	#define OV8825_VIDEO_X_START								(2)
 	#define OV8825_VIDEO_Y_START								(2)
-	#define OV8825_VIDEO_X_END 									(3264) 
-	#define OV8825_VIDEO_Y_END 									(1836) 
+	#define OV8825_VIDEO_X_END 									(2160)
+	#define OV8825_VIDEO_Y_END 									(1620)
 
 	#define OV8825_MAX_ANALOG_GAIN					(16)
 	#define OV8825_MIN_ANALOG_GAIN					(1)
@@ -118,19 +119,24 @@ typedef struct
 	//#define OV8825_DIGITAL_GAIN_1X					(0x0100)
 
 	/* SENSOR PIXEL/LINE NUMBERS IN ONE PERIOD */
-	#define OV8825_FULL_PERIOD_PIXEL_NUMS					0x0E30  //3632
-	#define OV8825_FULL_PERIOD_LINE_NUMS					0x9F0	//2544
-	
+	#define OV8825_FULL_PERIOD_PIXEL_NUMS					(0x16C0+200) //5824+200 //mt6589 add dummy pixel 200 for line_start/end
+	#if defined(ZSD15FPS)
+	#define OV8825_FULL_PERIOD_LINE_NUMS					0x9B0	//2480
+	#else
+	//Add dummy lines for 13fps
+	#define OV8825_FULL_PERIOD_LINE_NUMS					0xB78	//2936
+	#endif
+
 	#define OV8825_PV_PERIOD_PIXEL_NUMS					0x0DBC  //3516
 	#define OV8825_PV_PERIOD_LINE_NUMS					0x51E	//1310
 
-	#define OV8825_VIDEO_PERIOD_PIXEL_NUMS 				0x0E30	//3632
-	#define OV8825_VIDEO_PERIOD_LINE_NUMS				0x07C0	//1984
-	
+	#define OV8825_VIDEO_PERIOD_PIXEL_NUMS 				0x0F30	//3888
+	#define OV8825_VIDEO_PERIOD_LINE_NUMS				0x0740	//1856
+
 
 	#define OV8825_MIN_LINE_LENGTH						0x0AA4  //2724
 	#define OV8825_MIN_FRAME_LENGTH						0x0214  //532
-	
+
 	#define OV8825_MAX_LINE_LENGTH						0xCCCC
 	#define OV8825_MAX_FRAME_LENGTH						0xFFFF
 

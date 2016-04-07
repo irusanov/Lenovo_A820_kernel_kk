@@ -415,14 +415,14 @@ retry:
 
 	switch (dtype) {
 	case UBI_LONGTERM:
-	/*
+		/*
 		 * For long term data we pick a physical eraseblock with high
 		 * erase counter. But the highest erase counter we can pick is
 		 * bounded by the the lowest erase counter plus
 		 * %WL_FREE_MAX_DIFF.
-	 */
+		 */
 		e = find_wl_entry(&ubi->free, WL_FREE_MAX_DIFF);
-			break;
+		break;
 	case UBI_UNKNOWN:
 		/*
 		 * For unknown data we pick a physical eraseblock with medium
@@ -439,12 +439,12 @@ retry:
 					struct ubi_wl_entry, u.rb);
 		else
 			e = find_wl_entry(&ubi->free, WL_FREE_MAX_DIFF/2);
-			break;
+		break;
 	case UBI_SHORTTERM:
 		/*
 		 * For short term data we pick a physical eraseblock with the
 		 * lowest erase counter as we expect it will be erased soon.
- */
+		 */
 		e = rb_entry(rb_first(&ubi->free), struct ubi_wl_entry, u.rb);
 		break;
 	default:
@@ -456,14 +456,14 @@ retry:
 	/*
 	 * Move the physical eraseblock to the protection queue where it will
 	 * be protected from being moved for some time.
- */
+	 */
 	rb_erase(&e->u.rb, &ubi->free);
 	dbg_wl("PEB %d EC %d", e->pnum, e->ec);
 	prot_queue_add(ubi, e);
 	spin_unlock(&ubi->wl_lock);
 
 	err = ubi_dbg_check_all_ff(ubi, e->pnum, ubi->vid_hdr_aloffset,
-				    ubi->peb_size - ubi->vid_hdr_aloffset);
+				   ubi->peb_size - ubi->vid_hdr_aloffset);
 	if (err) {
 		ubi_err("new PEB %d does not contain all 0xFF bytes", e->pnum);
 		return err;
@@ -901,10 +901,10 @@ out_not_moved:
 
 	ubi_free_vid_hdr(ubi, vid_hdr);
 	err = schedule_erase(ubi, e2, torture);
-		if (err) {
-			kmem_cache_free(ubi_wl_entry_slab, e2);
-			goto out_ro;
-		}
+	if (err) {
+		kmem_cache_free(ubi_wl_entry_slab, e2);
+		goto out_ro;
+	}
 	mutex_unlock(&ubi->move_mutex);
 	return 0;
 
@@ -992,7 +992,7 @@ static int ensure_wear_leveling(struct ubi_device *ubi)
 	}
 
 	wrk->func = &wear_leveling_worker;
-		schedule_ubi_work(ubi, wrk);
+	schedule_ubi_work(ubi, wrk);
 	return err;
 
 out_cancel:
@@ -1464,7 +1464,7 @@ int ubi_wl_init_scan(struct ubi_device *ubi, struct ubi_scan_info *si)
 		e->pnum = seb->pnum;
 		e->ec = seb->ec;
 		ubi->lookuptbl[e->pnum] = e;
-		if(schedule_erase(ubi, e, 0)) {
+		if (schedule_erase(ubi, e, 0)) {
 			kmem_cache_free(ubi_wl_entry_slab, e);
 			goto out_free;
 		}

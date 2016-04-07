@@ -884,7 +884,7 @@ static void crypt_free_buffer_pages(struct crypt_config *cc, struct bio *clone)
 {
 	unsigned int i;
 	struct bio_vec *bv;
-	
+
 	for (i = 0; i < clone->bi_vcnt; i++) {
 		bv = bio_iovec_idx(clone, i);
 		BUG_ON(!bv->bv_page);
@@ -1230,7 +1230,7 @@ done:
 static void kcryptd_crypt(struct work_struct *work)
 {
 	struct dm_crypt_io *io = container_of(work, struct dm_crypt_io, work);
-	
+
 	if (bio_data_dir(io->base_bio) == READ)
 		kcryptd_crypt_read_convert(io);
 	else
@@ -1243,7 +1243,7 @@ static void kcryptd_queue_crypt(struct dm_crypt_io *io)
 
 	INIT_WORK(&io->work, kcryptd_crypt);
 	
-	//MTK, ALPS00412047. In this kernel version, if there is a work using percpu variable, hotplug caue process migration, percpu variable
+	//MTK, ALPS00412047. In this kernel version, if there is a work using percpu variable, hotplug causes process migration, percpu variable
 	//can not be protected well during process migration. Since cpu0 can not be unplug, so encrption work bind with cpu0
 	//queue_work(cc->crypt_queue, &io->work);
 	queue_work_on(0, cc->crypt_queue, &io->work);

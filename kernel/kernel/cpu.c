@@ -694,7 +694,7 @@ void set_cpu_online(unsigned int cpu, bool online)
 		cpumask_set_cpu(cpu, to_cpumask(cpu_active_bits));
 	} else {
 		cpumask_clear_cpu(cpu, to_cpumask(cpu_online_bits));
-}
+	}
 }
 
 void set_cpu_active(unsigned int cpu, bool active)

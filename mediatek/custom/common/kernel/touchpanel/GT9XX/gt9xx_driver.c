@@ -10,11 +10,6 @@
 #include <linux/sensors_io.h>
 #endif
 
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-#include <linux/input/sweep2wake.h>
-#include <linux/alsps_sensor.h>
-#endif
-
 #include <linux/mmprofile.h>
 #include <linux/device.h>
 #include <linux/proc_fs.h>  /*proc*/
@@ -1323,16 +1318,6 @@ static void tpd_down(s32 x, s32 y, s32 size, s32 id)
     input_mt_sync(tpd->dev);
     TPD_DEBUG_SET_TIME;
     TPD_EM_PRINT(x, y, x, y, id, 1);
-
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-    // printk("[SWEEP2WAKE]: tpd down\n");
-    /* Check for sweep2wake only when not in pocket */
-    if (sweep2wake && ((pocket_detection_check() == 1) || pocket_detect == 0)) {
-    	printk("[SWEEP2WAKE]: detecting sweep\n");
-    	detect_sweep2wake(x, y, jiffies, size);
-    }
-#endif
-
     tpd_history_x=x;
     tpd_history_y=y;
 
@@ -1354,27 +1339,7 @@ static void tpd_up(s32 x, s32 y, s32 id)
     //input_report_abs(tpd->dev, ABS_MT_TOUCH_MAJOR, 0);
     input_mt_sync(tpd->dev);
     TPD_DEBUG_SET_TIME;
-    TPD_EM_PRINT(tpd_history_x, tpd_history_y, tpd_history_x, tpd_history_y, id, 0);
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	s2w_st_flag = 0;
-	if (sweep2wake > 0) {
-		//printk("[SWEEP2WAKE]:line : %d | func : %s\n", __LINE__, __func__);
-		//printk("[SWEEP2WAKE]:line : %d | func : %s\n", __LINE__, __func__);
-		exec_count = true;
-		barrier[0] = false;
-		barrier[1] = false;
-		scr_on_touch = false;
-		tripoff = 0;
-		tripon = 0;
-		triptime = 0;
-	}
-	/* Check for doubletap2wake only when not in pocket */
-	if (doubletap2wake && scr_suspended && ((pocket_detection_check() == 1) || pocket_detect == 0)) {
-		printk("[SWEEP2WAKE]: detecting d2w\n");
-		doubletap2wake_func(tpd_history_x, tpd_history_y, jiffies);
-	}
-#endif
-
+    TPD_EM_PRINT(tpd_history_x, tpd_history_y, tpd_history_x, tpd_history_y, id, 0);    
     tpd_history_x=0;
     tpd_history_y=0;
     MMProfileLogEx(MMP_TouchPanelEvent, MMProfileFlagPulse, 0, x+y);
@@ -1415,10 +1380,6 @@ static int touch_event_handler(void *unused)
     s32 temp;
 #endif
 
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	
-	if ((pocket_detection_check() == 1) || pocket_detect == 0) {
-#endif
     sched_setscheduler(current, SCHED_RR, &param);
 
     do
@@ -1456,9 +1417,9 @@ static int touch_event_handler(void *unused)
 
         if ((finger & 0x80) == 0)
         {
-			mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
-			mutex_unlock(&i2c_access);
-			
+	    	mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
+            mutex_unlock(&i2c_access);
+	    	GTP_ERROR("buffer not ready");
             continue;
         }
 
@@ -1601,10 +1562,6 @@ exit_work_func:
 
     }
     while (!kthread_should_stop());
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	/* Do nothing if in pocket */
-	}
-#endif
 
     return 0;
 }
@@ -1771,11 +1728,6 @@ static s8 gtp_wakeup_sleep(struct i2c_client *client)
 /* Function to manage low power suspend */
 static void tpd_suspend(struct early_suspend *h)
 {
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	printk("[SWEEP2WAKE]: suspend\n");
-	scr_suspended = true;
-	if (sweep2wake == 0 && doubletap2wake == 0) {
-#endif
     s32 ret = -1;
     mutex_lock(&i2c_access);
     mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
@@ -1787,14 +1739,6 @@ static void tpd_suspend(struct early_suspend *h)
     {
         GTP_ERROR("GTP early suspend failed.");
     }
-
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	} else if (sweep2wake > 0 || doubletap2wake > 0) {
-		mutex_lock(&i2c_access);
-		mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
-		mutex_unlock(&i2c_access);
-	}
-#endif
 
 #if GTP_ESD_PROTECT
     cancel_delayed_work_sync(&gtp_esd_check_work);
@@ -1816,13 +1760,6 @@ static void tpd_suspend(struct early_suspend *h)
 /* Function to manage power-on resume */
 static void tpd_resume(struct early_suspend *h)
 {
-
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	printk("[SWEEP2WAKE]: resume\n");
-	scr_suspended = false;
-	if (sweep2wake == 0 && doubletap2wake == 0) {
-#endif
-
     s32 ret = -1;
 
     ret = gtp_wakeup_sleep(i2c_client_point);
@@ -1838,14 +1775,6 @@ static void tpd_resume(struct early_suspend *h)
     tpd_halt = 0;
     mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);	
     mutex_unlock(&i2c_access);
-
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	} else if (sweep2wake > 0 || doubletap2wake > 0) {
-		mutex_lock(&i2c_access);
-		mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
-		mutex_unlock(&i2c_access);
-	}
-#endif
 	
 #ifdef TPD_PROXIMITY
     if (tpd_proximity_flag == 1)
@@ -1951,3 +1880,4 @@ static void __exit tpd_driver_exit(void)
 
 module_init(tpd_driver_init);
 module_exit(tpd_driver_exit);
+

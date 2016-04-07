@@ -1017,8 +1017,8 @@ static int process_eb(struct ubi_device *ubi, struct ubi_scan_info *si,
 		/* Unsupported internal volume */
 		switch (vidh->compat) {
 		case UBI_COMPAT_DELETE:
-				ubi_msg("\"delete\" compatible internal volume %d:%d"
-					" found, will remove it", vol_id, lnum);
+			ubi_msg("\"delete\" compatible internal volume %d:%d"
+				" found, will remove it", vol_id, lnum);
 			err = add_to_list(si, pnum, ec, 1, &si->erase);
 			if (err)
 				return err;
@@ -1266,10 +1266,10 @@ static void destroy_sv(struct ubi_scan_info *si, struct ubi_scan_volume *sv)
 					this->rb_left = NULL;
 				else
 					this->rb_right = NULL;
-	}
+			}
 
 			kmem_cache_free(si->scan_leb_slab, seb);
-}
+		}
 	}
 	kfree(sv);
 }
@@ -1291,11 +1291,11 @@ void ubi_scan_destroy_si(struct ubi_scan_info *si)
 	list_for_each_entry_safe(seb, seb_tmp, &si->erase, u.list) {
 		list_del(&seb->u.list);
 		kmem_cache_free(si->scan_leb_slab, seb);
-			}
+	}
 	list_for_each_entry_safe(seb, seb_tmp, &si->corr, u.list) {
 		list_del(&seb->u.list);
 		kmem_cache_free(si->scan_leb_slab, seb);
-		}
+	}
 	list_for_each_entry_safe(seb, seb_tmp, &si->free, u.list) {
 		list_del(&seb->u.list);
 		kmem_cache_free(si->scan_leb_slab, seb);
@@ -1317,7 +1317,7 @@ void ubi_scan_destroy_si(struct ubi_scan_info *si)
 					rb->rb_left = NULL;
 				else
 					rb->rb_right = NULL;
-		}
+			}
 
 			destroy_sv(si, sv);
 		}

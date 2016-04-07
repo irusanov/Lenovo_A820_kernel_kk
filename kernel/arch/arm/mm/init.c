@@ -32,6 +32,7 @@
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
+#include <mach/mtk_memcfg.h>
 
 #include "mm.h"
 
@@ -318,7 +319,7 @@ phys_addr_t __init arm_memblock_steal(phys_addr_t size, phys_addr_t align)
 
 	BUG_ON(!arm_memblock_steal_permitted);
 
-	phys = memblock_alloc(size, align);
+	phys = memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ANYWHERE);
 	memblock_free(phys, size);
 	memblock_remove(phys, size);
 

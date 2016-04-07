@@ -295,7 +295,7 @@ int vmbus_post_msg(void *buffer, size_t buflen)
 	 * times before giving up.
 	 */
 	while (retries < 10) {
-		ret =  hv_post_message(conn_id, 1, buffer, buflen);
+		ret = hv_post_message(conn_id, 1, buffer, buflen);
 
 		switch (ret) {
 		case HV_STATUS_INSUFFICIENT_BUFFERS:

@@ -223,12 +223,7 @@ void *__kmalloc(size_t size, gfp_t flags);
 static __always_inline void *
 kmalloc_order(size_t size, gfp_t flags, unsigned int order)
 {
-	void *ret = NULL;
-#ifndef CONFIG_MTK_PAGERECORDER
-	ret = (void *) __get_free_pages(flags | __GFP_COMP, order);
-#else
-	ret = (void *) __get_free_pages_nopagedebug(flags | __GFP_COMP, order);
-#endif
+	void *ret = (void *) __get_free_pages(flags | __GFP_COMP, order);
 	kmemleak_alloc(ret, size, 1, flags);
 	return ret;
 }

@@ -121,7 +121,7 @@ static void dyn_fsync_early_suspend(struct early_suspend *h)
 	mutex_unlock(&fsync_mutex);
 }
 
-static void dyn_fsync_late_resume(struct early_suspend *p)
+static void dyn_fsync_late_resume(struct early_suspend *h)
 {
 	mutex_lock(&fsync_mutex);
 	early_suspend_active = false;
@@ -206,6 +206,7 @@ module_exit(dyn_fsync_exit);
 
 MODULE_AUTHOR("Paul Reioux <reioux@gmail.com>");
 MODULE_DESCRIPTION("dynamic fsync - automatic fs sync optimizaition using"
-		"Early_suspend driver!");
+		"early_suspend driver!");
 MODULE_LICENSE("GPL v2");
+
 

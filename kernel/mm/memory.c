@@ -69,7 +69,7 @@
 
 #if defined(CONFIG_MTK_EXTMEM)
 extern bool extmem_in_mspace(struct vm_area_struct *vma);
-extern unsigned long get_virt_from_mspace(unsigned long pa);
+extern void * get_virt_from_mspace(void * pa);
 #endif
 
 #ifndef CONFIG_NEED_MULTIPLE_NODES
@@ -189,11 +189,8 @@ static int tlb_next_batch(struct mmu_gather *tlb)
 
 	if (tlb->batch_count == MAX_GATHER_BATCH_COUNT)
 		return 0;
-#ifndef CONFIG_MTK_PAGERECORDER
+
 	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
-#else
- 	batch = (void *)__get_free_pages_nopagedebug(GFP_NOWAIT | __GFP_NOWARN, 0);
-#endif
 	if (!batch)
 		return 0;
 
@@ -4130,7 +4127,7 @@ static int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
 				if (vma->vm_end < addr + len)
 					len = vma->vm_end - addr;
 				if (extmem_in_mspace(vma)) {
-					void *extmem_va = (void *)get_virt_from_mspace(vma->vm_pgoff << PAGE_SHIFT) + (addr - vma->vm_start);
+					void *extmem_va = get_virt_from_mspace(vma->vm_pgoff << PAGE_SHIFT) + (addr - vma->vm_start);
 					memcpy(buf, extmem_va, len);
 					buf += len;
 					break;

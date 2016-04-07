@@ -290,7 +290,6 @@ static void mmc_wait_for_req_done(struct mmc_host *host,
             printk(KERN_ERR "MSDC wait request timeout DAT<%d>\n",(mrq->data->blocks) * (mrq->data->blksz));
         }
 
-
         cmd = mrq->cmd;
         if (!cmd->error || !cmd->retries ||
                 mmc_card_removed(host->card))
@@ -316,13 +315,13 @@ static void mmc_wait_for_req_done(struct mmc_host *host,
  *	performed while another request is running on the host.
  */
 static void mmc_pre_req(struct mmc_host *host, struct mmc_request *mrq,
-        bool is_first_req)
+		 bool is_first_req)
 {
-    if (host->ops->pre_req) {
-        mmc_host_clk_hold(host);
-        host->ops->pre_req(host, mrq, is_first_req);
-        mmc_host_clk_release(host);
-    }
+	if (host->ops->pre_req) {
+		mmc_host_clk_hold(host);
+		host->ops->pre_req(host, mrq, is_first_req);
+		mmc_host_clk_release(host);
+	}
 }
 
 /**
@@ -365,32 +364,25 @@ struct mmc_async_req *mmc_start_req(struct mmc_host *host,
 {
 	int err = 0;
 	int start_err = 0;
-	int retry_times = 0;
-
 	struct mmc_async_req *data = host->areq;
 
 	/* Prepare a new request */
 	if (areq)
-        mmc_pre_req(host, areq->mrq, !host->areq);
+		mmc_pre_req(host, areq->mrq, !host->areq);
 
 	if (host->areq) {
 		mmc_wait_for_req_done(host, host->areq->mrq);
 		host->ops->send_stop(host,host->areq->mrq); //add for MTK msdc host <Yuchi Xu>
 		do{
 			host->ops->tuning(host, host->areq->mrq);	//add for MTK msdc host <Yuchi Xu>
-			retry_times++;
-		}while((host->ops->check_written_data(host,host->areq->mrq))&&(retry_times<10));
+		}while(host->ops->check_written_data(host,host->areq->mrq));
+
 		err = host->areq->err_check(host->card, host->areq);
 	}
 
-	if (!err && areq) {
-		trace_mmc_blk_rw_start(areq->mrq->cmd->opcode,
-				       areq->mrq->cmd->arg,
-				       areq->mrq->data);
-
+	if (!err && areq)
 		start_err = __mmc_start_req(host, areq->mrq);
 
-        	}
 	if (host->areq)
 		mmc_post_req(host, host->areq->mrq, 0);
 
@@ -1575,7 +1567,7 @@ static int mmc_do_erase(struct mmc_card *card, unsigned int from,
 {
 	struct mmc_command cmd = {0};
 	unsigned int qty = 0;
-	unsigned long timeout;
+    unsigned long timeout;
 	unsigned int fr, nr;
 	int err;
 
@@ -1673,7 +1665,7 @@ static int mmc_do_erase(struct mmc_card *card, unsigned int from,
 			goto out;
 		}
 
-		/* Timeout if the device never becomes ready for data and
+        /* Timeout if the device never becomes ready for data and
 		 * never leaves the program state.
 		 */
 		if (time_after(jiffies, timeout)) {
@@ -1685,10 +1677,7 @@ static int mmc_do_erase(struct mmc_card *card, unsigned int from,
 
 	} while (!(cmd.resp[0] & R1_READY_FOR_DATA) ||
 		 R1_CURRENT_STATE(cmd.resp[0]) == R1_STATE_PRG);
-
 out:
-
-	trace_mmc_blk_erase_end(arg, fr, nr);
 	return err;
 }
 
@@ -1770,9 +1759,8 @@ EXPORT_SYMBOL(mmc_can_erase);
 
 int mmc_can_trim(struct mmc_card *card)
 {
-	if ((card->ext_csd.sec_feature_support & EXT_CSD_SEC_GB_CL_EN) && !(card->quirks & MMC_QUIRK_TRIM_UNSTABLE))
+    if ((card->ext_csd.sec_feature_support & EXT_CSD_SEC_GB_CL_EN) && !(card->quirks & MMC_QUIRK_TRIM_UNSTABLE))
 		return 1;
-	//printk(KERN_ERR "[%s]: quirks=0x%x, MMC_QUIRK_TRIM_UNSTABLE=0x%x\n", __func__, card->quirks, MMC_QUIRK_TRIM_UNSTABLE); 
 	return 0;
 }
 EXPORT_SYMBOL(mmc_can_trim);
@@ -2092,9 +2080,6 @@ int mmc_detect_card_removed(struct mmc_host *host)
 }
 EXPORT_SYMBOL(mmc_detect_card_removed);
 
-#ifdef CONFIG_MTK_HIBERNATION
-extern void mmc_rescan_wait_finish(void);
-#endif
 void mmc_rescan(struct work_struct *work)
 {
 	static const unsigned freqs[] = { 400000, 300000, 200000, 100000 };
@@ -2158,11 +2143,6 @@ void mmc_rescan(struct work_struct *work)
 	mmc_release_host(host);
 
  out:
-#ifdef CONFIG_MTK_HIBERNATION
-    if (unlikely(host->index == 1)) {
-        mmc_rescan_wait_finish();
-    }
-#endif
 	if (extend_wakelock)
 		wake_lock_timeout(&host->detect_wake_lock, HZ / 2);
 	else
@@ -2493,6 +2473,7 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 	switch (mode) {
 	case PM_HIBERNATION_PREPARE:
 	case PM_SUSPEND_PREPARE:
+	case PM_RESTORE_PREPARE:
 
 		spin_lock_irqsave(&host->lock, flags);
 		if (mmc_bus_needs_resume(host)) {

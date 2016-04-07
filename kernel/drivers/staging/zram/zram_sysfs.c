@@ -75,10 +75,6 @@ static ssize_t disksize_store(struct device *dev,
 	disksize = round_up(disksize, DISKSIZE_ALIGNMENT);
 #endif
 
-	/* Give it a max size */
-	if (disksize > MAX_DISKSIZE)
-		disksize = MAX_DISKSIZE;
-
 	disksize = PAGE_ALIGN(disksize);
 	meta = zram_meta_alloc(disksize);
 	/* Check whether meta is null */

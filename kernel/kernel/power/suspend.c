@@ -210,9 +210,7 @@ int suspend_devices_and_enter(suspend_state_t state)
 	if (!suspend_ops)
 		return -ENOSYS;
 
-#ifdef CONFIG_TOI
 	drop_pagecache();
-#endif 
 
 	trace_machine_suspend(state);
 	if (suspend_ops->begin) {

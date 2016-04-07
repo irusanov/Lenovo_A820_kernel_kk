@@ -1285,31 +1285,7 @@ static long MTK_M4U_ioctl(struct file * a_pstFile,
 
         case MTK_M4U_T_CACHE_FLUSH_ALL:
             m4u_dma_cache_flush_all();
-            return 0;
-		break;
-
-        case MTK_M4U_T_REG_GET:
-        {
-            unsigned int para[2];
-            M4U_ASSERT(a_Param);
-            ret = copy_from_user(para, (void*)a_Param , 2*sizeof(unsigned int));
-            
-            para[1] = COM_ReadReg32(para[0]);
-
-            ret=copy_to_user((void*)a_Param, para, 2*sizeof(unsigned int));
-        }
-        break;
-
-
-        case MTK_M4U_T_REG_SET:
-        {
-            unsigned int para[2];
-            M4U_ASSERT(a_Param);
-            ret = copy_from_user(para, (void*)a_Param , 2*sizeof(unsigned int));
-            
-            COM_WriteReg32(para[0], para[1]);
-        }
-
+			return 0;
         break;
 
         default :

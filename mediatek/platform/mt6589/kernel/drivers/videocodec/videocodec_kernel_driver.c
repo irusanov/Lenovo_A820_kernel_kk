@@ -1705,7 +1705,7 @@ static long vcodec_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned 
 
             user_data_addr = (VAL_UINT8_T *)arg;
             // TODO: Check if nr_cpu_ids is available
-            //temp_nr_cpu_ids = nr_cpu_ids;
+            temp_nr_cpu_ids = nr_cpu_ids;
             ret = copy_to_user(user_data_addr, &temp_nr_cpu_ids, sizeof(int));
             if (ret) {
                 MFV_LOGE("[ERROR] VCODEC_GET_CORE_NUMBER, copy_to_user failed: %d\n", ret);

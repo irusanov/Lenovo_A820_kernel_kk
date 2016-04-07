@@ -45,7 +45,7 @@ typedef struct{
 #define USB_CHARGER_CURRENT_UNCONFIGURED	Cust_CC_70MA	// def CONFIG_USB_IF
 #define USB_CHARGER_CURRENT_CONFIGURED		Cust_CC_450MA	// def CONFIG_USB_IF
 #define USB_CHARGER_CURRENT					Cust_CC_450MA
-#define AC_CHARGER_CURRENT					Cust_CC_700MA	//Cust_CC_800MA	
+#define AC_CHARGER_CURRENT					Cust_CC_750MA	//Cust_CC_800MA	
 
 /* Battery Meter Solution */
 #define CONFIG_ADC_SOLUTION 	1

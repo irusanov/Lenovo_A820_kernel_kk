@@ -252,11 +252,11 @@ int ping_init_sock(struct sock *sk)
 	struct group_info *group_info;
 	int i, j, count;
 	int ret = 0;
-	
+
 	inet_get_ping_group_range_net(net, range, range+1);
 	if (range[0] <= group && group <= range[1])
 		return 0;
-		
+
 	group_info = get_current_groups();
 	count = group_info->ngroups;
 	for (i = 0; i < group_info->nblocks; i++) {
@@ -773,7 +773,8 @@ int ping_v4_sendmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 
 	flowi4_init_output(&fl4, ipc.oif, sk->sk_mark, tos,
 			   RT_SCOPE_UNIVERSE, sk->sk_protocol,
-			   inet_sk_flowi_flags(sk), faddr, saddr, 0, 0);
+			   inet_sk_flowi_flags(sk), faddr, saddr, 0, 0,
+			   sock_i_uid(sk));
 
 	security_sk_classify_flow(sk, flowi4_to_flowi(&fl4));
 	rt = ip_route_output_flow(net, &fl4, sk);
@@ -887,12 +888,13 @@ int ping_recvmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 	/* Copy the address and add cmsg data. */
 	if (family == AF_INET) {
 		sin = (struct sockaddr_in *) msg->msg_name;
-		if(sin) {		
+		if (sin) {
 			sin->sin_family = AF_INET;
 			sin->sin_port = 0 /* skb->h.uh->source */;
 			sin->sin_addr.s_addr = ip_hdr(skb)->saddr;
 			memset(sin->sin_zero, 0, sizeof(sin->sin_zero));
-        }
+		}
+
 		if (isk->cmsg_flags)
 			ip_cmsg_recv(msg, skb);
 
@@ -901,7 +903,8 @@ int ping_recvmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 		struct ipv6_pinfo *np = inet6_sk(sk);
 		struct ipv6hdr *ip6 = ipv6_hdr(skb);
 		sin6 = (struct sockaddr_in6 *) msg->msg_name;
-		if(sin6) {
+
+		if (sin6) {
 			sin6->sin6_family = AF_INET6;
 			sin6->sin6_port = 0;
 			sin6->sin6_addr = ip6->saddr;
@@ -909,10 +912,11 @@ int ping_recvmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 			if (np->sndflow)
 				sin6->sin6_flowinfo =
 					*(__be32 *)ip6 & IPV6_FLOWINFO_MASK;
-
-			sin6->sin6_scope_id = ipv6_iface_scope_id(&sin6->sin6_addr,
-							  IP6CB(skb)->iif);
+			sin6->sin6_scope_id =
+				ipv6_iface_scope_id(&sin6->sin6_addr,
+						    IP6CB(skb)->iif);
 		}
+
 		if (inet6_sk(sk)->rxopt.all)
 			pingv6_ops.datagram_recv_ctl(sk, msg, skb);
 #endif

@@ -71,6 +71,8 @@
 
 #include <cust_gpio_usage.h>
 
+#define MAX_NORMAL_TEMPERATURE  55     //linxf add  
+
 int Enable_BATDRV_LOG = 2;
 
 int g_low_power_ready = 0;
@@ -2855,12 +2857,13 @@ PMU_STATUS BAT_BatteryStatusFailAction(void)
    {
 		BMT_status.bat_charging_state = CHR_PRE;
 		BMT_status.charger_protect_status = 0;
+		g_BatteryNotifyCode |= 0x0020;  //linxf add
         if (Enable_BATDRV_LOG == 1) 
        {
        // printf(  "[BATTERY] temperture in range... start charging again!!\n\r");
       }
- }
-
+	}else
+		g_BatteryNotifyCode &= ~(0x0020); //linxf add 
 
     return PMU_STATUS_OK;
 }
@@ -2944,7 +2947,7 @@ PMU_STATUS BAT_BatteryFullAction(void)
 
 void mt_battery_notify_check(void)
 {
-    g_BatteryNotifyCode = 0x0000;
+    g_BatteryNotifyCode &= (0x0020);  //linxf modify
     
     if(g_BN_TestMode == 0x0000)
     {
@@ -2977,8 +2980,8 @@ void mt_battery_notify_check(void)
 #endif
 
 #if defined(BATTERY_NOTIFY_CASE_0002)
-        if( (BMT_status.temperature >= MAX_CHARGE_TEMPERATURE) || 
-            (BMT_status.temperature < MIN_CHARGE_TEMPERATURE)
+        if( ((BMT_status.temperature >= MAX_CHARGE_TEMPERATURE) || 
+            (BMT_status.temperature < MIN_CHARGE_TEMPERATURE)) && (upmu_is_chr_det() == KAL_TRUE)
             )
         {
             g_BatteryNotifyCode |= 0x0002;
@@ -3054,7 +3057,15 @@ void mt_battery_notify_check(void)
                 g_BatteryNotifyCode);
         }
 #endif
-
+        if(BMT_status.temperature >= MAX_NORMAL_TEMPERATURE && (upmu_is_chr_det() == KAL_FALSE))
+        {
+            g_BatteryNotifyCode |= 0x0040;
+            xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "[BATTERY] bat_temp(%d) out of range\n", BMT_status.temperature);
+        }
+        else
+        {
+            g_BatteryNotifyCode &= ~(0x0040);
+        }
     }
     else if(g_BN_TestMode == 0x0001)
     {

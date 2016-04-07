@@ -4012,6 +4012,10 @@ void __init ftrace_init(void)
 				  __start_mcount_loc,
 				  __stop_mcount_loc);
 #ifdef CONFIG_FTRACE_MODULE_SUPPORT
+	ret = register_module_notifier(&ftrace_module_enter_nb);
+	if (ret)
+		pr_warning("Failed to register trace ftrace module enter notifier\n");
+
 	ret = register_module_notifier(&ftrace_module_exit_nb);
 	if (ret)
 		pr_warning("Failed to register trace ftrace module exit notifier\n");

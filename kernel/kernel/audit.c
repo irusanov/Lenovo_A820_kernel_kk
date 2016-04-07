@@ -390,12 +390,12 @@ static void audit_printk_skb(struct sk_buff *skb)
 	if (nlh->nlmsg_type != AUDIT_EOE) {
 		if (printk_ratelimit()){
 			#ifdef CONFIG_MTK_AEE_FEATURE
-            		if(nlh->nlmsg_type==1400){
-                   		 mtk_audit_hook(data);
+            	if(nlh->nlmsg_type==1400){
+                   	mtk_audit_hook(data);
 	       		}
-	       		 #endif
+	       	#endif
 			printk(KERN_NOTICE "type=%d %s\n", nlh->nlmsg_type, data);
-		}		
+		}
 		else
 			audit_log_lost("printk limit exceeded\n");
 	}

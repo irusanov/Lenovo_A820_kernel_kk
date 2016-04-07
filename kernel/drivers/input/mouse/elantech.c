@@ -477,8 +477,8 @@ static void elantech_report_absolute_v3(struct psmouse *psmouse,
 	if (etd->fw_version & 0x001000) {
 		input_report_key(dev, BTN_LEFT, packet[0] & 0x03);
 	} else {
-	input_report_key(dev, BTN_LEFT, packet[0] & 0x01);
-	input_report_key(dev, BTN_RIGHT, packet[0] & 0x02);
+		input_report_key(dev, BTN_LEFT, packet[0] & 0x01);
+		input_report_key(dev, BTN_RIGHT, packet[0] & 0x02);
 	}
 
 	input_report_abs(dev, ABS_PRESSURE, pres);
@@ -497,7 +497,7 @@ static void elantech_input_sync_v4(struct psmouse *psmouse)
 	if (etd->fw_version & 0x001000) {
 		input_report_key(dev, BTN_LEFT, packet[0] & 0x03);
 	} else {
-	input_report_key(dev, BTN_LEFT, packet[0] & 0x01);
+		input_report_key(dev, BTN_LEFT, packet[0] & 0x01);
 		input_report_key(dev, BTN_RIGHT, packet[0] & 0x02);
 	}
 

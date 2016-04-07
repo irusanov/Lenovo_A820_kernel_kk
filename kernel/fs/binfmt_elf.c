@@ -729,18 +729,6 @@ static int load_elf_binary(struct linux_binprm *bprm, struct pt_regs *regs)
 	current->mm->cached_hole_size = 0;
 	retval = setup_arg_pages(bprm, randomize_stack_top(STACK_TOP),
 				 executable_stack);
-    /* exec mt_debug*/
-    {
-        int *stack_p1 = (int *)bprm->p;
-        int *stack_p2 = (int *)bprm->p + 1;
-        if(*stack_p1 == 0 && *stack_p2 == 0){
-            printk("[exec warning] got NULL stack! Try again\n");
-            printk("[exec warning] stack_p1 [0x%x]=0x%x\n", (unsigned int)stack_p1, (unsigned int)*stack_p1);
-            printk("[exec warning] stack_p2 [0x%x]=0x%x\n", (unsigned int)stack_p2, (unsigned int)*stack_p2);
-            retval = -999;
-            goto out;
-        }
-    }
 	if (retval < 0) {
 		send_sig(SIGKILL, current, 0);
 		goto out_free_dentry;

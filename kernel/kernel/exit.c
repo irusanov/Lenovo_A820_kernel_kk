@@ -649,11 +649,6 @@ static void exit_mm(struct task_struct * tsk)
 	mm_release(tsk, mm);
 	if (!mm)
 		return;
-        /*
-         * kernel patch
-         * commit: 21017faf87a93117ca7a14aa8f0dd2f315fdeb08
-         * https://android.googlesource.com/kernel/common/+/21017faf87a93117ca7a14aa8f0dd2f315fdeb08%5E!/#F0
-         */
 	sync_mm_rss(mm);
 	/*
 	 * Serialize with any possible pending coredump.
@@ -927,7 +922,7 @@ void do_exit(long code)
 	profile_task_exit(tsk);
 #ifdef CONFIG_SCHEDSTATS
 	/* mt shceduler profiling*/
-	printk(KERN_DEBUG "[%d:%s] exit\n", tsk->pid, tsk->comm);
+	//printk(KERN_DEBUG "[%d:%s] exit\n", tsk->pid, tsk->comm);
 	end_mtproc_info(tsk);
 #endif
 

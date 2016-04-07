@@ -615,7 +615,7 @@ int ubi_eba_write_leb(struct ubi_device *ubi, struct ubi_volume *vol, int lnum,
 			ubi_warn("failed to write data to PEB %d", pnum);
 			if (err == -EIO && ubi->bad_allowed)
 				err = recover_peb(ubi, pnum, vol_id, lnum, buf,
-						offset, len);
+						  offset, len);
 			if (err)
 				ubi_ro_mode(ubi);
 		}
@@ -1262,7 +1262,7 @@ int ubi_eba_init_scan(struct ubi_device *ubi, struct ubi_scan_info *si)
 				 */
 				ubi_scan_move_to_list(sv, seb, &si->erase);
 			else
-			vol->eba_tbl[seb->lnum] = seb->pnum;
+				vol->eba_tbl[seb->lnum] = seb->pnum;
 		}
 	}
 

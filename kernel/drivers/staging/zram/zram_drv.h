@@ -34,8 +34,6 @@ static const unsigned default_disksize_perc_ram = 50;	/* 25 */
 #define	DISKSIZE_ALIGNMENT	0x4000000		/* 64MB */
 /* Is totalram_pages less than SUPPOSED_TOTALRAM? */
 #define SUPPOSED_TOTALRAM	0x20000			/* 512MB */
-/* Allowable max size */
-#define	MAX_DISKSIZE		0x20000000		/* 512MB */
 
 /*
  * Pages that compress to size greater than this are stored
@@ -102,8 +100,9 @@ struct zram_meta {
 struct zram {
 	struct zram_meta *meta;
 	spinlock_t stat64_lock;	/* protect 64-bit stats */
-	struct rw_semaphore lock; /* protect compression buffers and table
-				   * against concurrent read and writes */
+	struct rw_semaphore lock; /* protect compression buffers, table,
+				   * 32bit stat counters against concurrent
+				   * notifications, reads and writes */
 	struct request_queue *queue;
 	struct gendisk *disk;
 	int init_done;

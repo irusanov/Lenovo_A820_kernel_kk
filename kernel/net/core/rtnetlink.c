@@ -52,8 +52,6 @@
 #include <net/rtnetlink.h>
 #include <net/net_namespace.h>
 
-#include <linux/xlog.h>
-
 struct rtnl_link {
 	rtnl_doit_func		doit;
 	rtnl_dumpit_func	dumpit;
@@ -64,22 +62,13 @@ static DEFINE_MUTEX(rtnl_mutex);
 
 void rtnl_lock(void)
 {
-	#ifdef CONFIG_MTK_NET_LOGGING  
-	printk(KERN_DEBUG "[mtk_net][rtnl_lock]rtnl_lock++\n");
-	#endif
 	mutex_lock(&rtnl_mutex);
-	#ifdef CONFIG_MTK_NET_LOGGING  
-	printk(KERN_DEBUG "[mtk_net][rtnl_lock]rtnl_lock--\n");
-	#endif
 }
 EXPORT_SYMBOL(rtnl_lock);
 
 void __rtnl_unlock(void)
 {
 	mutex_unlock(&rtnl_mutex);
-	#ifdef CONFIG_MTK_NET_LOGGING  
-	printk(KERN_DEBUG "[mtk_net][rtnl_lock]rtnl_unlock done\n");
-	#endif
 }
 
 void rtnl_unlock(void)
@@ -1541,14 +1530,10 @@ static int do_setlink(struct net_device *dev, struct ifinfomsg *ifm,
 
 errout:
 	if (err < 0 && modified && net_ratelimit())
-	{
-		#ifdef CONFIG_MTK_NET_LOGGING  	
-		printk(KERN_WARNING "[mtk_net][rtnetlink]A link change request failed with "
+		printk(KERN_WARNING "A link change request failed with "
 		       "some changes committed already. Interface %s may "
 		       "have been left with an inconsistent configuration, "
 		       "please check.\n", dev->name);
-		#endif
-    }
 
 	if (send_addr_notify)
 		call_netdevice_notifiers(NETDEV_CHANGEADDR, dev);
@@ -1981,10 +1966,7 @@ void rtmsg_ifinfo(int type, struct net_device *dev, unsigned change)
 	struct sk_buff *skb;
 	int err = -ENOBUFS;
 	size_t if_info_size;
-	#ifdef CONFIG_MTK_NET_LOGGING  
-    printk(KERN_INFO "[mtk_net][rtnetlink]rtmsg_ifinfo type:%d, dev:%s, change:%u, pid = %d", 
-		type, dev->name, change, current->pid);
-    #endif
+
 	skb = nlmsg_new((if_info_size = if_nlmsg_size(dev, 0)), GFP_KERNEL);
 	if (skb == NULL)
 		goto errout;

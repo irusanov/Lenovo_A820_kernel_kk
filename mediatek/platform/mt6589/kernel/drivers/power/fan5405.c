@@ -537,42 +537,6 @@ void fan5405_dump_register(void)
     printk("\n");
 }
 
-/*lenovo-sw weiweij add for oreg protect*/
-int fan5405_check_r2(void)
-{
-    int i=0, reg = 0;
-
-    fan5405_read_byte(fan5405_CON2, &reg);
-    printk("ww_debug r2=0x%x \n", reg);       
-#if defined(HIGH_BATTERY_VOLTAGE_SUPPORT)
-	if(reg!=0xaa)
-	{
-		printk("ww_debug oreg check error! set to 0xaa\n");  
-		fan5405_set_oreg(0x2a);
-		return -1;
-	}
-
-	if((reg&0xfc)==(0x2a<<2))
-		return 1;
-	else if((reg&0xfc)==(0x1e<<2))
-		return 2;
-#else
-	if(reg!=0x8e)
-	{
-		printk("ww_debug oreg check error! set to 0x8e\n");  
-		fan5405_set_oreg(0x23);
-		return -1;
-	}
-
-	if((reg&0xfc)==(0x23<<2))
-		return 1;
-
-#endif
-	
-	return 0;
-}
-/*lenovo-sw weiweij add for oreg protect end*/
-
 extern int g_enable_high_vbat_spec;
 extern int g_pmic_cid;
 

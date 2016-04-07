@@ -2304,7 +2304,7 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
 				dev_dbg(hub->intfdev,
 						"port_wait_reset: err = %d\n",
 						status);
-			}
+		}
 
 		/* Check for disconnect or reset */
 		if (status == 0 || status == -ENOTCONN || status == -ENODEV) {

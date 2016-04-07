@@ -775,7 +775,7 @@ int gpio_export(unsigned gpio, bool direction_may_change)
 					MKDEV(0, 0), desc, gpio_groups,
 					ioname ? ioname : "gpio%u", gpio);
 	if (IS_ERR(dev)) {
-			status = PTR_ERR(dev);
+		status = PTR_ERR(dev);
 		goto fail_unlock;
 	}
 
@@ -785,7 +785,7 @@ int gpio_export(unsigned gpio, bool direction_may_change)
 
 fail_unlock:
 	mutex_unlock(&sysfs_lock);
-		pr_debug("%s: gpio%d status %d\n", __func__, gpio, status);
+	pr_debug("%s: gpio%d status %d\n", __func__, gpio, status);
 	return status;
 }
 EXPORT_SYMBOL_GPL(gpio_export);
@@ -948,7 +948,7 @@ static int gpiochip_export(struct gpio_chip *chip)
 	mutex_lock(&sysfs_lock);
 	dev = device_create_with_groups(&gpio_class, chip->dev, MKDEV(0, 0),
 					chip, gpiochip_groups,
-				"gpiochip%d", chip->base);
+					"gpiochip%d", chip->base);
 	if (IS_ERR(dev))
 		status = PTR_ERR(dev);
 	else
@@ -1104,7 +1104,7 @@ int gpiochip_add(struct gpio_chip *chip)
 				: 0;
 		}
 
-	of_gpiochip_add(chip);
+		of_gpiochip_add(chip);
 	}
 
 unlock:

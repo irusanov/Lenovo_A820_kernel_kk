@@ -45,11 +45,18 @@
 #include "musbfsh_core.h"
 #include "musbfsh_host.h"
 #include "musbfsh_dma.h"
+#include "usb.h"
 
 #ifdef MTK_USB_RUNTIME_SUPPORT
 #include <cust_eint.h>
 extern void mt_eint_unmask(unsigned int line);
 extern void mt_eint_mask(unsigned int line);
+#endif
+#ifdef MTK_ICUSB_SUPPORT
+char *get_root_hub_udev(void);
+char *get_usb_sim_udev(void);
+extern struct usb_interface *stor_intf;		
+
 #endif
 
 /* MUSB HOST status 22-mar-2006
@@ -365,6 +372,11 @@ static void musbfsh_advance_schedule(struct musbfsh *musbfsh, struct urb *urb,
 	/* reclaim resources (and bandwidth) ASAP; deschedule it, and
 	 * invalidate qh as soon as list_empty(&hep->urb_list)
 	 */
+	 if(&qh->hep->urb_list<0xc0000000)
+	 	{
+		 printk(KERN_ERR"hank:%s(%d)urb=0x%x,qh=0x%x,qh->hep=0x%x,&qh->hep->urb_list=0x%x\n",__FUNCTION__,__LINE__,urb,qh,qh->hep,&qh->hep->urb_list);
+		 return ;
+	 	}
 	if (list_empty(&qh->hep->urb_list)) { // if the urb list is empty, the next qh will be excute.
 		struct list_head	*head;
 
@@ -1972,7 +1984,11 @@ musbfsh_h_disable(struct usb_hcd *hcd, struct usb_host_endpoint *hep)
 	qh->is_ready = 0;
 	if (musbfsh_ep_get_qh(qh->hw_ep, is_in) == qh) {
 		urb = next_urb(qh);
-
+    if(urb < 0xc0000000 )
+    	{
+    		printk(KERN_ERR"joson musbfsh_h_disable urb=0x%x",urb);
+    		goto exit;
+    	}
 		/* make software (then hardware) stop ASAP */
 		if (!urb->unlinked)
 			urb->status = -ESHUTDOWN;

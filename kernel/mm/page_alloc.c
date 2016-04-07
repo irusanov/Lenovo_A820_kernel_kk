@@ -336,9 +336,6 @@ static void bad_page(struct page *page)
 	printk(KERN_ALERT "BUG: Bad page state in process %s  pfn:%05lx\n",
 		current->comm, page_to_pfn(page));
 	dump_page(page);
-        print_hex_dump(KERN_ALERT, "pages ", DUMP_PREFIX_ADDRESS, 32, 4, page - 10,
-            sizeof(struct page) * 20, 0);
-
 
 	print_modules();
 	dump_stack();
@@ -602,7 +599,6 @@ static inline void __free_one_page(struct page *page,
 	 * so it's less likely to be used soon and more likely to be merged
 	 * as a higher order page
 	 */
-
 	if ((order < MAX_ORDER-2) && pfn_valid_within(page_to_pfn(buddy))) {
 		struct page *higher_page, *higher_buddy;
 		combined_idx = buddy_idx & page_idx;
@@ -775,11 +771,7 @@ void __meminit __free_pages_bootmem(struct page *page, unsigned int order)
 	}
 
 	set_page_refcounted(page);
-#ifndef CONFIG_MTK_PAGERECORDER
 	__free_pages(page, order);
-#else
-	__free_pages_nopagedebug(page, order);
-#endif
 }
 
 
@@ -825,7 +817,6 @@ static inline void expand(struct zone *zone, struct page *page,
 			continue;
 		}
 #endif
-
 		list_add(&page[size].lru, &area->free_list[migratetype]);
 		area->nr_free++;
 		set_page_order(&page[size], high);
@@ -961,7 +952,7 @@ static int move_freepages(struct zone *zone,
 			page++;
 			continue;
 		}
-	
+
 		order = page_order(page);
 		list_move(&page->lru,
 			  &zone->free_area[order].free_list[migratetype]);
@@ -2701,34 +2692,7 @@ unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order)
 	return (unsigned long) page_address(page);
 }
 EXPORT_SYMBOL(__get_free_pages);
-#ifdef CONFIG_MTK_PAGERECORDER
-/*
- * Common helper functions.
- */
-unsigned long __get_free_pages_nopagedebug(gfp_t gfp_mask, unsigned int order)
-{
-        struct page *page;
 
-        /*
-         * __get_free_pages() returns a 32-bit address, which cannot represent
-         * a highmem page
-         */
-        VM_BUG_ON((gfp_mask & __GFP_HIGHMEM) != 0);
-
-        page = alloc_pages_nopagedebug(gfp_mask, order);
-        if (!page)
-                return 0;
-        return (unsigned long) page_address(page);
-}
-EXPORT_SYMBOL(__get_free_pages_nopagedebug);
-
-unsigned long get_zeroed_page_nopagedebug(gfp_t gfp_mask)
-{
-        return __get_free_pages_nopagedebug(gfp_mask | __GFP_ZERO, 0);
-}
-EXPORT_SYMBOL(get_zeroed_page_nopagedebug);
-
-#endif
 unsigned long get_zeroed_page(gfp_t gfp_mask)
 {
 	return __get_free_pages(gfp_mask | __GFP_ZERO, 0);
@@ -2737,12 +2701,6 @@ EXPORT_SYMBOL(get_zeroed_page);
 
 void __free_pages(struct page *page, unsigned int order)
 {
-#ifdef CONFIG_MTK_PAGERECORDER
-	if(!in_interrupt())
-	{
-		remove_page_record((void *)page,order);
-	}
-#endif
 	if (put_page_testzero(page)) {
 		if (order == 0)
 			free_hot_cold_page(page, 0);
@@ -2762,29 +2720,7 @@ void free_pages(unsigned long addr, unsigned int order)
 }
 
 EXPORT_SYMBOL(free_pages);
-#ifdef CONFIG_MTK_PAGERECORDER
-void __free_pages_nopagedebug(struct page *page, unsigned int order)
-{
-       if (put_page_testzero(page)) {
-                if (order == 0)
-                        free_hot_cold_page(page, 0);
-                else
-                        __free_pages_ok(page, order);
-        }
-}
 
-EXPORT_SYMBOL(__free_pages_nopagedebug);
-
-void free_pages_nopagedebug(unsigned long addr, unsigned int order)
-{
-        if (addr != 0) {
-                VM_BUG_ON(!virt_addr_valid((void *)addr));
-                __free_pages_nopagedebug(virt_to_page((void *)addr), order);
-        }
-}
-
-EXPORT_SYMBOL(free_pages_nopagedebug);
-#endif
 static void *make_alloc_exact(unsigned long addr, unsigned order, size_t size)
 {
 	if (addr) {
@@ -6048,9 +5984,6 @@ static struct trace_print_flags pageflag_names[] = {
 #endif
 #ifdef CONFIG_MEMORY_FAILURE
 	{1UL << PG_hwpoison,		"hwpoison"	},
-#endif
-#ifdef CONFIG_KSM_CHECK_PAGE
-    {1UL << PG_ksm_scan0,   "ksm_scan" },
 #endif
 	{-1UL,				NULL		},
 };

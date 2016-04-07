@@ -17,7 +17,6 @@
 #include <linux/pagemap.h>
 #include <linux/file.h>
 #include <linux/slab.h>
-#include <linux/freezer.h>
 #include <linux/pipe_fs_i.h>
 #include <linux/swap.h>
 #include <linux/splice.h>

@@ -1526,10 +1526,6 @@ static int inode_has_perm(const struct cred *cred,
 
 	if (unlikely(IS_PRIVATE(inode)))
 		return 0;
-	
-	/*Patch for seldom issue when isecurity is NULL*/
-	if(inode->i_security == NULL)
-		return -EACCES;
 
 	sid = cred_sid(cred);
 	isec = inode->i_security;

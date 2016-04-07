@@ -16,8 +16,8 @@
 int cust_getPrecapAfMode()
 {
     XLOGD("cust_getPrecapAfMode");
-    return e_PrecapAf_AfterPreflash;
-    //return  e_PrecapAf_None;
+    //return e_PrecapAf_AfterPreflash;
+    return  e_PrecapAf_None;
 }
 
 

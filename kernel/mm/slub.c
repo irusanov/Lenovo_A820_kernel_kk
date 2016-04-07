@@ -691,7 +691,6 @@ static int check_bytes_and_report(struct kmem_cache *s, struct page *page,
 	print_trailer(s, page, object);
 
 	restore_bytes(s, what, value, fault, end);
-
 	return 0;
 }
 

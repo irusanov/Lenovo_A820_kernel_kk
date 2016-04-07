@@ -31,9 +31,15 @@
 
 #include <asm/ioctls.h>
 
+#include <linux/proc_fs.h>
+
+#define LOG_TS_FILE    "log_ts"
+
 static int s_fake_read;
 
 module_param_named(fake_read, s_fake_read, int, 0660);
+
+int g_ts_switch = 0; // 0: android default timestamp; 1: kernel timestamp
 
 /*
  * struct logger_log - represents a specific log, such as 'main' or 'radio'
@@ -68,8 +74,7 @@ struct logger_reader {
 	int			r_ver;	/* reader ABI version */
 
 	size_t                  missing_bytes; /* android log missing warning */
-    size_t      wake_up_interval;          /* how many bytes does writer wake up reader.  0-android original, others-mtk used*/
-    long long   wake_up_timer;      /* the timer to wake up reader unit:ns*/
+  /* } */
 };
 
 /* logger_offset - returns index 'n' into the log via (optimized) modulus */
@@ -227,60 +232,6 @@ static ssize_t do_read_log_to_user(struct logger_log *log,
 }
 
 /*
- * do_read_log_to_user - reads exactly 'count' bytes from 'log' into the
- * user-space buffer 'buf'. Returns 'count' on success.
- *
- * Caller must hold log->mutex.
- */
-#define READ_ONE_BY_ONE 0
-static ssize_t do_read_log_to_user_interval(struct logger_log *log,
-				   struct logger_reader *reader,
-				   char __user *buf,
-				   size_t count)
-{
-    size_t sum = 0;
-    size_t entry_len = 0;
-    size_t offset = reader->r_off;
-    long long t1, t2;
-    t1 = sched_clock();
-    //printk("do_read_log_to_user_interval: %d\n", count);
-#if READ_ONE_BY_ONE
-    size_t do_read_ret = 0;
-    entry_len = get_user_hdr_len(reader->r_ver) + get_entry_msg_len(log, reader->r_off);
-    while(sum + entry_len < count) {
-        do_read_ret = do_read_log_to_user(log, reader, buf, entry_len);
-        sum += do_read_ret;
-        buf += do_read_ret;
-        entry_len = get_user_hdr_len(reader->r_ver) + get_entry_msg_len(log, reader->r_off);
-        //printk("sum is %d, next entry is %d\n", sum, entry_len);
-    }
-#else   //read the log by block
-    while (1) {
-        entry_len = sizeof(struct logger_entry) + get_entry_msg_len(log, offset);
-        if (sum + entry_len > count)
-            break;
-        sum += entry_len;
-	    offset = logger_offset(log, offset + entry_len);
-        if (offset == log->w_off)
-            break;
-    }
-    if (offset > reader->r_off) {
-		if (copy_to_user(buf, log->buffer + reader->r_off, sum))
-			return -EFAULT;
-    } else {
-        size_t right = log->size - reader->r_off;
-		if (copy_to_user(buf, log->buffer + reader->r_off, right))
-			return -EFAULT;
-		if (copy_to_user(buf + right, log->buffer, sum - right))
-			return -EFAULT;
-    }
-    reader->r_off = offset;
-#endif
-    t2 = sched_clock();
-    printk("do_read_log_to_user_interval execute %llu ns\n", t2 - t1);
-    return sum;
-}
-/*
  * get_next_entry_by_uid - Starting at 'off', returns an offset into
  * 'log->buffer' which contains the first entry readable by 'euid'
  */
@@ -376,7 +327,6 @@ static ssize_t logger_read(struct file *file, char __user *buf,
 	struct logger_reader *reader = file->private_data;
 	struct logger_log *log = reader->log;
 	ssize_t ret;
-    ssize_t missing_log = 0;
 	DEFINE_WAIT(wait);
 
 start:
@@ -423,16 +373,12 @@ start:
 		ret = logger_fake_message(log, reader, buf, "Fake read return string.");
 		goto out;
 	}
+
 	/* for android log missing warning { */
 	if (reader->missing_bytes > 0) {
 		ret = logger_fake_message(log, reader, buf, "some logs have been lost (%u bytes estimated)", reader->missing_bytes);
 		reader->missing_bytes = 0;
-        if (!reader->wake_up_interval)
-		    goto out;
-        else {
-            missing_log = ret;
-            buf += missing_log;
-        }
+		goto out;
 	}
 	/* } */
 
@@ -445,15 +391,7 @@ start:
 	}
 
 	/* get exactly one entry from the log */
-    if (!reader->wake_up_interval) {
-        ret = do_read_log_to_user(log, reader, buf, ret);
-    } else {
-        //printk("do_read_log_to_user_interval\n");
-        ret = do_read_log_to_user_interval(log, reader, buf, reader->wake_up_interval - missing_log);
-        ret += missing_log;
-        missing_log = 0;
-        //printk("do_read_log_to_user_interval ret: %d\n", ret);
-    }
+	ret = do_read_log_to_user(log, reader, buf, ret);
 
 out:
 	mutex_unlock(&log->mutex);
@@ -603,8 +541,9 @@ ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
 	struct logger_entry header;
 	struct timespec now;
 	ssize_t ret = 0;
-
-
+	
+/* make android timestamp same with printk {*/
+	if (g_ts_switch == 0) {
 		// android default timestamp
 		//now = current_kernel_time();
 		getnstimeofday(&now);
@@ -615,8 +554,26 @@ ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
 		header.euid = current_euid();
 		header.len = min_t(size_t, iocb->ki_left, LOGGER_ENTRY_MAX_PAYLOAD);
 		header.hdr_size = sizeof(struct logger_entry);
-        header.tz = sys_tz.tz_minuteswest * 60;
 
+	} 
+	else {
+		// use kernel timestamp
+		unsigned long long t;
+		unsigned long nanosec_rem;
+		
+		t = cpu_clock(UINT_MAX);
+		nanosec_rem = do_div(t, 1000000000);
+
+		header.pid = current->tgid;
+		header.tid = current->pid;
+		header.sec = (unsigned long)t;
+		header.nsec = nanosec_rem;
+		header.euid = current_euid();
+		header.len = min_t(size_t, iocb->ki_left, LOGGER_ENTRY_MAX_PAYLOAD);
+		header.hdr_size = sizeof(struct logger_entry);
+	}
+/* } */
+	
 	/* null writes succeed, return zero */
 	if (unlikely(!header.len))
 		return 0;
@@ -697,8 +654,6 @@ static int logger_open(struct inode *inode, struct file *file)
 
 		mutex_lock(&log->mutex);
 		reader->r_off = log->head;
-        reader->wake_up_interval = 0; 
-        reader->wake_up_timer = 0;
 
 		list_add_tail(&reader->list, &log->readers);
 		mutex_unlock(&log->mutex);
@@ -745,8 +700,6 @@ static unsigned int logger_poll(struct file *file, poll_table *wait)
 	struct logger_reader *reader;
 	struct logger_log *log;
 	unsigned int ret = POLLOUT | POLLWRNORM;
-    static long long last_time = 0;
-    long long curr_time = sched_clock();
 
 	if (!(file->f_mode & FMODE_READ))
 		return ret;
@@ -761,14 +714,8 @@ static unsigned int logger_poll(struct file *file, poll_table *wait)
 		reader->r_off = get_next_entry_by_uid(log,
 			reader->r_off, current_euid());
 
-	//if (log->w_off != reader->r_off)
-	//	ret |= POLLIN | POLLRDNORM;
-    if (((log->w_off + log->size - reader->r_off) % log->size > reader->wake_up_interval) || 
-            ((curr_time - last_time > reader->wake_up_timer) && (log->w_off != reader->r_off))) {
-        ret |= POLLIN | POLLRDNORM;
-    }
-    if (reader->wake_up_timer && (curr_time - last_time > reader->wake_up_timer)) 
-        last_time = sched_clock();
+	if (log->w_off != reader->r_off)
+		ret |= POLLIN | POLLRDNORM;
 	mutex_unlock(&log->mutex);
 
 	return ret;
@@ -785,25 +732,6 @@ static long logger_set_version(struct logger_reader *reader, void __user *arg)
 
 	reader->r_ver = version;
 	return 0;
-}
-
-static long logger_set_timer(struct logger_reader *reader, void __user *arg)
-{
-    long long timer;
-    if (copy_from_user(&timer, arg, sizeof(long long)))
-        return -EFAULT;
-    reader->wake_up_timer = timer;
-    return 0;
-}
-
-static long logger_set_interval(struct logger_reader *reader, void __user *arg)
-{
-    size_t interval;
-    if (copy_from_user(&interval, arg, sizeof(size_t)))
-        return -EFAULT;
-    reader->wake_up_interval = interval;
-    printk("set interval %d\n", reader->wake_up_interval);
-    return 0;
 }
 
 static long logger_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
@@ -878,24 +806,8 @@ static long logger_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		reader = file->private_data;
 		ret = logger_set_version(reader, argp);
 		break;
-    case LOGGER_SET_INTERVAL:
-        if (!(file->f_mode & FMODE_READ)) {
-            ret = -EBADF;
-            break;
-        }
-        reader = file->private_data;
-        ret = logger_set_interval(reader, argp);
-        reader->r_ver = 2;
-        break;
-    case LOGGER_SET_TIMER:
-        if (!(file->f_mode & FMODE_READ)) {
-            ret = -EBADF;
-            break;
-        }
-        reader = file->private_data;
-        ret = logger_set_timer(reader, argp);
-        break;
 	}
+
 	mutex_unlock(&log->mutex);
 
 	return ret;
@@ -954,6 +866,68 @@ static struct logger_log *get_log_from_minor(int minor)
 	return NULL;
 }
 
+static int ts_switch_read(char *page, char **start, off_t off,
+			       int count, int *eof, void *data)
+{
+    char *p = page;
+    int len = 0;
+
+	//printk(KERN_INFO "logger: ts_switch_read\n");
+
+	p += sprintf(p, "%d\n",g_ts_switch);
+
+    *start = page + off;
+
+    len = p - page;
+    if (len > off)
+        len -= off;
+    else
+        len = 0;
+
+    return len < count ? len  : count;
+}
+
+static int ts_switch_write (struct file *file, const char *buffer,
+					unsigned long count, void *data)
+{
+	char ts_switch = 0;
+
+	if(copy_from_user((void *)&ts_switch, (const void __user *)buffer, sizeof(char))) {
+		printk(KERN_ERR "logger: ts_switch_write copy_from_user fails\n");
+		return 0;
+	}
+
+	//printk(KERN_INFO "logger: ts_switch_write ts_switch = %d\n", ts_switch);
+	switch(ts_switch) {
+	case '0':
+		g_ts_switch = 0;
+		printk(KERN_INFO "logger: ts_switch_write g_ts_switch == 0\n");
+		break;
+	case '1':
+		g_ts_switch = 1;
+		printk(KERN_INFO "logger: ts_switch_write g_ts_switch == 1\n");
+		break;
+	default:
+		printk(KERN_ERR "logger: ts_switch_write incorrect parameter\n");
+		break;
+	}
+
+    return count;
+}
+
+static void init_log_proc(void)
+{
+	struct proc_dir_entry *ts_switch_file;
+	g_ts_switch = 0; // using android default log timestamp
+	
+	ts_switch_file = create_proc_entry(LOG_TS_FILE, 0, NULL);
+	if (ts_switch_file) {
+		ts_switch_file->read_proc = ts_switch_read;
+		ts_switch_file->write_proc = ts_switch_write;
+	} 
+	else
+		printk(KERN_ERR "xlog: init_log_proc create_proc_entry fails\n");
+}
 
 static int __init init_log(struct logger_log *log)
 {
@@ -991,6 +965,8 @@ static int __init logger_init(void)
 	ret = init_log(&log_system);
 	if (unlikely(ret))
 		goto out;
+
+	init_log_proc();
 
 out:
 	return ret;

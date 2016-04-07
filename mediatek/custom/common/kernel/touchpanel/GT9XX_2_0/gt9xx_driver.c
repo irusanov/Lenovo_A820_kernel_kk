@@ -107,8 +107,14 @@ static s8 gtp_enter_doze(struct i2c_client *client);
 #endif
 
 #if GTP_HAVE_TOUCH_KEY
-const u16 touch_key_array[] = { KEY_MENU, KEY_HOMEPAGE, KEY_BACK, KEY_SEARCH };
-#define GTP_MAX_KEY_NUM ( sizeof( touch_key_array )/sizeof( touch_key_array[0] ) )
+const u16 touch_key_array[] = TPD_KEYS;
+//#define GTP_MAX_KEY_NUM ( sizeof( touch_key_array )/sizeof( touch_key_array[0] ) )
+struct touch_vitual_key_map_t
+{
+   int point_x;
+   int point_y;
+};
+static struct touch_vitual_key_map_t touch_key_point_maping_array[]=GTP_KEY_MAP_ARRAY;
 #endif
 
 #if (defined(TPD_WARP_START) && defined(TPD_WARP_END))
@@ -1894,9 +1900,9 @@ static s32 tpd_i2c_probe(struct i2c_client *client, const struct i2c_device_id *
     }
 
 
-#if GTP_HAVE_TOUCH_KEY
+#if 0//GTP_HAVE_TOUCH_KEY
 
-    for (idx = 0; idx < GTP_MAX_KEY_NUM; idx++)
+    for (idx = 0; idx < TPD_KEY_COUNT; idx++)
     {
         input_set_capability(tpd->dev, EV_KEY, touch_key_array[idx]);
     }
@@ -2530,10 +2536,23 @@ static int touch_event_handler(void *unused)
 
         if (key_value || pre_key)
         {
-            for (i = 0; i < GTP_MAX_KEY_NUM; i++)
+            for (i = 0; i < TPD_KEY_COUNT; i++)
             {
-                input_report_key(tpd->dev, touch_key_array[i], key_value & (0x01 << i));
+                //input_report_key(tpd->dev, touch_key_array[i], key_value & (0x01 << i));
+				if( key_value&(0x01<<i) ) //key=1 menu ;key=2 home; key =4 back;
+				{
+					input_x =touch_key_point_maping_array[i].point_x;
+					input_y = touch_key_point_maping_array[i].point_y;
+					GTP_DEBUG("button =%d %d",input_x,input_y);
+
+					tpd_down( input_x, input_y, 0, 0);
+				}
             }
+			
+    	    if((pre_key!=0)&&(key_value ==0))
+    	    {
+    		  tpd_up( 0, 0, 0);
+    	    }
 
             touch_num = 0;
             pre_touch = 0;

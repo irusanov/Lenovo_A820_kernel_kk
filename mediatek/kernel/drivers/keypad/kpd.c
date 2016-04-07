@@ -16,16 +16,12 @@
 
 
 /*kpd.h file path: ALPS/mediatek/kernel/include/linux */
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-#include <linux/input/sweep2wake.h>
-#endif
 #include <linux/kpd.h>
 
 #define KPD_NAME	"mtk-kpd"
 #define USE_EARLY_SUSPEND
-/* begin, lenovo-sw wengjun1 20130728 delete for avoid close keypad as wake up source. */
-//#define MTK_KP_WAKESOURCE//this is for auto set wake up source
-/* end, lenovo-sw wengjun1 20130728 delete for avoid close keypad as wake up source. */
+
+#define MTK_KP_WAKESOURCE//this is for auto set wake up source
 
 struct input_dev *kpd_input_dev;
 static bool kpd_suspend = false;
@@ -50,6 +46,96 @@ static u8 kpd_slide_state = !KPD_SLIDE_POLARITY;
 static void kpd_pwrkey_handler(unsigned long data);
 static DECLARE_TASKLET(kpd_pwrkey_tasklet, kpd_pwrkey_handler, 0);
 #endif
+
+#if AEON_FCOVER_SUPPORT
+
+static void fcover_key_handler(unsigned long data);
+static DECLARE_TASKLET(kpd_fcover_tasklet, fcover_key_handler, 0);
+//static u8 kpd_pwrkey_state = !KPD_PWRKEY_POLARITY;
+
+#define EINT_POLARITY_LOW              0
+#define EINT_POLARITY_HIGH             1
+#define EINT_EDGE_SENSITIVE            0
+#define EINT_LEVEL_SENSITIVE           1
+
+
+#define GPIO_FCOVER_EINT_PIN  GPIO_HALL_EINT_PIN //GPIO_ALS_EINT_PIN
+//78
+#define FCOVER_KEY_EINT   CUST_EINT_HALL_NUM   //CUST_EINT_ALS_NUM
+#define FCOVER_KEY_TYPE   CUST_EINT_HALL_TYPE
+// 5
+#define FCOVER_KEY_SENSITIVE EINT_LEVEL_SENSITIVE
+#define FCOVER_KEY_POLARITY  EINT_POLARITY_LOW
+#define FCOVER_KEY_DEBOUNCE  24
+
+static u8 fcover_key_state = !FCOVER_KEY_POLARITY;
+
+//#define KERNEL_OPEN_FCOVER
+
+static int fcover_close_flag=1; // fenggy test
+
+#ifdef KERNEL_OPEN_FCOVER
+extern int lcm_backlight_flag;
+#endif
+
+static void fcover_key_handler(unsigned long data)
+{
+	bool pressed;
+	u8 old_state = fcover_key_state;
+      
+	fcover_key_state = !fcover_key_state;
+	pressed = (fcover_key_state == !!FCOVER_KEY_POLARITY);
+	printk("\r\n leanda fcover_key_eint_handler in pressed=%d, fcover_key_state=%d,old_state=%d \r\n", pressed, fcover_key_state, old_state);
+	if(pressed) // close
+	{
+			fcover_close_flag = 0;
+        	input_report_key(kpd_input_dev, KEY_FCOVER_1, 1);
+        	input_sync(kpd_input_dev);
+        	mdelay(1);
+            input_report_key(kpd_input_dev, KEY_FCOVER_1, 0);
+        	input_sync(kpd_input_dev);
+        	printk("report Linux keycode = %u\n", KEY_FCOVER_1);
+			
+//======================test=========================
+#ifdef KERNEL_OPEN_FCOVER
+			if(lcm_backlight_flag == 1)
+			{
+				kpd_backlight_handler(1, KPD_PWRKEY_MAP);
+				input_report_key(kpd_input_dev, KPD_PWRKEY_MAP, 1);
+				input_sync(kpd_input_dev);
+				printk("report Linux keycode = %u\n", KPD_PWRKEY_MAP);
+				mdelay(1);
+				kpd_backlight_handler(0, KPD_PWRKEY_MAP);
+				input_report_key(kpd_input_dev, KPD_PWRKEY_MAP, 0);
+				input_sync(kpd_input_dev);
+				printk("report Linux keycode = %u\n", KPD_PWRKEY_MAP);
+			}
+#endif
+//======================end===========================			
+	}
+	else  // open
+	{
+			fcover_close_flag = 1;
+        	input_report_key(kpd_input_dev, KEY_FCOVER_2, 1);
+        	input_sync(kpd_input_dev);
+        	mdelay(1);
+             input_report_key(kpd_input_dev, KEY_FCOVER_2, 0);
+        	input_sync(kpd_input_dev);
+        	printk("report Linux keycode = %u\n", KEY_FCOVER_2);
+	}
+
+	/* for detecting the return to old_state */
+	mt_eint_set_polarity(FCOVER_KEY_EINT, old_state);
+	mt_eint_unmask(FCOVER_KEY_EINT);
+}
+
+static void kpd_fcover_eint_handler(void)
+{
+	tasklet_schedule(&kpd_fcover_tasklet);
+	printk("leanda kpd_fcover_eint_handler \r\n");
+}
+#endif
+
 
 /* for keymap handling */
 static void kpd_keymap_handler(unsigned long data);
@@ -777,11 +863,6 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 			__set_bit(kpd_keymap[i], kpd_input_dev->keybit);
 	}
 
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	sweep2wake_setdev(kpd_input_dev);
-	printk("[SWEEP2WAKE]: power key capture done\n");
-#endif
-
 #if KPD_AUTOTEST
 	for (i = 0; i < ARRAY_SIZE(kpd_auto_keymap); i++)
 		__set_bit(kpd_auto_keymap[i], kpd_input_dev->keybit);
@@ -801,6 +882,11 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
     __set_bit(KEY_INFO, kpd_input_dev->keybit);
 #endif //LENOVO_STD_LINECTL_EARPHONE
 /* LENOVO.SW END.chenyb1,2012.9.4, add for new standard */
+
+#ifdef AEON_FCOVER_SUPPORT
+   	__set_bit(KEY_FCOVER_1, kpd_input_dev->keybit);
+   	__set_bit(KEY_FCOVER_2, kpd_input_dev->keybit);
+#endif
 
 	kpd_input_dev->dev.parent = &pdev->dev;
 	r = input_register_device(kpd_input_dev);
@@ -831,6 +917,21 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 
 #if KPD_PWRKEY_USE_EINT
 	mt_eint_register();
+#endif
+
+#ifdef AEON_FCOVER_SUPPORT
+    printk("leanda AEON_FCOVER_SUPPORT \r\n");
+	mt_set_gpio_mode(GPIO_FCOVER_EINT_PIN, GPIO_MODE_01);
+	mt_set_gpio_dir(GPIO_FCOVER_EINT_PIN, GPIO_DIR_IN);
+	mt_set_gpio_pull_enable(GPIO_FCOVER_EINT_PIN, GPIO_PULL_ENABLE);
+	mt_set_gpio_pull_select(GPIO_FCOVER_EINT_PIN, GPIO_PULL_UP);
+
+        
+	mt_eint_set_sens(FCOVER_KEY_EINT, FCOVER_KEY_SENSITIVE);
+	mt_eint_set_hw_debounce(FCOVER_KEY_EINT, FCOVER_KEY_DEBOUNCE);
+	mt_eint_registration(FCOVER_KEY_EINT, FCOVER_KEY_TYPE,
+	                         kpd_fcover_eint_handler, 0);
+	mt_eint_unmask(FCOVER_KEY_EINT);  
 #endif
 
 #ifndef KPD_EARLY_PORTING /*add for avoid early porting build err the macro is defined in custom file*/

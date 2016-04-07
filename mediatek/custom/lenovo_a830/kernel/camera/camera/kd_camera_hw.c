@@ -47,7 +47,7 @@
 #include "kd_imgsensor.h"
 #include "kd_imgsensor_define.h"
 #include "kd_camera_feature.h"
-//#include <mach/camera_isp.h>
+
 /******************************************************************************
  * Debug configuration
 ******************************************************************************/

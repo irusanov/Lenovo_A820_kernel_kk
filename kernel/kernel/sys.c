@@ -170,7 +170,11 @@ static int set_one_prio(struct task_struct *p, int niceval, int error)
 	}
 	if (error == -ESRCH)
 		error = 0;
+#ifdef CONFIG_MT_PRIO_TRACER
+	set_user_nice_syscall(p, niceval);
+#else
 	set_user_nice(p, niceval);
+#endif
 out:
 	return error;
 }

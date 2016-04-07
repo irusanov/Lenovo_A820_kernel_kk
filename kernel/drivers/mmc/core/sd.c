@@ -541,7 +541,6 @@ reswitch:
 	err = mmc_sd_switch(card, 1, 0, card->sd_bus_speed, status);
 	if (err)
 		return err;
-	printk(KERN_WARNING "msdc status[16] & 0xF = 0x%x bus_speed = 0x%x\n",(status[16] & 0xF),card->sd_bus_speed);
 
 	if ((status[16] & 0xF) != card->sd_bus_speed){
 		pr_warning("%s: Problem setting bus speed mode!\n",
@@ -1084,7 +1083,7 @@ static void mmc_sd_detect(struct mmc_host *host)
 
 	BUG_ON(!host);
 	BUG_ON(!host->card);
-       
+
 	mmc_claim_host(host);
 
 	/*

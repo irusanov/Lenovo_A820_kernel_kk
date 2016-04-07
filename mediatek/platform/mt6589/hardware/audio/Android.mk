@@ -381,6 +381,17 @@ LOCAL_SRC_FILES := \
     $(LOCAL_COMMON_PATH)/hardware/audio/policy_driver/AudioPolicyManagerDefault.cpp \
     $(LOCAL_COMMON_PATH)/hardware/audio/policy_driver/AudioMTKPolicyManager.cpp
 
+ifdef DOLBY_UDC
+  LOCAL_CFLAGS += -DDOLBY_UDC
+endif #DOLBY_UDC
+ifdef DOLBY_DAP
+    ifdef DOLBY_DAP_OPENSLES
+        LOCAL_CFLAGS += -DDOLBY_DAP_OPENSLES
+        LOCAL_CFLAGS += -DDOLBY_DAP_OPENSLES_MOVE_EFFECT
+        LOCAL_C_INCLUDES += $(TOP)/vendor/dolby/ds1/libds/include/
+    endif
+endif #DOLBY_END
+
 LOCAL_SHARED_LIBRARIES := \
     libcutils \
     libutils \

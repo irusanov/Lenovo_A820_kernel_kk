@@ -448,6 +448,10 @@ static Elf32_Sym* soinfo_elf_lookup(soinfo* si, unsigned hash, const char* name)
                name, si->name, si->base, hash, hash % si->nbucket);
 
     for (unsigned n = si->bucket[hash % si->nbucket]; n != 0; n = si->chain[n]) {
+        if (n >= si->nchain) {
+            return NULL;
+        }
+
         Elf32_Sym* s = symtab + n;
         if (strcmp(strtab + s->st_name, name)) continue;
 

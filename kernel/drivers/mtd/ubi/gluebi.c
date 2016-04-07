@@ -183,7 +183,8 @@ static int gluebi_read(struct mtd_info *mtd, loff_t from, size_t len,
 		if (to_read > total_read)
 			to_read = total_read;
 
-		err = ubi_read(gluebi->desc, lnum, buf, offs, to_read);
+		//err = ubi_read(gluebi->desc, lnum, buf, offs, to_read);
+		err = ubi_leb_read(gluebi->desc, lnum, buf, offs, to_read, 0);
 		if (err)
 			break;
 
@@ -227,7 +228,8 @@ static int gluebi_write(struct mtd_info *mtd, loff_t to, size_t len,
 		if (to_write > total_written)
 			to_write = total_written;
 
-		err = ubi_write(gluebi->desc, lnum, buf, offs, to_write);
+		//err = ubi_write(gluebi->desc, lnum, buf, offs, to_write);
+		err = ubi_leb_write(gluebi->desc, lnum, buf, offs, to_write);
 		if (err)
 			break;
 

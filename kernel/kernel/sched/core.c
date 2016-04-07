@@ -5,6 +5,8 @@
  *
  *  Copyright (C) 1991-2002  Linus Torvalds
  *
+ * Copyright (c) 2014, NVIDIA CORPORATION. All rights reserved.
+ * 
  *  1996-12-23  Modified by Dave Grothe to fix bugs in semaphores and
  *		make semaphores SMP safe
  *  1998-11-19	Implemented schedule_timeout() and related stuff
@@ -1302,7 +1304,7 @@ unsigned long wait_task_inactive(struct task_struct *p, long match_state)
 		 */
 		while (task_running(rq, p)) {
 			if (match_state && unlikely(cpu_relaxed_read_long
-				(&(p->state)) != match_state))
+			    (&(p->state)) != match_state))
 				return 0;
 			cpu_read_relax();
 		}
@@ -1544,8 +1546,8 @@ static void ttwu_activate(struct rq *rq, struct task_struct *p, int en_flags)
 static void
 ttwu_do_wakeup(struct rq *rq, struct task_struct *p, int wake_flags)
 {
-	trace_sched_wakeup(p, true);
 	check_preempt_curr(rq, p, wake_flags);
+	trace_sched_wakeup(p, true);
 
 	p->state = TASK_RUNNING;
 #ifdef CONFIG_SMP
@@ -1618,11 +1620,11 @@ static void sched_ttwu_pending(void)
 
 void scheduler_ipi(void)
 {
-    mt_trace_ISR_start(IPI_RESCHEDULE);
+    //mt_trace_ISR_start(IPI_RESCHEDULE);
 	if (llist_empty(&this_rq()->wake_list) && !got_nohz_idle_kick()){
-        mt_trace_ISR_end(IPI_RESCHEDULE);
+        //mt_trace_ISR_end(IPI_RESCHEDULE);
 #ifdef CONFIG_MTK_SCHED_TRACERS
-        trace_ipi_handler_exit(IPI_RESCHEDULE);
+        //trace_ipi_handler_exit(IPI_RESCHEDULE);
 #endif
         return;
     }
@@ -1651,9 +1653,9 @@ void scheduler_ipi(void)
 		this_rq()->idle_balance = 1;
 		raise_softirq_irqoff(SCHED_SOFTIRQ);
 	}
-    mt_trace_ISR_end(IPI_RESCHEDULE);
+    //mt_trace_ISR_end(IPI_RESCHEDULE);
 #ifdef CONFIG_MTK_SCHED_TRACERS
-    trace_ipi_handler_exit(IPI_RESCHEDULE);
+    //trace_ipi_handler_exit(IPI_RESCHEDULE);
 #endif
 	irq_exit();
 }
@@ -2384,7 +2386,7 @@ EXPORT_SYMBOL(get_cpu_load);
  *  This covers the NO_HZ=n code, for extra head-aches, see the comment below.
  */
  
- #ifdef CONFIG_INTELLI_PLUG
+#ifdef CONFIG_INTELLI_PLUG
 unsigned long avg_nr_running(void)
 {
 	unsigned long i, sum = 0;
@@ -2842,11 +2844,13 @@ decay_load_missed(unsigned long load, unsigned long missed_updates, int idx)
 	return load;
 }
 
+#ifdef CONFIG_MTK_SCHED_CMP
 /*
  * Update rq->cpu_load[] statistics. This function is usually called every
  * scheduler tick (TICK_NSEC). With tickless idle this will not be called
  * every tick. We fix it up based on jiffies.
  */
+/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
 static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
 			      unsigned long pending_updates)
 {
@@ -2878,7 +2882,20 @@ static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
 	sched_avg_update(this_rq);
 }
 
-# ifdef CONFIG_NO_HZ
+# ifdef CONFIG_SMP
+/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
+static inline unsigned long get_rq_runnable_load(struct rq *rq)
+{
+	return rq->cfs.runnable_load_avg;
+}
+# else
+static inline unsigned long get_rq_runnable_load(struct rq *rq)
+{
+	return rq->load.weight;
+}
+# endif
+
+#ifdef CONFIG_NO_HZ
 /*
  * There is no sane way to deal with nohz on smp when using jiffies because the
  * cpu doing the jiffies update might drift wrt the cpu doing the jiffy reading
@@ -2896,10 +2913,11 @@ static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
  * Called from nohz_idle_balance() to update the load ratings before doing the
  * idle balance.
  */
+/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
 void update_idle_cpu_load(struct rq *this_rq)
 {
 	unsigned long curr_jiffies = ACCESS_ONCE(jiffies);
-	unsigned long load = this_rq->load.weight;
+	unsigned long load = get_rq_runnable_load(this_rq);
 	unsigned long pending_updates;
 
 	/*
@@ -2917,6 +2935,7 @@ void update_idle_cpu_load(struct rq *this_rq)
 /*
  * Called from tick_nohz_idle_exit() -- try and fix up the ticks we missed.
  */
+/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
 void update_cpu_load_nohz(void)
 {
 	struct rq *this_rq = this_rq();
@@ -2938,21 +2957,137 @@ void update_cpu_load_nohz(void)
 	}
 	raw_spin_unlock(&this_rq->lock);
 }
-# endif /* CONFIG_NO_HZ */
+#endif /* CONFIG_NO_HZ */
 
 /*
  * Called from scheduler_tick()
  */
+/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
 static void update_cpu_load_active(struct rq *this_rq)
 {
+	unsigned long load = get_rq_runnable_load(this_rq);
 	/*
 	 * See the mess around update_idle_cpu_load() / update_cpu_load_nohz().
 	 */
+	this_rq->last_load_update_tick = jiffies;
+	__update_cpu_load(this_rq, load, 1);
+
+	calc_load_account_active(this_rq);
+}
+#else /* !CONFIG_MTK_SCHED_CMP */
+/*
+ * Update rq->cpu_load[] statistics. This function is usually called every
+ * scheduler tick (TICK_NSEC). With tickless idle this will not be called
+ * every tick. We fix it up based on jiffies.
+ */
+/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
+static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
+			      unsigned long pending_updates)
+{
+	int i, scale;
+
+	this_rq->nr_load_updates++;
+
+	/* Update our load: */
+	this_rq->cpu_load[0] = this_load; /* Fasttrack for idx 0 */
+	for (i = 1, scale = 2; i < CPU_LOAD_IDX_MAX; i++, scale += scale) {
+		unsigned long old_load, new_load;
+
+		/* scale is effectively 1 << i now, and >> i divides by scale */
+
+		old_load = this_rq->cpu_load[i];
+		old_load = decay_load_missed(old_load, pending_updates - 1, i);
+		new_load = this_load;
+		/*
+		 * Round up the averaging division if load is increasing. This
+		 * prevents us from getting stuck on 9 if the load is 10, for
+		 * example.
+		 */
+		if (new_load > old_load)
+			new_load += scale - 1;
+
+		this_rq->cpu_load[i] = (old_load * (scale - 1) + new_load) >> i;
+	}
+
+	sched_avg_update(this_rq);
+}
+
+#ifdef CONFIG_NO_HZ
+/*
+ * There is no sane way to deal with nohz on smp when using jiffies because the
+ * cpu doing the jiffies update might drift wrt the cpu doing the jiffy reading
+ * causing off-by-one errors in observed deltas; {0,2} instead of {1,1}.
+ *
+ * Therefore we cannot use the delta approach from the regular tick since that
+ * would seriously skew the load calculation. However we'll make do for those
+ * updates happening while idle (nohz_idle_balance) or coming out of idle
+ * (tick_nohz_idle_exit).
+ *
+ * This means we might still be one tick off for nohz periods.
+ */
+
+/*
+ * Called from nohz_idle_balance() to update the load ratings before doing the
+ * idle balance.
+ */
+/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
+void update_idle_cpu_load(struct rq *this_rq)
+{
+	unsigned long curr_jiffies = ACCESS_ONCE(jiffies);
+	unsigned long load = this_rq->load.weight;
+	unsigned long pending_updates;
+
+	/*
+	 * bail if there's load or we're actually up-to-date.
+	 */
+	if (load || curr_jiffies == this_rq->last_load_update_tick)
+		return;
+
+	pending_updates = curr_jiffies - this_rq->last_load_update_tick;
+	this_rq->last_load_update_tick = curr_jiffies;
+
+	__update_cpu_load(this_rq, load, pending_updates);
+}
+
+/*
+ * Called from tick_nohz_idle_exit() -- try and fix up the ticks we missed.
+ */
+/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
+void update_cpu_load_nohz(void)
+{
+	struct rq *this_rq = this_rq();
+	unsigned long curr_jiffies = ACCESS_ONCE(jiffies);
+	unsigned long pending_updates;
+
+	if (curr_jiffies == this_rq->last_load_update_tick)
+		return;
+
+	raw_spin_lock(&this_rq->lock);
+	pending_updates = curr_jiffies - this_rq->last_load_update_tick;
+	if (pending_updates) {
+		this_rq->last_load_update_tick = curr_jiffies;
+		/*
+		 * We were idle, this means load 0, the current load might be
+		 * !0 due to remote wakeups and the sort.
+		 */
+		__update_cpu_load(this_rq, 0, pending_updates);
+	}
+	raw_spin_unlock(&this_rq->lock);
+}
+#endif /* CONFIG_NO_HZ */
+
+/*
+ * Called from scheduler_tick()
+ */
+/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
+static void update_cpu_load_active(struct rq *this_rq)
+{
 	this_rq->last_load_update_tick = jiffies;
 	__update_cpu_load(this_rq, this_rq->load.weight, 1);
 
 	calc_load_account_active(this_rq);
 }
+#endif
 
 #ifdef CONFIG_SMP
 
@@ -5004,7 +5139,6 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 	if (!p) {
 		rcu_read_unlock();
 		put_online_cpus();
-		printk(KERN_ERR "SCHED: setaffinity find process %d fail\n", pid); 
 		return -ESRCH;
 	}
 
@@ -5014,32 +5148,24 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 
 	if (!alloc_cpumask_var(&cpus_allowed, GFP_KERNEL)) {
 		retval = -ENOMEM;
-		printk(KERN_ERR "SCHED: setaffinity allo_cpumask_var for cpus_allowed fail\n"); 
 		goto out_put_task;
 	}
 	if (!alloc_cpumask_var(&new_mask, GFP_KERNEL)) {
 		retval = -ENOMEM;
-		printk(KERN_ERR "SCHED: setaffinity allo_cpumask_var for new_mask fail\n");  
 		goto out_free_cpus_allowed;
 	}
 	retval = -EPERM;
-	if (!check_same_owner(p) && !ns_capable(task_user_ns(p), CAP_SYS_NICE)){
-		printk(KERN_ERR "SCHED: setaffinity check_same_owner and task_ns_capable fail\n");  
+	if (!check_same_owner(p) && !ns_capable(task_user_ns(p), CAP_SYS_NICE))
 		goto out_unlock;
-	}
 
 	retval = security_task_setscheduler(p);
-	if (retval){
-		printk(KERN_ERR "SCHED: setaffinity security_task_setscheduler fail, status: %d\n", retval);  
+	if (retval)
 		goto out_unlock;
-	}
 
 	cpuset_cpus_allowed(p, cpus_allowed);
 	cpumask_and(new_mask, in_mask, cpus_allowed);
 again:
 	retval = set_cpus_allowed_ptr(p, new_mask);
-	if (retval)
-		printk(KERN_ERR "SCHED: set_cpus_allowed_ptr status %d\n", retval);   
 
 	if (!retval) {
 		cpuset_cpus_allowed(p, cpus_allowed);
@@ -5060,8 +5186,6 @@ out_free_cpus_allowed:
 out_put_task:
 	put_task_struct(p);
 	put_online_cpus();
-	if (retval)
-		printk(KERN_ERR "SCHED: setaffinity status %d\n", retval);
 	return retval;
 }
 
@@ -5109,16 +5233,12 @@ long sched_getaffinity(pid_t pid, struct cpumask *mask)
 
 	retval = -ESRCH;
 	p = find_process_by_pid(pid);
-	if (!p){
-		printk(KERN_ERR "SCHED: getaffinity find process %d fail\n", pid);  
+	if (!p)
 		goto out_unlock;
-	}
 
 	retval = security_task_getscheduler(p);
-	if (retval){
-		printk(KERN_ERR "SCHED: getaffinity security_task_getscheduler fail, status: %d\n", retval); 
+	if (retval)
 		goto out_unlock;
-	}
 
 	raw_spin_lock_irqsave(&p->pi_lock, flags);
 	cpumask_and(mask, &p->cpus_allowed, cpu_online_mask);
@@ -5128,9 +5248,6 @@ out_unlock:
 	rcu_read_unlock();
 	put_online_cpus();
 
-	if (retval){
-		printk(KERN_ERR "SCHED: getaffinity status %d\n", retval);   
-	}
 	return retval;
 }
 
@@ -5678,13 +5795,11 @@ int set_cpus_allowed_ptr(struct task_struct *p, const struct cpumask *new_mask)
 
 	if (!cpumask_intersects(new_mask, cpu_active_mask)) {
 		ret = -EINVAL;
-		printk(KERN_ERR "SCHED: intersects new_mask: %lu, cpu_active_mask: %lu\n", new_mask->bits[0], cpu_active_mask->bits[0]);
 		goto out;
 	}
 
 	if (unlikely((p->flags & PF_THREAD_BOUND) && p != current)) {
 		ret = -EINVAL;
-		printk(KERN_ERR "SCHED: set_cpus_allowed_ptr error. flag: %d, task_pid: %d, current: %d\n", p->flags, p->pid, current->pid );
 		goto out;
 	}
 

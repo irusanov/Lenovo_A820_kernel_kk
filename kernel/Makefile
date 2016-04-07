@@ -4,7 +4,6 @@ SUBLEVEL = 111
 EXTRAVERSION =
 NAME = Saber-toothed Squirrel
 
-export TARGET_BUILD_VARIANT = user
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README
@@ -196,7 +195,7 @@ export KBUILD_BUILDHOST := $(SUBARCH)
 #ARCH		?= $(SUBARCH)
 #CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
 ARCH		?= arm
-CROSS_COMPILE	?= arm-linux-androideabi-
+CROSS_COMPILE	?= arm-eabi-
 
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
@@ -542,14 +541,7 @@ ifeq ($(KBUILD_EXTMOD),)
 -include include/config/auto.conf.cmd
 
 # To avoid any implicit rule to kick in, define an empty command
-ifneq ($(SRCARCH),arm)
 $(KCONFIG_CONFIG) include/config/auto.conf.cmd: ;
-else
-#TODO { 
-#modify by MTK, we have the .config rule, don't set the empty command rule for .config
-include/config/auto.conf.cmd: ;
-# }
-endif
 
 # If .config is newer than include/config/auto.conf, someone tinkered
 # with it and forgot to run make oldconfig.
@@ -1180,8 +1172,8 @@ _modinst_post: _modinst_
 
 AMODLIB	= $(INSTALL_MOD_PATH)/lib/modules
 export AMODLIB
-#AMODSYMLIB = $(INSTALL_MOD_PATH)/../symbols/system/lib/modules
-#export AMODSYMLIB
+AMODSYMLIB = $(INSTALL_MOD_PATH)/../symbols/system/lib/modules
+export AMODSYMLIB
 
 PHONY += android_modules_install
 android_modules_install: _android_modinst_ 
@@ -1191,8 +1183,8 @@ _android_modinst_:
 	@if [ ! -d $(AMODLIB) ]; then \
 	   mkdir -p $(AMODLIB); \
 	fi
-#	@if [ ! -d $(AMODSYMLIB) ]; then \
-#	   mkdir -p $(AMODSYMLIB); \
+	@if [ ! -d $(AMODSYMLIB) ]; then \
+	   mkdir -p $(AMODSYMLIB); \
 	fi
 	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.android.modinst
 # MTK, Infinity, 20090730 }

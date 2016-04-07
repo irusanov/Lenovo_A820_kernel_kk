@@ -510,19 +510,25 @@ static DEFINE_RAW_SPINLOCK(stop_lock);
  */
 static void ipi_cpu_stop(unsigned int cpu)
 {
-    printk(KERN_CRIT"\n CPU%u: stopping and cpu_relax,state:%d\n", cpu, system_state);
-	//if (system_state == SYSTEM_BOOTING ||
-	//    system_state == SYSTEM_RUNNING) {
-    //	raw_spin_lock(&stop_lock);
-    //	printk(KERN_CRIT "CPU%u: stopping\n", cpu);
-	//	dump_stack();
-	//	raw_spin_unlock(&stop_lock);
-    //}
+	if (system_state == SYSTEM_BOOTING ||
+	    system_state == SYSTEM_RUNNING) {
+		raw_spin_lock(&stop_lock);
+		printk(KERN_CRIT "CPU%u: stopping\n", cpu);
+		dump_stack();
+		raw_spin_unlock(&stop_lock);
+	}
 
 	set_cpu_online(cpu, false);
 
 	local_fiq_disable();
 	local_irq_disable();
+
+    /* For L1 data coherence with the other cores, 
+     * we need to flush this core's l1 cache. by Chia-Hao Hsu 
+     */
+    flush_cache_all();
+    cpu_proc_fin();
+    flush_cache_all();
 
 	while (1)
 		cpu_relax();
@@ -597,37 +603,99 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
 		__inc_irq_stat(cpu, ipi_irqs[ipinr - IPI_TIMER]);
 
 	switch (ipinr) {
+        case IPI_CPU_START:
+#ifdef CONFIG_MTK_SCHED_TRACERS
+        trace_ipi_handler_entry(IPI_CPU_START, "IPI_CPU_START");
+#endif
+            mt_trace_ISR_start(ipinr);
+            mt_trace_ISR_end(ipinr);
+#ifdef CONFIG_MTK_SCHED_TRACERS
+        trace_ipi_handler_exit(IPI_CPU_START);
+#endif
+            break;
 	case IPI_TIMER:
+#ifdef CONFIG_MTK_SCHED_TRACERS
+            trace_ipi_handler_entry(IPI_TIMER, "IPI_TIMER");
+#endif
+        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		ipi_timer();
+        mt_trace_ISR_end(ipinr);
+#ifdef CONFIG_MTK_SCHED_TRACERS
+            trace_ipi_handler_exit(IPI_TIMER);
+#endif
 		irq_exit();
 		break;
 
 	case IPI_RESCHEDULE:
+#ifdef CONFIG_MTK_SCHED_TRACERS
+        trace_ipi_handler_entry(IPI_RESCHEDULE, "IPI_RESCHEDULE");
+#endif
 		scheduler_ipi();
 		break;
 
 	case IPI_CALL_FUNC:
+#ifdef CONFIG_MTK_SCHED_TRACERS
+        trace_ipi_handler_entry(IPI_CALL_FUNC, "IPI_CALL_FUNC");
+#endif
+        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		generic_smp_call_function_interrupt();
+        mt_trace_ISR_end(ipinr);
+#ifdef  CONFIG_MTK_SCHED_TRACERS
+        trace_ipi_handler_exit(IPI_CALL_FUNC);
+#endif
 		irq_exit();
 		break;
 
 	case IPI_CALL_FUNC_SINGLE:
+#ifdef  CONFIG_MTK_SCHED_TRACERS
+        trace_ipi_handler_entry(IPI_CALL_FUNC_SINGLE, "IPI_CALL_FUNC_SINGLE");
+#endif
+        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		generic_smp_call_function_single_interrupt();
+        mt_trace_ISR_end(ipinr);
+#ifdef CONFIG_MTK_SCHED_TRACERS
+        trace_ipi_handler_exit(IPI_CALL_FUNC_SINGLE);
+#endif
 		irq_exit();
 		break;
 
 	case IPI_CPU_STOP:
+#ifdef CONFIG_MTK_SCHED_TRACERS
+        trace_ipi_handler_entry(IPI_CPU_STOP, "IPI_CPU_STOP");
+#endif
+        mt_trace_ISR_start(ipinr);
 		irq_enter();
 		ipi_cpu_stop(cpu);
+        mt_trace_ISR_end(ipinr);
+#ifdef CONFIG_MTK_SCHED_TRACERS
+        trace_ipi_handler_exit(IPI_CPU_STOP);
+#endif
 		irq_exit();
 		break;
 
+	case IPI_CPU_BACKTRACE:
+#ifdef CONFIG_MTK_SCHED_TRACERS
+        trace_ipi_handler_entry(IPI_CPU_BACKTRACE, "IPI_CPU_BACKTRACE");
+#endif
+        mt_trace_ISR_start(ipinr);
+		ipi_cpu_backtrace(cpu, regs);
+        mt_trace_ISR_end(ipinr);
+#ifdef CONFIG_MTK_SCHED_TRACERS
+        trace_ipi_handler_exit(IPI_CPU_BACKTRACE);
+#endif
+		break;
+
 	default:
+#ifdef CONFIG_MTK_SCHED_TRACERS
+        trace_unnamed_irq(ipinr);
+#endif
+        mt_trace_ISR_start(ipinr);
 		printk(KERN_CRIT "CPU%u: Unknown IPI message 0x%x\n",
 		       cpu, ipinr);
+        mt_trace_ISR_end(ipinr);
 		break;
 	}
 	set_irq_regs(old_regs);

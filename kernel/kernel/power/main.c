@@ -371,6 +371,14 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
     hib_log("entry (%d)\n", state);
 #endif
 
+#ifdef CONFIG_MTK_HIBERNATION
+    if (len == 8 && !strncmp(buf, "hibabort", len)) {
+        hib_log("abort hibernation...\n");
+        error = mtk_hibernate_abort();
+        goto Exit;
+    }
+#endif
+
     /* First, check if we are requested to hibernate */
     if (len == 4 && !strncmp(buf, "disk", len)) {
 #ifdef CONFIG_MTK_HIBERNATION

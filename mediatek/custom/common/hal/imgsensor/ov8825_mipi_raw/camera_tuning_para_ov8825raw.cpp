@@ -185,20 +185,20 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
             TRUE,            // bEnableCaptureThres
             TRUE,            // bEnableVideoThres
             TRUE,            // bEnableStrobeThres
-            55,                // u4AETarget
-            57,                // u4StrobeAETarget
+            47,                // u4AETarget
+            47,                // u4StrobeAETarget
 
             50,                // u4InitIndex
             4,                 // u4BackLightWeight
             32,                // u4HistStretchWeight
             4,                 // u4AntiOverExpWeight
-            0,    // u4BlackLightStrengthIndex
-            4,    // u4HistStretchStrengthIndex
+            2,                 // u4BlackLightStrengthIndex
+            2,                 // u4HistStretchStrengthIndex
             2,                 // u4AntiOverExpStrengthIndex
             2,                 // u4TimeLPFStrengthIndex
             {1, 3, 5, 7, 8}, // u4LPFConvergeTable[AE_CCT_STRENGTH_NUM]
             90,                // u4InDoorEV = 9.0, 10 base
-            -3,               // i4BVOffset delta BV = -2.3
+            -10,               // i4BVOffset delta BV = -2.3
             64,                 // u4PreviewFlareOffset
             64,                 // u4CaptureFlareOffset
             3,                 // u4CaptureFlareThres
@@ -669,7 +669,7 @@ const NVRAM_CAMERA_3A_STRUCT CAMERA_3A_NVRAM_DEFAULT_VALUE =
 typedef NSFeature::RAWSensorInfo<SENSOR_ID> SensorInfoSingleton_T;
 
 
-namespace NSFeature { 
+namespace NSFeature {
 template <>
 UINT32
 SensorInfoSingleton_T::

@@ -977,6 +977,7 @@ long do_sys_open(int dfd, const char __user *filename, int flags, umode_t mode)
 	int lookup = build_open_flags(flags, mode, &op);
 	char *tmp = getname(filename);
 	int fd = PTR_ERR(tmp);
+
 	if (!IS_ERR(tmp)) {
 		fd = get_unused_fd_flags(flags);
 		if (fd >= 0) {

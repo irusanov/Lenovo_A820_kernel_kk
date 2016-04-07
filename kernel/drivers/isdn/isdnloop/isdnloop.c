@@ -1214,7 +1214,7 @@ isdnloop_command(isdn_ctrl *c, isdnloop_card *card)
 			snprintf(cbuf, sizeof(cbuf),
 				 "%02d;D%s_R%s,%02d,%02d,%s\n", (int) (a + 1),
 				 dcode, p, c->parm.setup.si1,
-				c->parm.setup.si2, c->parm.setup.eazmsn);
+				 c->parm.setup.si2, c->parm.setup.eazmsn);
 			i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
 		}
 		break;

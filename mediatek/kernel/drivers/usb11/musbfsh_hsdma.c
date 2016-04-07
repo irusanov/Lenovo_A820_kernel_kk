@@ -37,6 +37,12 @@
 #include "musbfsh_core.h"
 #include "musbfsh_dma.h"
 #include "musbfsh_hsdma.h"
+#include "usb.h"			
+
+#ifdef MTK_ICUSB_SUPPORT
+int mt65xx_check_usb11_clk_status(void);
+extern struct my_attr skip_mac_init_attr;
+#endif	
 
 static int dma_controller_start(struct dma_controller *c)
 {
@@ -198,7 +204,7 @@ static int dma_channel_abort(struct dma_channel *channel)
 	int offset;
 	u16 csr;
 	
-	INFO("idx=%d\n", musbfsh_channel->idx);
+	INFO("dma_channel_abort++,idx=%d\r\n", musbfsh_channel->idx);
 	if (channel->status == MUSBFSH_DMA_STATUS_BUSY) {
 		if (musbfsh_channel->transmit) {
 			offset = MUSBFSH_EP_OFFSET(musbfsh_channel->epnum,
@@ -391,7 +397,16 @@ musbfsh_dma_controller_create(struct musbfsh *musbfsh, void __iomem *base)
 	controller->irq = 0;
 	musbfsh->musbfsh_dma_controller = controller;
 	//enable DMA interrupt for all channels
+
+#ifdef MTK_ICUSB_SUPPORT
+	if(!skip_mac_init_attr.value)
+	{
 		musbfsh_writeb(base,MUSBFSH_HSDMA_DMA_INTR_UNMASK_SET,0xff);
+	}
+#else
+	musbfsh_writeb(base,MUSBFSH_HSDMA_DMA_INTR_UNMASK_SET,0xff);
+#endif
+
 	return &controller->controller;
 }
 

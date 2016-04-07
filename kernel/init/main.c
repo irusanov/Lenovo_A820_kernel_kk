@@ -815,7 +815,6 @@ static noinline int init_post(void)
 	system_state = SYSTEM_RUNNING;
 	numa_default_policy();
 
-	log_boot("Kernel_init_done");
 
 	current->signal->flags |= SIGNAL_UNKILLABLE;
 

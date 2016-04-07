@@ -546,7 +546,7 @@ void vmbus_close(struct vmbus_channel *channel)
 	/* Tear down the gpadl for the channel's ring buffer */
 	if (channel->ringbuffer_gpadlhandle) {
 		ret = vmbus_teardown_gpadl(channel,
-					  channel->ringbuffer_gpadlhandle);
+					   channel->ringbuffer_gpadlhandle);
 		if (ret) {
 			pr_err("Close failed: teardown gpadl return %d\n", ret);
 			/*

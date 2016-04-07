@@ -45,7 +45,6 @@
 #include "truncate.h"
 
 #include <trace/events/ext4.h>
-#include <linux/blkdev.h>
 
 #define MPAGE_DA_EXTENT_TAIL 0x01
 
@@ -3690,7 +3689,6 @@ struct inode *ext4_iget(struct super_block *sb, unsigned long ino)
 		return ERR_PTR(-ENOMEM);
 	if (!(inode->i_state & I_NEW))
 		return inode;
-
 
 	ei = EXT4_I(inode);
 	iloc.bh = NULL;

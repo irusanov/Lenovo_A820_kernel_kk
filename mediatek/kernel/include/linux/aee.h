@@ -169,6 +169,8 @@ void aee_oops_free(struct aee_oops *oops);
 #define DB_OPT_PROC_USKTRK              (1<<25)
 #define DB_OPT_SF_RTT_DUMP              (1<<26)
 #define DB_OPT_PAGETYPE_INFO            (1<<27)
+#define DB_OPT_DUMPSYS_PROCSTATS        (1<<28)
+#define DB_OPT_DUMP_DISPLAY             (1<<29)
 
 #define aee_kernel_exception(module, msg...)	\
 	aee_kernel_exception_api(__FILE__, __LINE__, DB_OPT_DEFAULT, module, msg)

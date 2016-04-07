@@ -251,7 +251,7 @@ static int __die(const char *str, int err, struct thread_info *thread, struct pt
 	/* trap and error numbers are mostly meaningless on ARM */
 	ret = notify_die(DIE_OOPS, str, regs, err, tsk->thread.trap_no, SIGSEGV);
 	if (ret == NOTIFY_STOP)
-        return ret;
+		return ret;
 
 	print_modules();
 	__show_regs(regs);
@@ -295,7 +295,13 @@ void die(const char *str, struct pt_regs *regs, int err)
 
 	bust_spinlocks(0);
 	add_taint(TAINT_DIE);
-	raw_spin_unlock_irq(&die_lock);
+    /*  I don't like die->panic process be interrupted
+     *  by ISR, or other process.
+     *  The only side effect is , on smp, when other cpu
+     *  die at the same time, it may block on die_lock.
+     *  However, this is rather acceptable.
+     */
+	//raw_spin_unlock_irq(&die_lock);
 	oops_exit();
 
 	if (in_interrupt())

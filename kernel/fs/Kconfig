@@ -205,9 +205,6 @@ source "fs/befs/Kconfig"
 source "fs/bfs/Kconfig"
 source "fs/efs/Kconfig"
 
-# Patched by YAFFS
-source "fs/yaffs2/Kconfig"
-
 source "fs/jffs2/Kconfig"
 # UBIFS File system configuration
 source "fs/ubifs/Kconfig"
@@ -282,9 +279,9 @@ endif # NETWORK_FILESYSTEMS
 source "fs/nls/Kconfig"
 source "fs/dlm/Kconfig"
 
-
 config ASYNC_FSYNC
-	bool "asynchronous fsync"
+	bool
+	string "asynchronous fsync"
 	default y
 
 config DYNAMIC_FSYNC

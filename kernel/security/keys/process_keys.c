@@ -804,6 +804,7 @@ long join_session_keyring(const char *name)
 			goto error2;
 		}
 	} else if (IS_ERR(keyring)) {
+		key_put(keyring);
 		ret = PTR_ERR(keyring);
 		goto error2;
 	}

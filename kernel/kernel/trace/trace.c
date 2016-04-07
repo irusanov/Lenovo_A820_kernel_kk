@@ -1136,6 +1136,8 @@ void tracing_stop(void)
 	struct ring_buffer *buffer;
 	unsigned long flags;
 
+	ftrace_stop();
+
 	raw_spin_lock_irqsave(&tracing_start_lock, flags);
 	if (trace_stop_count++)
 		goto out;

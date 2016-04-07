@@ -605,7 +605,7 @@ struct mem_size_stats {
 	unsigned long anonymous_thp;
 	unsigned long swap;
 	u64 pss;
-        u64 pswap;
+    u64 pswap;
 };
 
 #ifdef CONFIG_SWAP

@@ -82,7 +82,6 @@ static const char longname[] = "Gadget Android";
 #define ADVMETA_ID		0x0005 //ums+adb+acm
 
 /* Default manufacturer and product string , overridden by userspace */
-/*Lenovo-sw yexh1 modified 2013-5-23 begin*/
 #if defined(LENOVO_PRODUCT_DEVICE)
 #define MANUFACTURER_STRING "Lenovo"
 #define PRODUCT_STRING MANUFACTURER_STRING " " LENOVO_PRODUCT_DEVICE
@@ -90,7 +89,6 @@ static const char longname[] = "Gadget Android";
 #define MANUFACTURER_STRING "MediaTek"
 #define PRODUCT_STRING "MT65xx Android Phone"
 #endif
-/*Lenovo-sw yexh1 modified 2013-5-23 end*/
 
 #define USB_LOG "USB"
 
@@ -1267,16 +1265,26 @@ static int mass_storage_function_init(struct android_usb_function *f,
 		return -ENOMEM;
 
 #ifdef MTK_MULTI_STORAGE_SUPPORT
-#ifdef MTK_SHARED_SDCARD
-#define NLUN_STORAGE 1
+#define LUN_MULTI (1)
 #else
-#define NLUN_STORAGE 2
-#endif
-#else
-#define NLUN_STORAGE 1
+#define LUN_MULTI (0)
 #endif
 
-	config->fsg.nluns = NLUN_STORAGE;
+#ifdef MTK_SHARED_SDCARD
+#define LUN_SHARED_SD (-1)
+#else
+#define LUN_SHARED_SD (0)
+#endif
+
+#ifdef MTK_ICUSB_SUPPORT
+#define LUN_ICUSB (1)
+#else
+#define LUN_ICUSB (0)
+#endif
+
+#define LUN_NUM LUN_MULTI + LUN_SHARED_SD + LUN_ICUSB + 1
+
+	config->fsg.nluns = LUN_NUM;
 
 	for(i = 0; i < config->fsg.nluns; i++) {
 		config->fsg.luns[i].removable = 1;

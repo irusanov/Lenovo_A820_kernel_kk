@@ -2160,7 +2160,7 @@ int block_read_full_page(struct page *page, get_block_t *get_block)
 			end_buffer_async_read(bh, 1);
 		else
 			submit_bh(READ, bh);
-		}
+	}
 	return 0;
 }
 EXPORT_SYMBOL(block_read_full_page);

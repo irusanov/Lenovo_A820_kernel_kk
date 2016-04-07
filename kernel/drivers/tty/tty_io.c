@@ -106,7 +106,6 @@
 #include <linux/nsproxy.h>
 
 #undef TTY_DEBUG_HANGUP
-extern void grab_pending_work(struct work_struct *work);
 
 #define TTY_PARANOIA_CHECK 1
 #define CHECK_TTY_COUNT 1
@@ -1484,7 +1483,6 @@ static void release_one_tty(struct work_struct *work)
 	struct tty_struct *tty =
 		container_of(work, struct tty_struct, hangup_work);
 	struct tty_driver *driver = tty->driver;
-	char tty_n[64];
 
 	if (tty->ops->cleanup)
 		tty->ops->cleanup(tty);
@@ -1499,9 +1497,6 @@ static void release_one_tty(struct work_struct *work)
 
 	put_pid(tty->pgrp);
 	put_pid(tty->session);
-	printk(KERN_DEBUG "%s: grab tty(%s/%p)'s work %p before free it\n", __func__, 
-		tty_name(tty, tty_n), tty, &tty->buf.work);
-	grab_pending_work(&tty->buf.work);
 	free_tty_struct(tty);
 }
 

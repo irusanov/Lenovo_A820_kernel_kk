@@ -27,7 +27,6 @@
 #include <linux/console.h>
 #ifdef CONFIG_MTK_HIBERNATION
 #include <linux/syscalls.h> // for sys_sync()
-#include <linux/oom.h>
 #endif
 
 #include "tuxonice_pageflags.h"
@@ -177,7 +176,7 @@ static void toi_mark_task_as_pageset(struct task_struct *t, int pageset2)
 	mm = t->active_mm;
 
     if (mm == (void *)0x6b6b6b6b) {
-        pr_err("[%s] use after free: task %s rq(%d)\n", __func__, t->comm, t->on_rq);
+        pr_err("[%s] use after free: task %s cpu/rq(%d/%d)\n", __func__, t->comm, t->on_cpu, t->on_rq);
         WARN_ON(1);
         return;
     }
@@ -223,25 +222,6 @@ static void toi_mark_task_as_pageset(struct task_struct *t, int pageset2)
 
 static void mark_tasks(int pageset)
 {
-#ifdef CONFIG_MTK_HIBERNATION
-    struct task_struct *tsk;
-
-    toi_read_lock_tasklist();
-    for_each_process(tsk) {
-        struct task_struct *p;
-
-        if (tsk->flags & PF_KTHREAD)
-            continue;
-
-        p = find_lock_task_mm(tsk);
-        if (!p)
-            continue;
-
-        toi_mark_task_as_pageset(p, pageset);
-        task_unlock(p);
-    }
-    toi_read_unlock_tasklist();
-#else
 	struct task_struct *p;
 
 	toi_read_lock_tasklist();
@@ -255,7 +235,6 @@ static void mark_tasks(int pageset)
 		toi_mark_task_as_pageset(p, pageset);
 	}
 	toi_read_unlock_tasklist();
-#endif
 
 }
 
@@ -928,29 +907,24 @@ void toi_recalculate_image_contents(int atomic_copy)
 
 int try_allocate_extra_memory(void)
 {
-#ifdef CONFIG_MTK_HIBERNATION
-	int wanted = pagedir1.size +  extra_pd1_pages_allowance -
-		get_lowmem_size(pagedir2);
-	if (wanted > extra_pages_allocated) {
-		int got = toi_allocate_extra_pagedir_memory(wanted);
-        if (wanted > got) {
-            hib_warn("Want %d extra pages for pageset1, but only got %d\n", wanted, got);
-            return 1;
-        }
-	}
-#else // buggy codes, (1) why wanted < got and return 1 ? ; (2) wanted might be negative value.
 	unsigned long wanted = pagedir1.size +  extra_pd1_pages_allowance -
 		get_lowmem_size(pagedir2);
 	if (wanted > extra_pages_allocated) {
 		unsigned long got = toi_allocate_extra_pagedir_memory(wanted);
+#ifdef CONFIG_MTK_HIBERNATION
+        if (wanted > got) {
+            hib_warn("Want %lu extra pages for pageset1, but only got %lu\n", wanted, got);
+            return 1;
+        }
+#else // why wanted < got and return 1 ???
 		if (wanted < got) {
 			toi_message(TOI_EAT_MEMORY, TOI_LOW, 1,
 				"Want %d extra pages for pageset1, got %d.\n",
 				wanted, got);
 			return 1;
 		}
-	}
 #endif
+	}
 	return 0;
 }
 
@@ -1160,10 +1134,6 @@ int toi_prepare_image(void)
 
 	main_storage_allocated = 0;
 	no_ps2_needed = 0;
-
-#ifdef CONFIG_MTK_HIBERNATION
-    shrink_all_memory(0); // purpose for early trigger PASR to release userspace memory pages.
-#endif
 
 	if (attempt_to_freeze())
 		return 1;

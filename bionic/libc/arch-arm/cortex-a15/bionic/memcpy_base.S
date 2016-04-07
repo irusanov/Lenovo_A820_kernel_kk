@@ -225,7 +225,6 @@ ENTRY(MEMCPY_BASE_ALIGNED)
         sub     r2, #4
 
 1:      // Can only get here if > 64 bytes to copy, so don't do check r2.
-#if 0
         sub     r2, #64
 
 2:      // Every loop iteration copies 64 bytes.
@@ -268,21 +267,6 @@ ENTRY(MEMCPY_BASE_ALIGNED)
         add     r1, r1, #32
         add     r0, r0, #32
         sub     r2, r2, #32
-#else
-        subs        r2, #32  
-13:      /* Main copy loop, copying 64 bytes at a time */  
-        pld         [r1, #(CACHE_LINE_SIZE * 4)]  
-        pldw         [r0, #(CACHE_LINE_SIZE * 4)]  
-        ldmia       r1!, {r3, r4, r5, r6, r7, r8, r12, lr}  
-        subs        r2, r2, #32  
-        stmia       r0!, {r3, r4, r5, r6, r7, r8, r12, lr}  
-        blt 14f
-        ldmia       r1!, {r3, r4, r5, r6, r7, r8, r12, lr}  
-        subs        r2, r2, #32  
-        stmia       r0!, {r3, r4, r5, r6, r7, r8, r12, lr}  
-        bge         13b  
-14:
-#endif
 4:      // Less than 32 left.
         add     r2, r2, #32
         tst     r2, #0x10

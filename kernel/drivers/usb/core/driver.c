@@ -1196,7 +1196,7 @@ static int usb_suspend_both(struct usb_device *udev, pm_message_t msg)
 	int			status = 0;
 	int			i = 0, n = 0;
 	struct usb_interface	*intf;
-	
+
 	if (udev->state == USB_STATE_NOTATTACHED ||
 			udev->state == USB_STATE_SUSPENDED)
 		goto done;
@@ -1738,7 +1738,7 @@ int usb_runtime_resume(struct device *dev)
 {
 	struct usb_device	*udev = to_usb_device(dev);
 	int			status;
-	
+
 	/* Runtime resume for a USB device means resuming both the device
 	 * and all its interfaces.
 	 */

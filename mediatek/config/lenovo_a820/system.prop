@@ -51,3 +51,5 @@ ro.camera.sound.forced=0
 ro.audio.silent=0
 
 ro.zygote.preload.enable=0
+
+persist.sys.timezone=Europe/Sofia

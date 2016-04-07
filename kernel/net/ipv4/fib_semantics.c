@@ -164,7 +164,6 @@ void free_fib_info(struct fib_info *fi)
 		pr_warn("Freeing alive fib_info %p\n", fi);
 		return;
 	}
-
 	fib_info_cnt--;
 	call_rcu(&fi->rcu, free_fib_info_rcu);
 }

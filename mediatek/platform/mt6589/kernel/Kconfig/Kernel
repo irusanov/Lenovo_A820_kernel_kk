@@ -217,6 +217,6 @@ config VFP_OPT
 
 config PVR_TIMER_HIGHPRIO
 	bool "PVR timer high priority workqueue"
-	default n
+	default y
 	help
 	high priority for PVR workqueue (ALPS01435516)

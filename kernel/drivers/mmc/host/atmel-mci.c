@@ -1030,7 +1030,7 @@ static void atmci_start_request(struct atmel_mci *host,
 	 * the transfer.
 	 */
 	if (host->submit_data != &atmci_submit_data_dma)
-	atmci_send_command(host, cmd, cmdflags);
+		atmci_send_command(host, cmd, cmdflags);
 
 	if (data)
 		host->submit_data(host, data);

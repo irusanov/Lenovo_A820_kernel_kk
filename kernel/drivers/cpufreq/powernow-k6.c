@@ -76,7 +76,7 @@ static const struct {
 /**
  * powernow_k6_get_cpu_multiplier - returns the current FSB multiplier
  *
- *   Returns the current setting of the frequency multiplier. Core clock
+ * Returns the current setting of the frequency multiplier. Core clock
  * speed is frequency of the Front-Side Bus multiplied with this value.
  */
 static int powernow_k6_get_cpu_multiplier(void)

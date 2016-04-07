@@ -675,7 +675,7 @@ static void synaptics_report_semi_mt_data(struct input_dev *dev,
 }
 
 static void synaptics_report_ext_buttons(struct psmouse *psmouse,
-				     const struct synaptics_hw_state *hw)
+					 const struct synaptics_hw_state *hw)
 {
 	struct input_dev *dev = psmouse->dev;
 	struct synaptics_data *priv = psmouse->private;
