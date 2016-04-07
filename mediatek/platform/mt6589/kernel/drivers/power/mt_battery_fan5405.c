@@ -1310,7 +1310,7 @@ INT16 BattThermistorConverTemp(INT32 Res)
     INT32 RES1=0,RES2=0;
     INT32 TBatt_Value=-200,TMP1=0,TMP2=0;
 
-#if defined(LENOVO_PROJECT_SEINE)
+#ifdef LENOVO_PROJECT_ALTAI
 	BATT_TEMPERATURE Batt_Temperature_Table[] = {
 		{-20,74353},
 		{-15,57626},
@@ -1350,8 +1350,7 @@ INT16 BattThermistorConverTemp(INT32 Res)
 		{ 55,3483},
 		{ 60,2970}			
 	};
-#endif
-
+#else
 #if defined(BAT_NTC_CG103JF103F)
 BATT_TEMPERATURE Batt_Temperature_Table[] = {
 {-20,67790},    
@@ -1483,6 +1482,8 @@ BATT_TEMPERATURE Batt_Temperature_Table[] = {
         { 60,11210}        
     };
 #endif
+#endif
+/*lenovo-sw weiweij modified for altai ntc*/
 
     if(Res>=Batt_Temperature_Table[0].TemperatureR)
     {
