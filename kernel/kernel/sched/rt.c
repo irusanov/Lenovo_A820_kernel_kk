@@ -58,7 +58,7 @@ static void start_rt_bandwidth(struct rt_bandwidth *rt_b)
 	raw_spin_unlock(&rt_b->rt_runtime_lock);
 }
 
-#ifdef CONFIG_PROVE_LOCKING 
+#ifdef CONFIG_PROVE_LOCKING
 DEFINE_RAW_SPINLOCK(rt_rq_runtime_spinlock);
 #define MAX_SPIN_KEY 10
 DEFINE_PER_CPU(struct lock_class_key, spin_key[MAX_SPIN_KEY]);
@@ -68,7 +68,7 @@ void init_rt_rq(struct rt_rq *rt_rq, struct rq *rq)
 {
 	struct rt_prio_array *array;
 	int i;
-#ifdef CONFIG_PROVE_LOCKING 
+#ifdef CONFIG_PROVE_LOCKING
 	int cpu, idx;
 #endif
 
@@ -93,13 +93,13 @@ void init_rt_rq(struct rt_rq *rt_rq, struct rq *rq)
 	rt_rq->rt_runtime = 0;
 	/* MTK patch: prevent to continue borrow RT runtime after restore the default value*/
 	rt_rq->rt_disable_borrow = 0;
-#ifdef CONFIG_PROVE_LOCKING 
+#ifdef CONFIG_PROVE_LOCKING
 	raw_spin_lock(&rt_rq_runtime_spinlock);
 	cpu = rq->cpu;
 	idx = per_cpu(spin_key_idx, cpu);
 #endif
 	raw_spin_lock_init(&rt_rq->rt_runtime_lock);
-#ifdef CONFIG_PROVE_LOCKING 
+#ifdef CONFIG_PROVE_LOCKING
 	lockdep_set_class(&rt_rq->rt_runtime_lock, &per_cpu(spin_key[idx], cpu));
 	per_cpu(spin_key_idx, cpu)++;
 	BUG_ON(per_cpu(spin_key_idx, cpu) >= MAX_SPIN_KEY);
@@ -609,7 +609,7 @@ static int do_balance_runtime(struct rt_rq *rt_rq)
 
 	raw_spin_lock(&rt_b->rt_runtime_lock);
 	raw_spin_lock(&rt_rq->rt_runtime_lock);
-	
+
 	if (rt_rq->rt_disable_borrow ==1){
 		raw_spin_unlock(&rt_rq->rt_runtime_lock);
 		raw_spin_unlock(&rt_b->rt_runtime_lock);
@@ -629,7 +629,7 @@ static int do_balance_runtime(struct rt_rq *rt_rq)
 			continue;
 
 		/* MTK Patch: use try lock to prevent deadlock */
-		// raw_spin_lock(&iter->rt_runtime_lock); 
+		// raw_spin_lock(&iter->rt_runtime_lock);
 #ifdef MTK_DEBUG_CGROUP
 		printk(KERN_EMERG " do_balance_runtime get lock cpu=%d\n", i);
 #endif
@@ -645,7 +645,7 @@ static int do_balance_runtime(struct rt_rq *rt_rq)
 		 * indicate its been disabled and disalow stealing.
 		 */
 		if (iter->rt_disable_borrow ==1)
-			goto next;	
+			goto next;
 		if (iter->rt_runtime == RUNTIME_INF)
 			goto next;
 
@@ -657,7 +657,7 @@ static int do_balance_runtime(struct rt_rq *rt_rq)
 
 #ifdef MTK_DEBUG_CGROUP
 		printk(KERN_EMERG "borrow, dst_cpu=%d, src_cpu=%d, src_cpu2=%d, src_addr=%x, dst_addr=%x,dst->rt_runtime=%llu, src->rt_runtime=%llu, diff=%lld, span=%lu\n",
-			rt_rq->rq->cpu, i, iter->rq->cpu, iter, 
+			rt_rq->rq->cpu, i, iter->rq->cpu, iter,
 			rt_rq, rt_rq->rt_runtime, iter->rt_runtime, diff, rd->span->bits[0]);
 #endif
 		if (diff > 0) {
@@ -669,7 +669,7 @@ static int do_balance_runtime(struct rt_rq *rt_rq)
 			more = 1;
 #ifdef MTK_DEBUG_CGROUP
 			printk(KERN_EMERG "borrow successfully, dst_cpu=%d, src_cpu=%d, src_cpu2=%d, src_addr=%x, dst_addr=%x,dst->rt_runtime=%llu, src->rt_runtime=%llu, diff=%lld, span=%lu\n",
-				rt_rq->rq->cpu, i, iter->rq->cpu, iter, 
+				rt_rq->rq->cpu, i, iter->rq->cpu, iter,
 				rt_rq, rt_rq->rt_runtime, iter->rt_runtime, diff, rd->span->bits[0]);
 #endif
 			if (rt_rq->rt_runtime == rt_period) {
@@ -714,7 +714,7 @@ static void __disable_runtime(struct rq *rq)
 		 */
 #ifdef MTK_DEBUG_CGROUP
 		printk(KERN_EMERG "0. disable_runtime, cpu=%d, rd->span=%lu, rt_rq_addr=%x, rt_rq->rt_runtime=%llu, rt_b->rt_runtime=%llu\n",
-			rt_rq->rq->cpu, rd->span->bits[0], 
+			rt_rq->rq->cpu, rd->span->bits[0],
 			rt_rq, rt_rq->rt_runtime, rt_b->rt_runtime);
 #endif
 		if (rt_rq->rt_runtime == RUNTIME_INF ||
@@ -737,7 +737,7 @@ static void __disable_runtime(struct rq *rq)
 			s64 diff;
 
 #ifdef MTK_DEBUG_CGROUP
-			printk(KERN_EMERG "0. disable_runtime, cpu=%d,rt_b->rt_runtime=%llu, rt_rq->rt_runtime=%llu, want=%lld, rd->span=%lu\n",  
+			printk(KERN_EMERG "0. disable_runtime, cpu=%d,rt_b->rt_runtime=%llu, rt_rq->rt_runtime=%llu, want=%lld, rd->span=%lu\n",
 				rt_rq->rq->cpu, rt_b->rt_runtime, rt_rq->rt_runtime, want, rd->span->bits[0]);
 #endif
 
@@ -798,7 +798,7 @@ static void __disable_runtime(struct rq *rq)
 			printk(KERN_EMERG "4-3. disable_runtime %llu\n", iter->rt_runtime);
 			}
 #endif
-			
+
 			BUG_ON(want);
 		}
 balanced:
@@ -806,7 +806,7 @@ balanced:
 		 * Disable all the borrow logic by pretending we have inf
 		 * runtime - in which case borrowing doesn't make sense.
 		 */
-		// MTK patch:  prevent normal task could run anymore, use rt_disable_borrow 
+		// MTK patch:  prevent normal task could run anymore, use rt_disable_borrow
 		//rt_rq->rt_runtime = RUNTIME_INF;
 		rt_rq->rt_runtime = rt_b->rt_runtime;
 		rt_rq->rt_throttled = 0;
@@ -1025,7 +1025,7 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
 
 	if (rt_rq->rt_time > runtime) {
 		struct rt_bandwidth *rt_b = sched_rt_bandwidth(rt_rq);
-		int cpu = rq_cpu(rt_rq->rq);
+		//int cpu = rq_cpu(rt_rq->rq);
 
 		/*
 		 * Don't actually throttle groups that have no runtime assigned
@@ -1039,8 +1039,8 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
 
 		//	if (!once) {
 		//		once = true;
-				printk_deferred("sched: RT throttling activated cpu=%d\n",
-					cpu);
+		//		printk_deferred("sched: RT throttling activated cpu=%d\n",
+		//			cpu);
 		//	}
 #ifdef CONFIG_MT_RT_SCHED_CRIT
 			trace_sched_rt_crit(cpu, rt_rq->rt_throttled);

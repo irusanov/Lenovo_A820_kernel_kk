@@ -47,7 +47,7 @@ static void kpd_pwrkey_handler(unsigned long data);
 static DECLARE_TASKLET(kpd_pwrkey_tasklet, kpd_pwrkey_handler, 0);
 #endif
 
-#if AEON_FCOVER_SUPPORT
+#ifdef AEON_FCOVER_SUPPORT
 
 static void fcover_key_handler(unsigned long data);
 static DECLARE_TASKLET(kpd_fcover_tasklet, fcover_key_handler, 0);

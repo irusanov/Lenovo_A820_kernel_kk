@@ -22,7 +22,7 @@ typedef enum
 	Cust_CC_0MA	   = 0xDD
 }cust_charging_current_enum;
 
-typedef struct{	
+typedef struct{
 	unsigned int BattVolt;
 	unsigned int BattPercent;
 }VBAT_TO_PERCENT;
@@ -40,12 +40,12 @@ typedef struct{
 #define RECHARGING_VOLTAGE      4110
 #endif
 /* Charging Current Setting */
-#define CONFIG_USB_IF 						0   
+#define CONFIG_USB_IF 						0
 #define USB_CHARGER_CURRENT_SUSPEND			Cust_CC_0MA		// def CONFIG_USB_IF
 #define USB_CHARGER_CURRENT_UNCONFIGURED	Cust_CC_70MA	// def CONFIG_USB_IF
 #define USB_CHARGER_CURRENT_CONFIGURED		Cust_CC_450MA	// def CONFIG_USB_IF
 #define USB_CHARGER_CURRENT					Cust_CC_450MA
-#define AC_CHARGER_CURRENT					Cust_CC_750MA	//Cust_CC_800MA	
+#define AC_CHARGER_CURRENT					Cust_CC_700MA	//Cust_CC_800MA
 
 /* Battery Meter Solution */
 #define CONFIG_ADC_SOLUTION 	1
@@ -101,4 +101,4 @@ VBAT_TO_PERCENT Batt_VoltToPercent_Table[] = {
 
 //#define CONFIG_POWER_VERIFY
 
-#endif /* _CUST_BAT_H_ */ 
+#endif /* _CUST_BAT_H_ */
