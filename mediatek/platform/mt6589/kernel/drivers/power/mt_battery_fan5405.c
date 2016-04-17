@@ -85,6 +85,7 @@ int g_enable_high_vbat_spec = 0;
 #endif
 
 extern int g_pmic_cid;
+unsigned int iCapacity_99_loop_fullcheck=0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //// Thermal related flags
@@ -122,6 +123,22 @@ int g_R_BAT_SENSE = R_BAT_SENSE;
 int g_R_I_SENSE = R_I_SENSE;
 int g_R_CHARGER_1 = R_CHARGER_1;
 int g_R_CHARGER_2 = R_CHARGER_2;
+
+/*Lenovo-sw begin yexh1 add 2013-05-16,add for bat charging current */
+int battery_chg_current = 0;
+/*Lenovo-sw end yexh1 end */
+
+/*Lenovo-sw begin chenyb1 add 2013-1-1,add enum for charging current and battery calibration status */
+int battery_cali_start_status = 0;
+/*Lenovo-sw end chenyb1 add 2013-1-1,add enum for charging current and battery calibration status */
+
+/*lenovo-sw weiweij added 2013-2-20*/
+#define SPM_WAKE_PERIOD         600     /* sec . need to modify as SPM_WAKE_PERIOD in mt_spm_sleep.c*/
+unsigned int battery_period = SPM_WAKE_PERIOD;
+
+/*lenovo-sw weiweij added 2013-2-20 end*/
+
+
 
 #if defined(CONFIG_POWER_VERIFY)
 kal_bool upmu_is_chr_det(void)
@@ -524,6 +541,19 @@ int g_bat_init_flag=0;
 
 kal_bool g_ADC_Cali = KAL_FALSE;
 kal_bool g_ftm_battery_flag = KAL_FALSE;
+/*lenovo-sw weiweij added 20120816*/
+#if 1
+#define STEP_TEMP 1
+extern ssize_t fan5405_read_byte(u8 cmd, u8 *returnData);
+static int test_charging_cur = -1;
+static int old_temp = 0;
+static unsigned int charging_state_bak = 0;
+static unsigned int charging_state_other = 0;
+static int charging_flag = -1;
+static int cap_sync_flag = 0;
+static int chg_current_flag = 0;
+#endif
+/*lenovo-sw weiweij added 20120816 end*/
 
 ////////////////////////////////////////////////////////////////////////////////
 // Battery Logging Entry
@@ -828,11 +858,17 @@ static void mt6320_ac_update(struct mt6320_ac_data *ac_data)
         {
             ac_data->AC_ONLINE = 1;
             ac_psy->type = POWER_SUPPLY_TYPE_MAINS;
+			/*Lenovo-sw begin chenlj2 add 2011-06-02,add a definition for current */
+			if(gFG_DOD0 > 85)
+                     battery_cali_start_status = 1;
         }
     }
     else
     {
         ac_data->AC_ONLINE = 0;
+		/*Lenovo-sw begin chenlj2 add 2011-06-02,add a definition for current */
+		battery_cali_start_status = 0;
+		/*Lenovo-sw end chenlj2 add 2011-06-02,add a definition for current */
     }
 
     power_supply_changed(ac_psy);
@@ -849,11 +885,17 @@ static void mt6320_usb_update(struct mt6320_usb_data *usb_data)
         {
             usb_data->USB_ONLINE = 1;
             usb_psy->type = POWER_SUPPLY_TYPE_USB;
+			/*Lenovo-sw begin chenlj2 add 2011-06-02,add a definition for current */
+		    if(gFG_DOD0 > 85)
+                   battery_cali_start_status = 1;
         }
     }
     else
     {
         usb_data->USB_ONLINE = 0;
+		/*Lenovo-sw begin chenlj2 add 2011-06-02,add a definition for current */
+		battery_cali_start_status = 0;
+		/*Lenovo-sw end chenlj2 add 2011-06-02,add a definition for current */
     }
 
     power_supply_changed(usb_psy);
@@ -878,6 +920,24 @@ static void mt6320_battery_update(struct mt6320_battery_data *bat_data)
         bat_data->BAT_PRESENT = 1;
     else
         bat_data->BAT_PRESENT = 0;
+
+ //start,snoopyrow-3043,chenggh2
+	if( bat_data->BAT_CAPACITY == 99 &&
+	BMT_status.charger_type == STANDARD_CHARGER&&
+	upmu_is_chr_det()==KAL_TRUE )
+	{
+		iCapacity_99_loop_fullcheck ++;
+		if(iCapacity_99_loop_fullcheck >= 180)// keeping 0.5 hour capacity 99 with AC chargr IN
+		{
+			g_bat_full_user_view = KAL_TRUE;
+		}
+	}
+	else
+	{
+		iCapacity_99_loop_fullcheck = 0;//reset value
+	}
+//end,snoopyrow-3043,chenggh2
+
 
     /* Charger and Battery Exist */
     //if( (upmu_is_chr_det(CHR)==KAL_TRUE) && (!g_Battery_Fail) )
@@ -1042,6 +1102,11 @@ static void mt6320_battery_update(struct mt6320_battery_data *bat_data)
             else
             {
                 gSyncPercentage=1;
+/*lenovo-sw weiweij added 20120911*/
+#if 1
+				cap_sync_flag = 1;
+#endif
+/*lenovo-sw weiweij added 20120911 end*/
                 bat_volt_check_point--;
                 if(bat_volt_check_point <= 0)
                 {
@@ -1779,6 +1844,103 @@ void ChargerHwInit_fan5405(void)
     }
 }
 
+/*lenovo-sw weiweij modified 20120816*/
+#if 1
+static int set_current_as_temp_fan5405(void)
+{
+	int temp = BMT_status.temperature;
+	int ret = 0;
+	unsigned char flag = 0x0a;
+	int tend = 0;
+
+//	if (Enable_BATDRV_LOG == 1) {
+	printk("[BATTERY:fan5405] %s, temp = %d old_temp = %d\r\n", __func__, temp, old_temp);
+//	}
+
+//lenovo_sw liaohj modify for smartt_rom 2013-10-01
+#if defined(LENOVO_PROJECT_SNOOPY)|| defined(LENOVO_PROJECT_SNOOPY_CU)|| defined(LENOVO_PROJECT_S820) || defined(LENOVO_PROJECT_SMARTT)|| defined(LENOVO_PROJECT_SNOOPYTD)
+	if(chg_current_flag!=0)
+	{
+		printk("[BATTERY:fan5405] %s, chg_current_flag = %d, (VT CALL)in low charging current mode\r\n", __func__, chg_current_flag);
+		return -1;
+	}
+#endif
+
+	if(temp!=old_temp)
+	{
+		if(temp>old_temp)
+			tend = 1;
+		else
+			tend = -1;
+
+		old_temp = temp;
+	}
+
+	fan5405_read_byte(0x04, &flag);
+	flag &= 0x0f;
+
+	if((temp>0)&&(temp<(10+tend*STEP_TEMP)))
+	{
+//lenovo_sw liaohj modify for smartt_rom 2013-10-01
+#if (defined LENOVO_PROJECT_SNOOPY) || (defined LENOVO_PROJECT_SNOOPY_CU)|| (defined LENOVO_PROJECT_SNOOPYTD)
+		flag = 0x4a;
+		fan5405_set_oreg(0x2a);
+#else
+		flag = flag;
+#endif
+//		charging_flag = 1;
+		charging_flag = 2;
+	}else if((temp>=(10+tend*STEP_TEMP))&&(temp<(45+tend*STEP_TEMP)))
+	{
+#if (defined LENOVO_PROJECT_ALTAI)
+		flag = 0x4c;
+#elif (defined LENOVO_PROJECT_SEINE)
+		flag = 0x4a;
+#elif (defined LENOVO_PROJECT_A830)
+		flag = 0x5b;
+#elif (defined LENOVO_PROJECT_S820)
+		flag = 0x5a;
+#elif (defined LENOVO_PROJECT_SMARTT)
+		flag = 0x4a;
+#elif (defined LENOVO_PROJECT_SNOOPY)||(defined LENOVO_PROJECT_SNOOPY_CU)|| (defined LENOVO_PROJECT_SNOOPYTD)
+		flag = 0x4a;
+		fan5405_set_oreg(0x2a);
+#else
+		flag |=(1<<4);
+#endif
+		charging_flag = 2;
+	}
+#if (defined LENOVO_PROJECT_SNOOPY) || (defined LENOVO_PROJECT_SNOOPY_CU)|| (defined LENOVO_PROJECT_SNOOPYTD)
+	else if((temp>=(45+tend*STEP_TEMP))&&(temp<60))
+	{
+		flag = 0x4a;
+//		charging_flag = 3;
+		charging_flag = 2;
+		fan5405_set_oreg(0x1e);
+	}
+#else
+	else if((temp>=(45+tend*STEP_TEMP))&&(temp<50))
+
+	{
+		flag = flag;
+//		charging_flag = 3;
+		charging_flag = 2;
+	}
+#endif
+	else
+		return -1;
+
+	if (Enable_BATDRV_LOG == 1) {
+		printk("[BATTERY:fan5405] 0 = %d, 1 = %d 2 = %d, tend=%d\r\n", temp, (10+tend*STEP_TEMP), (45+tend*STEP_TEMP), tend);
+		printk("[BATTERY:fan5405] flag = 0x%x charging_flag=%d\r\n", flag, charging_flag);
+	}
+	fan5405_config_interface_liao(0x04,flag);
+
+	return ret;
+}
+#endif
+/*lenovo-sw weiweij modified 20120816 end*/
+
 void fan5405_set_ac_current(void)
 {
     kal_uint8 reg_set_value=0;
@@ -1876,6 +2038,8 @@ void fan5405_set_ac_current(void)
          }
      }
 #else
+/*lenovo-sw weiweij modified*/
+#if 0
     fan5405_config_interface_liao(0x01,0xF8);
 
     if(g_enable_high_vbat_spec == 1)
@@ -1920,6 +2084,26 @@ void fan5405_set_ac_current(void)
     fan5405_config_interface_liao(0x04,reg_set_value);
 
     fan5405_config_interface_liao(0x05,0x04);
+#else
+/*lenovo-sw weiweij modified 20120816*/
+#if 0
+    fan5405_config_interface_liao(0x01,0xf8);
+    fan5405_config_interface_liao(0x02,0x96);
+    fan5405_config_interface_liao(0x04,0x5b);
+	fan5405_config_interface_liao(0x06,0x63);
+    fan5405_config_interface_liao(0x05,0x04);
+#else
+    fan5405_config_interface_liao(0x01,0xf8);
+    if(g_enable_high_vbat_spec == 1)
+        fan5405_config_interface_liao(0x02,0xaa);
+    else
+        fan5405_config_interface_liao(0x02,0x8E); //for 4.2v CV threshold
+	set_current_as_temp_fan5405();
+    fan5405_config_interface_liao(0x05,0x04);
+#endif
+/*lenovo-sw weiweij modified 20120816 end*/
+#endif
+/*lenovo-sw weiweij modified end*/
 #endif
 
     #endif
@@ -2564,6 +2748,12 @@ int BAT_CheckBatteryStatus_fan5405(void)
     /* Calculate the charging current */
     BMT_status.ICharging = g_Get_I_Charging();
 
+    /*Lenovo-sw begin yexh1 add 2013-04-12,add for bat charging current */
+    //BMT_status.ICharging has latency, so I put it here.
+    battery_chg_current =  BMT_status.ICharging;
+    /*Lenovo-sw end yexh1 add 2013-04-12,add for bat charging current */
+
+
     if (Enable_BATDRV_LOG == 1) {
         printk("[BATTERY:ADC:fan5405] VCHR:%d BAT_SENSE:%d I_SENSE:%d TBAT:%d (%d)\n",
             BMT_status.charger_vol, BMT_status.ADC_BAT_SENSE, BMT_status.ADC_I_SENSE, BMT_status.temperature, TBAT_OVER_CRITICAL_LOW);
@@ -2796,6 +2986,13 @@ int BAT_CheckBatteryStatus_fan5405(void)
         (BMT_status.temperature == ERR_CHARGE_TEMPERATURE))
     {
         printk(  "[BATTERY] Battery Under Temperature or NTC fail !!\n\r");
+/*lenovo-sw weiweij added 20120820*/
+#if 1
+	if(charging_state_bak == 0)
+		charging_state_bak = BMT_status.bat_charging_state;
+	charging_flag = 5;
+#endif
+/*lenovo-sw weiweij added 20120820 end*/
         BMT_status.bat_charging_state = CHR_ERROR;
         return PMU_STATUS_FAIL;
     }
@@ -2803,6 +3000,13 @@ int BAT_CheckBatteryStatus_fan5405(void)
     if (BMT_status.temperature >= MAX_CHARGE_TEMPERATURE)
     {
         printk(  "[BATTERY] Battery Over Temperature !!\n\r");
+/*lenovo-sw weiweij added 20120820*/
+#if 1
+	if(charging_state_bak == 0)
+		charging_state_bak = BMT_status.bat_charging_state;
+	charging_flag = 4;
+#endif
+/*lenovo-sw weiweij added 20120820 end*/
         BMT_status.bat_charging_state = CHR_ERROR;
         return PMU_STATUS_FAIL;
     }
@@ -3210,10 +3414,27 @@ void BAT_thread_fan5405(void)
                 mt_usb_connect();
             }
         }
+
+/*lenovo-sw weiweij added for charging sleep in as charger*/
+#ifdef LENOVO_PROJECT_SEINE
+		//empty
+#else
+		if((BMT_status.charger_type==STANDARD_CHARGER)&&(BMT_status.total_charging_time>=60))
+		{
+			battery_period = 10;
+
+			wake_unlock(&battery_suspend_lock);
+		}
+#endif
+/*lenovo-sw weiweij added for charging sleep in as charger end*/
     }
     else
     {
         wake_unlock(&battery_suspend_lock);
+
+/*lenovo-sw weiweij added for charging sleep in as charger*/
+	battery_period = SPM_WAKE_PERIOD;
+/*lenovo-sw weiweij added for charging sleep in as charger end*/
 
         BMT_status.charger_type = CHARGER_UNKNOWN;
         BMT_status.bat_full = KAL_FALSE;
@@ -3246,14 +3467,58 @@ void BAT_thread_fan5405(void)
             batteryCurrentBuffer[i] = 0;
         }
         batteryCurrentSum = 0;
+
+/*lenovo-sw weiweij added 20120907*/
+#if 1
+
+/*lenovo-sw weiweij remove green led operation in seine 20130918*/
+#if 0 //defined(LENOVO_PROJECT_SEINE)
+		if(charging_led_state != 0)
+			charging_led_opt(0);
+#endif
+/*lenovo-sw weiweij remove green led operation in seine 20130918 end*/
+
+		if(charging_flag>=0)
+			charging_flag = -1;
+
+		old_temp = 0;
+#endif
+/*lenovo-sw weiweij added 20120907 end*/
     }
 
     /* Check Battery Status */
     BAT_status = BAT_CheckBatteryStatus_fan5405();
+/*lenovo-sw weiweij modified 20120816*/
+#if 0
     if( BMT_status.bat_charging_state == CHR_ERROR || BAT_status == PMU_STATUS_FAIL)
         g_Battery_Fail = KAL_TRUE;
     else
         g_Battery_Fail = KAL_FALSE;
+#else
+    if( BMT_status.bat_charging_state == CHR_ERROR )
+    {
+		if((BMT_status.temperature>0+STEP_TEMP)&&(BMT_status.temperature<50-STEP_TEMP)
+			&&(charging_state_bak>0))
+		{
+			printk("[BATTERY:fan5405] resume charging from temp error state !state = 0x%x temp=%d\r\n",
+				charging_state_bak, BMT_status.temperature);
+			BMT_status.bat_charging_state = charging_state_bak;
+			charging_state_bak = 0;
+/*			if(bat_state_bak!=-1)
+			{
+				mt6577_battery_main.BAT_STATUS = bat_state_bak;
+				bat_state_bak = -1;
+			}*/
+			g_Battery_Fail = KAL_FALSE;
+		}else
+		{
+			printk("[BATTERY:fan5405] Charger Error, turn OFF charging !\r\n");
+			g_Battery_Fail = KAL_TRUE;
+		}
+    	}else
+    		g_Battery_Fail = KAL_FALSE;
+#endif
+/*lenovo-sw weiweij modified 20120816 end*/
 
 #if defined(MTK_JEITA_STANDARD_SUPPORT)
     if(g_last_temp_status ==g_temp_status){
@@ -3462,6 +3727,16 @@ void BAT_thread_fan5405(void)
             printk("[BATTERY:fan5405] Total charging timer=%ld \n",
                 BMT_status.total_charging_time);
         }
+
+	 /*Lenovo-sw begin yexh1 add 2013-04-12,add for bat charging current */
+      if (BMT_status.total_charging_time <= 50)
+        	{
+        	   printk("[BATTERY:fan5405] wake up again. Need to display Icharging ASAP in lenovo fac. mode.\n");
+               msleep(50);
+        	  wake_up_bat ();
+		}
+      /*    Lenovo-sw end yexh1 add 2013-04-12,add for bat charging current */
+
     }
 
     g_HW_stop_charging = 0;
@@ -3543,6 +3818,16 @@ int bat_thread_kthread(void *x)
             g_wake_up_bat=0;
             g_smartbook_update = 0;
             g_Calibration_FG = 0;
+/*lenovo-sw weiweij added 20120911*/
+#if 1
+			if(cap_sync_flag)
+			{
+				xlog_printk(ANDROID_LOG_INFO, "Power/Battery", "cap_sync_flag=1.\r\n");
+				cap_sync_flag = 0;
+				gSyncPercentage = 0;
+			}
+#endif
+/*lenovo-sw weiweij added 20120911 end*/
             FGADC_Reset_SW_Parameter();
 
             if (Enable_BATDRV_LOG == 1) {
