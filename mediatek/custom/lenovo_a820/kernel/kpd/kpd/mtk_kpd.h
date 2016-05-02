@@ -23,8 +23,8 @@
 #include <linux/delay.h>
 /* include PMIC header file */
 #include <mach/mt_typedefs.h>
-#include <mach/pmic_mt6329_hw_bank1.h> 
-#include <mach/pmic_mt6329_sw_bank1.h> 
+#include <mach/pmic_mt6329_hw_bank1.h>
+#include <mach/pmic_mt6329_sw_bank1.h>
 #include <mach/pmic_mt6329_hw.h>
 #include <mach/pmic_mt6329_sw.h>
 #include <mach/pmic_mt6320_sw.h>
@@ -38,7 +38,8 @@
 /* the keys can wake up the system and we should enable backlight */
 #define KPD_BACKLIGHT_WAKE_KEY	\
 {				\
-	KEY_ENDCALL, KEY_POWER,	\
+	KEY_ENDCALL, KEY_POWER, \
+	KEY_VOLUMEDOWN, KEY_VOLUMEUP,	\
 }
 
 #define KPD_HAS_SLIDE_QWERTY	KPD_NO

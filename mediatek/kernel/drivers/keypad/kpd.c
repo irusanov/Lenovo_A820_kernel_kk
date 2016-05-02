@@ -20,8 +20,9 @@
 
 #define KPD_NAME	"mtk-kpd"
 #define USE_EARLY_SUSPEND
-
-#define MTK_KP_WAKESOURCE//this is for auto set wake up source
+/* begin, lenovo-sw wengjun1 20130728 delete for avoid close keypad as wake up source. */
+//#define MTK_KP_WAKESOURCE//this is for auto set wake up source
+/* end, lenovo-sw wengjun1 20130728 delete for avoid close keypad as wake up source. */
 
 struct input_dev *kpd_input_dev;
 static bool kpd_suspend = false;
@@ -965,6 +966,14 @@ static int kpd_pdrv_remove(struct platform_device *pdev)
 static int kpd_pdrv_suspend(struct platform_device *pdev, pm_message_t state)
 {
 	kpd_suspend = true;
+/* begin, lenovo-sw wengjun1 20130328 for side keys wake up the screen. */
+	int err = 0;
+#if defined(LENOVO_BSP_SIDE_KEY_WAKEUP)
+	err = slp_set_wakesrc(WAKE_SRC_KP|WAKE_SRC_CFG_KEY,true,false);
+	upmu_set_rg_smps_autoff_dis(0x01);
+	printk("[wj]set kpd as wake up source.\n");
+#endif
+/* end, lenovo-sw wengjun1 20130328 for side keys wake up the screen. */
 #ifdef MTK_KP_WAKESOURCE
 	if(call_status == 2){
 		kpd_print("kpd_early_suspend wake up source enable!! (%d)\n", kpd_suspend);
@@ -1002,6 +1011,14 @@ static int kpd_pdrv_resume(struct platform_device *pdev)
 static void kpd_early_suspend(struct early_suspend *h)
 {
 	kpd_suspend = true;
+/* begin, lenovo-sw wengjun1 20130328 for side keys wake up the screen. */
+	int err = 0;
+#if defined(LENOVO_BSP_SIDE_KEY_WAKEUP)
+	err = slp_set_wakesrc(WAKE_SRC_KP|WAKE_SRC_CFG_KEY,true,false);
+	upmu_set_rg_smps_autoff_dis(0x01);
+	printk("[wj]set kpd as wake up source.\n");
+#endif
+/* end, lenovo-sw wengjun1 20130328 for side keys wake up the screen. */
 #ifdef MTK_KP_WAKESOURCE
 	if(call_status == 2){
 		kpd_print("kpd_early_suspend wake up source enable!! (%d)\n", kpd_suspend);
