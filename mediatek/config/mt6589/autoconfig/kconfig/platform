@@ -1953,7 +1953,7 @@ CONFIG_STAGING=y
 # CONFIG_VT6656 is not set
 # CONFIG_IIO is not set
 
-CONFIG_ZRAM=y
+# CONFIG_ZRAM is not set
 # CONFIG_ZRAM_DEBUG is not set
 CONFIG_ZSMALLOC=y
 # CONFIG_FB_SM7XX is not set
