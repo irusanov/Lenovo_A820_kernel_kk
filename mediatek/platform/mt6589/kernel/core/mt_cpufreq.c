@@ -1281,73 +1281,54 @@ void mt_cpufreq_late_resume(struct early_suspend *h)
 
 /************************************************
 * API to switch back default voltage setting for PTPOD disabled
+*
+* Proton: Unified table for all ptp levels.
+* Normal MT6589(M) is limited to 1.2GHz,
+* but even if this kernel is used with MT6589T, it should be able to handle
+* lowered default voltage for 1.5GHz
+*
 *************************************************/
 void mt_cpufreq_return_default_DVS_by_ptpod(void)
 {
-    if(g_cpufreq_get_ptp_level == 0)
-    {
-        mt65xx_reg_sync_writel(DVFS_PKV0, PMIC_WRAP_DVFS_WDATA0);
-        mt65xx_reg_sync_writel(DVFS_PKV1, PMIC_WRAP_DVFS_WDATA1);
-        mt65xx_reg_sync_writel(DVFS_PKV2, PMIC_WRAP_DVFS_WDATA2);
-        mt65xx_reg_sync_writel(DVFS_PKV3, PMIC_WRAP_DVFS_WDATA3);
-        mt65xx_reg_sync_writel(DVFS_PKV4, PMIC_WRAP_DVFS_WDATA4);
+#if 0 //default simplified values
+    mt65xx_reg_sync_writel(0x50, PMIC_WRAP_DVFS_WDATA0); // 1.20V VPROC
+    mt65xx_reg_sync_writel(0x48, PMIC_WRAP_DVFS_WDATA1); // 1.15V VPROC
+    mt65xx_reg_sync_writel(0x38, PMIC_WRAP_DVFS_WDATA2); // 1.05V VPROC
+    mt65xx_reg_sync_writel(0x28, PMIC_WRAP_DVFS_WDATA3); // 0.95V VPROC
+    mt65xx_reg_sync_writel(0x18, PMIC_WRAP_DVFS_WDATA4); // 0.85V VPROC
 
-        /* For PTP-OD */
-        mt_cpufreq_pmic_volt[0] = DVFS_PKV0;
-        mt_cpufreq_pmic_volt[1] = DVFS_PKV1;
-        mt_cpufreq_pmic_volt[2] = DVFS_PKV2;
-        mt_cpufreq_pmic_volt[3] = DVFS_PKV3;
-        mt_cpufreq_pmic_volt[4] = DVFS_PKV4;
-    }
-    else if((g_cpufreq_get_ptp_level >= 1) && (g_cpufreq_get_ptp_level <= 5))
-    {
-        mt65xx_reg_sync_writel(0x58, PMIC_WRAP_DVFS_WDATA0); // 1.25V VPROC
-        mt65xx_reg_sync_writel(0x50, PMIC_WRAP_DVFS_WDATA1); // 1.20V VPROC
-        mt65xx_reg_sync_writel(0x48, PMIC_WRAP_DVFS_WDATA2); // 1.15V VPROC
-        mt65xx_reg_sync_writel(0x38, PMIC_WRAP_DVFS_WDATA3); // 1.05V VPROC
-        mt65xx_reg_sync_writel(0x28, PMIC_WRAP_DVFS_WDATA4); // 0.95V VPROC
+    /* For PTP-OD */
+    mt_cpufreq_pmic_volt[0] = 0x50;
+    mt_cpufreq_pmic_volt[1] = 0x48;
+    mt_cpufreq_pmic_volt[2] = 0x38;
+    mt_cpufreq_pmic_volt[3] = 0x28;
+    mt_cpufreq_pmic_volt[4] = 0x18;
 
-        /* For PTP-OD */
-        mt_cpufreq_pmic_volt[0] = 0x58;
-        mt_cpufreq_pmic_volt[1] = 0x50;
-        mt_cpufreq_pmic_volt[2] = 0x48;
-        mt_cpufreq_pmic_volt[3] = 0x38;
-        mt_cpufreq_pmic_volt[4] = 0x28;
-    }
-    else if(g_cpufreq_get_ptp_level == 9)
-    {
-        mt65xx_reg_sync_writel(DVFS_PKV0, PMIC_WRAP_DVFS_WDATA0);
-        mt65xx_reg_sync_writel(DVFS_PKV1, PMIC_WRAP_DVFS_WDATA1);
-        mt65xx_reg_sync_writel(DVFS_PKV2, PMIC_WRAP_DVFS_WDATA2);
-        mt65xx_reg_sync_writel(DVFS_PKV3, PMIC_WRAP_DVFS_WDATA3);
-        mt65xx_reg_sync_writel(DVFS_PKV4, PMIC_WRAP_DVFS_WDATA4);
+    mt65xx_reg_sync_writel(0x38, PMIC_WRAP_DVFS_WDATA5); // 1.05V VCORE
+    mt65xx_reg_sync_writel(0x28, PMIC_WRAP_DVFS_WDATA6); // 0.95V VCORE
+    mt65xx_reg_sync_writel(0x18, PMIC_WRAP_DVFS_WDATA7); // 0.85V VCORE
+#endif
 
-        /* For PTP-OD */
-        mt_cpufreq_pmic_volt[0] = DVFS_PKV0;
-        mt_cpufreq_pmic_volt[1] = DVFS_PKV1;
-        mt_cpufreq_pmic_volt[2] = DVFS_PKV2;
-        mt_cpufreq_pmic_volt[3] = DVFS_PKV3;
-        mt_cpufreq_pmic_volt[4] = DVFS_PKV4;
-    }
-    else
-    {
-        mt65xx_reg_sync_writel(DVFS_PKV0, PMIC_WRAP_DVFS_WDATA0);
-        mt65xx_reg_sync_writel(DVFS_PKV1, PMIC_WRAP_DVFS_WDATA1);
-        mt65xx_reg_sync_writel(DVFS_PKV2, PMIC_WRAP_DVFS_WDATA2);
-        mt65xx_reg_sync_writel(DVFS_PKV3, PMIC_WRAP_DVFS_WDATA3);
-        mt65xx_reg_sync_writel(DVFS_PKV4, PMIC_WRAP_DVFS_WDATA4);
+    mt65xx_reg_sync_writel(DVFS_PKV0, PMIC_WRAP_DVFS_WDATA0); // 1.20V VPROC
+    mt65xx_reg_sync_writel(DVFS_PKV1, PMIC_WRAP_DVFS_WDATA1); // 1.15V VPROC
+    mt65xx_reg_sync_writel(DVFS_PKV2, PMIC_WRAP_DVFS_WDATA2); // 1.05V VPROC
+    mt65xx_reg_sync_writel(DVFS_PKV3, PMIC_WRAP_DVFS_WDATA3); // 0.95V VPROC
+    mt65xx_reg_sync_writel(DVFS_PKV4, PMIC_WRAP_DVFS_WDATA4); // 0.85V VPROC
 
-        /* For PTP-OD */
-        mt_cpufreq_pmic_volt[0] = DVFS_PKV0;
-        mt_cpufreq_pmic_volt[1] = DVFS_PKV1;
-        mt_cpufreq_pmic_volt[2] = DVFS_PKV2;
-        mt_cpufreq_pmic_volt[3] = DVFS_PKV3;
-        mt_cpufreq_pmic_volt[4] = DVFS_PKV4;
-    }
+    /* For PTP-OD */
+    mt_cpufreq_pmic_volt[0] = DVFS_PKV0;
+    mt_cpufreq_pmic_volt[1] = DVFS_PKV1;
+    mt_cpufreq_pmic_volt[2] = DVFS_PKV2;
+    mt_cpufreq_pmic_volt[3] = DVFS_PKV3;
+    mt_cpufreq_pmic_volt[4] = DVFS_PKV4;
 
-    mt65xx_reg_sync_writel(DVFS_PKV5, PMIC_WRAP_DVFS_WDATA5);
-    mt65xx_reg_sync_writel(DVFS_PKV6, PMIC_WRAP_DVFS_WDATA6);
-    mt65xx_reg_sync_writel(DVFS_PKV7, PMIC_WRAP_DVFS_WDATA7);
+    /**
+     * Proton: Does any of these registers set some voltage for GPU subdomain?
+     * TODO: Check VPROC and VCORE
+     */
+    mt65xx_reg_sync_writel(DVFS_PKV5, PMIC_WRAP_DVFS_WDATA5); // 1.05V VCORE
+    mt65xx_reg_sync_writel(DVFS_PKV6, PMIC_WRAP_DVFS_WDATA6); // 0.95V VCORE
+    mt65xx_reg_sync_writel(DVFS_PKV7, PMIC_WRAP_DVFS_WDATA7); // 0.85V VCORE
 
     xlog_printk(ANDROID_LOG_INFO, "Power/DVFS", "mt_cpufreq return default DVS by ptpod\n");
 }
