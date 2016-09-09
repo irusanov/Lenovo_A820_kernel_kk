@@ -1359,8 +1359,7 @@ int ccci_send_run_time_data(void)
 	//Notes:after load dsp_rom, dsp will write data back to dsp region, so set protect region at last
 	//start_emi_mpu_protect();
 	enable_emi_mpu_protection(ccci_smem_phy, ccci_smem_size);
-	//mod_timer(&md_boot_up_check_timer, jiffies+5*HZ);
-	mod_timer(&md_boot_up_check_timer, jiffies+10*HZ);
+	mod_timer(&md_boot_up_check_timer, jiffies+30*HZ);
 	return ret;
 }
 
