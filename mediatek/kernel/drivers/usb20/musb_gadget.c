@@ -2216,24 +2216,18 @@ musb_gadget_set_self_powered(struct usb_gadget *gadget, int is_selfpowered)
 
 static void musb_pullup(struct musb *musb, int is_on, bool usb_in)
 {
-
-# if 0
 	u8 power;
 
+	DBG(0,"MUSB: gadget pull up %d start\n", is_on);
+
+	if (musb->power) {
 	power = musb_readb(musb->mregs, MUSB_POWER);
 	if (is_on)
 		power |= MUSB_POWER_SOFTCONN;
 	else
 		power &= ~MUSB_POWER_SOFTCONN;
-
-	/* FIXME if on, HdrcStart; if off, HdrcStop */
-
-	DBG(2, "gadget D+ pullup %s\n",
-		is_on ? "on" : "off");
 	musb_writeb(musb->mregs, MUSB_POWER, power);
-#else
-	DBG(0,"MUSB: gadget pull up %d start\n", is_on);
-
+	} else {
 	if (!usb_in && is_on) {
 		DBG(0, "no USB cable, don't need to turn on USB\n");
         #ifdef MTK_ALPS_BOX_SUPPORT    //because 8127 box have no charger IC
@@ -2250,7 +2244,6 @@ static void musb_pullup(struct musb *musb, int is_on, bool usb_in)
 	}
 
 	DBG(0,"MUSB: gadget pull up %d end\n", is_on);
-#endif
 }
 
 #if 0
