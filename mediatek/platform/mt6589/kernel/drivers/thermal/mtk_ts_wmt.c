@@ -916,6 +916,8 @@ ssize_t wmt_tm_wfd_write( struct file *filp, const char __user *buf, unsigned lo
 	int ret = 0;
 	char tmp[MAX_LEN] = {0};
 
+    len = min(len,MAX_LEN-1);
+
 	/* write data to the buffer */
 	if (copy_from_user(tmp, buf, len)) {
 		return -EFAULT;
