@@ -12,6 +12,7 @@
 
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
 #include <linux/input/sweep2wake.h>
+#include <linux/alsps_sensor.h>
 #endif
 
 #include <linux/mmprofile.h>
@@ -1325,7 +1326,8 @@ static void tpd_down(s32 x, s32 y, s32 size, s32 id)
   TPD_EM_PRINT(x, y, x, y, id, 1);
 
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-  if (sweep2wake) {
+  /* Check for sweep2wake only when not in pocket */
+  if (sweep2wake && scr_suspended && ((!check_device_in_pocket()) || !pocket_detect)) {
     printk("[SWEEP2WAKE]: detecting sweep\n");
     detect_sweep2wake(x, y, jiffies, size);
   }
@@ -1366,7 +1368,8 @@ static void tpd_up(s32 x, s32 y, s32 id)
     triptime = 0;
   }
 
-  if (doubletap2wake && scr_suspended) {
+  /* Check for doubletap2wake only when not in pocket */
+  if (doubletap2wake && scr_suspended && (!check_device_in_pocket() || !pocket_detect)) {
     printk("[SWEEP2WAKE]: detecting d2w\n");
     doubletap2wake_func(tpd_history_x, tpd_history_y, jiffies);
   }
@@ -1412,6 +1415,9 @@ static int touch_event_handler(void *unused)
   s32 temp;
 #endif
 
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+  if (!check_device_in_pocket() || !pocket_detect) {
+#endif
   sched_setscheduler(current, SCHED_RR, &param);
 
   do
@@ -1594,6 +1600,10 @@ exit_work_func:
 
   }
   while (!kthread_should_stop());
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	/* Do nothing if in pocket */
+	}
+#endif
 
   return 0;
 }
@@ -1761,7 +1771,7 @@ static s8 gtp_wakeup_sleep(struct i2c_client *client)
 static void tpd_suspend(struct early_suspend *h)
 {
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-  printk("[SWEEP2WAKE]: resume\n");
+  printk("[SWEEP2WAKE]: suspend\n");
   scr_suspended = true;
   if (sweep2wake == 0 && doubletap2wake == 0) {
 #endif

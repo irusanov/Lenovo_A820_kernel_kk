@@ -6,7 +6,6 @@
 /**
  * TODO: detect ps sensor value when power button preseed to avoid accidental power_on while in pocket
  */
-//int power_key_check_in_pocket(void);
-int pocket_detection_check(void);
+int check_device_in_pocket(void);
 
 #endif

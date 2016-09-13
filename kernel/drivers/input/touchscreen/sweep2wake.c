@@ -30,13 +30,14 @@
 #include <linux/init.h>
 #include <linux/err.h>
 #include <linux/input/sweep2wake.h>
+#include <linux/alsps_sensor.h>
 
 /* Tuneables */
 #define DEBUG                           0
 #define DEFAULT_S2W_Y_LIMIT             950
 #define DEFAULT_S2W_X_MAX               530
-#define DEFAULT_S2W_X_B1                50
-#define DEFAULT_S2W_X_B2                150
+#define DEFAULT_S2W_X_B1                180
+#define DEFAULT_S2W_X_B2                360
 #define DEFAULT_S2W_X_FINAL             50
 #define DEFAULT_S2W_PWRKEY_DUR          60
 
@@ -44,22 +45,25 @@
 bool is_single_touch(void);
 
 /* Resources */
+int pocket_detect = 1;
 int sweep2wake = 0;
 int s2w_st_flag = 0;
 int doubletap2wake = 0;
 int dt2w_switch_temp = 1;
 int dt2w_changed = 0;
-bool scr_suspended = false, exec_count = true;
-bool scr_on_touch = false, barrier[2] = {false, false};
+bool scr_suspended = false;
+bool exec_count = true;
+bool scr_on_touch = false;
+bool barrier[2] = {false, false};
 static struct input_dev * sweep2wake_pwrdev;
 static DEFINE_MUTEX(pwrkeyworklock);
 
 static int s2w_start_posn = DEFAULT_S2W_X_B1;
 static int s2w_mid_posn = DEFAULT_S2W_X_B2;
 static int s2w_end_posn = (DEFAULT_S2W_X_MAX - DEFAULT_S2W_X_FINAL);
-static int s2w_height_adjust = 854;
+// 20150621 jwchen119 - num = 1010 is in kmesg for menu key y coords
+static int s2w_height_adjust = 0;
 static int s2w_threshold = DEFAULT_S2W_X_FINAL;
-//static int s2w_max_posn = DEFAULT_S2W_X_MAX;
 
 static int s2w_swap_coord = 0;
 
@@ -128,7 +132,8 @@ static void reset_sweep2wake(void)
 }
 
 /* PowerKey work func */
-static void sweep2wake_presspwr(struct work_struct * sweep2wake_presspwr_work) {
+static void sweep2wake_presspwr(struct work_struct * sweep2wake_presspwr_work)
+{
   if (!mutex_trylock(&pwrkeyworklock))
     return;
 
@@ -147,9 +152,17 @@ static void sweep2wake_presspwr(struct work_struct * sweep2wake_presspwr_work) {
 static DECLARE_WORK(sweep2wake_presspwr_work, sweep2wake_presspwr);
 
 /* PowerKey trigger */
-void sweep2wake_pwrtrigger(void) {
-  printk("[SWEEP2WAKE]: power triggered\n");
-  schedule_work(&sweep2wake_presspwr_work);
+void sweep2wake_pwrtrigger(void)
+{
+	bool in_pocket = false;
+	if (scr_suspended && pocket_detect) {
+		in_pocket = check_device_in_pocket();
+	}
+	printk("[SWEEP2WAKE]: pocket mode %d\n", in_pocket);
+	if (!in_pocket) {
+  	printk("[SWEEP2WAKE]: power triggered\n");
+    schedule_work(&sweep2wake_presspwr_work);
+	}
   return;
 }
 
@@ -186,7 +199,7 @@ void detect_sweep2wake(int sweep_coord, int sweep_height, unsigned long time, in
   }
 
   //left->right
-  if ((scr_suspended == true) && (sweep2wake > 0) && sweep_height > s2w_height_adjust) {
+  if (scr_suspended && (sweep2wake > 0) && sweep_height > s2w_height_adjust) {
     printk("[sweep2wake]:left to right x,y(%d,%d) jiffies:%lu\n", sweep_coord, sweep_height, time);
     if (sweep_coord < 100) {
       tripon = 1;
@@ -401,6 +414,23 @@ static ssize_t doubletap2wake_store(struct kobject *kobj, struct kobj_attribute 
   return count;
 }
 
+static ssize_t pocket_detect_show(struct kobject *kobj,
+	struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%i\n", pocket_detect);
+}
+
+static ssize_t pocket_detect_store(struct kobject *kobj,
+	struct kobj_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int data;
+	if(sscanf(buf, "%i\n", &data) == 1)
+		pocket_detect = data;
+	else
+		pr_info("%s: unknown input!\n", __FUNCTION__);
+	return count;
+}
+
 static struct kobj_attribute s2w_start_posn_attribute =
   __ATTR(s2w_start_posn,
   0666,
@@ -443,6 +473,12 @@ static struct kobj_attribute sweep2wake_attribute =
   sweep2wake_show,
   sweep2wake_store);
 
+static struct kobj_attribute pocket_detect_attribute =
+	__ATTR(pocket_detect,
+		0666,
+		pocket_detect_show,
+		pocket_detect_store);
+
 static struct kobj_attribute doubletap2wake_attribute =
   __ATTR(doubletap2wake,
   0666,
@@ -457,6 +493,7 @@ static struct attribute *s2w_parameters_attrs[] =
     &s2w_threshold_attribute.attr,
     &s2w_swap_coord_attribute.attr,
     &sweep2wake_attribute.attr,
+		&pocket_detect_attribute.attr,
     &doubletap2wake_attribute.attr,
     &s2w_height_adjust_attribute.attr,
     NULL,

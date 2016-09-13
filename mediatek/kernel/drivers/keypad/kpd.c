@@ -16,6 +16,9 @@
 
 
 /*kpd.h file path: ALPS/mediatek/kernel/include/linux */
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+#include <linux/input/sweep2wake.h>
+#endif
 #include <linux/kpd.h>
 
 #define KPD_NAME	"mtk-kpd"
@@ -863,6 +866,11 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 		if (kpd_keymap[i] != 0)
 			__set_bit(kpd_keymap[i], kpd_input_dev->keybit);
 	}
+
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	sweep2wake_setdev(kpd_input_dev);
+	printk("[SWEEP2WAKE]: power key capture done\n");
+#endif
 
 #if KPD_AUTOTEST
 	for (i = 0; i < ARRAY_SIZE(kpd_auto_keymap); i++)
