@@ -56,7 +56,7 @@ static customExifInfo_t exifTag = {CUSTOM_EXIF_STRING_MAKE,CUSTOM_EXIF_STRING_MO
 
     /*Lenovo-sw chenglong1 add for exif info*/    
     property_get("ro.product.brand", (char *)exifTag.strMake, "Lenovo");	
-    property_get("ro.product.model", (char *)exifTag.strModel, "A820");	
+    property_get("ro.product.model", (char *)exifTag.strModel, "Phone");	
     property_get("ro.build.product", (char *)exifTag.strSoftware, "Lenovo");
     /*Lenovo-sw add end*/
   
