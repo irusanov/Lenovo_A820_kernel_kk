@@ -89,7 +89,7 @@ CUSTOM_HAL_SUB_LENS=dummy_lens
 CUSTOM_KERNEL_ACCELEROMETER=kxtik1004
 
 # ALSPS sensor driverto detect ambint light and the object is close or far awary from device
-CUSTOM_KERNEL_ALSPS=APDS9930 #APDS9930_rpr400
+CUSTOM_KERNEL_ALSPS=APDS9930_rpr400
 
 # Pressure sensor driver to detect pressure
 #CUSTOM_KERNEL_BAROMETER=
@@ -154,7 +154,7 @@ CUSTOM_KERNEL_SSW=ssw_generic
 CUSTOM_KERNEL_SUB_BACKUP_IMGSENSOR=
 
 # lens driver config for video telephony camera (2nd solution)
-CUSTOM_KERNEL_SUB_BACKUP_LENS= 
+CUSTOM_KERNEL_SUB_BACKUP_LENS=
 
 # Kernel space image sensor driver:Sub camera (front camera) used sensor driver.Value is used sub sensor name.
 CUSTOM_KERNEL_SUB_IMGSENSOR=mt9v113_yuv
@@ -329,7 +329,7 @@ MTK_AUTORAMA_SUPPORT=yes
 
 # one load to support different accelerometer sensor
 MTK_AUTO_DETECT_ACCELEROMETER=no
-MTK_AUTO_DETECT_ALSPS=no
+MTK_AUTO_DETECT_ALSPS=yes
 
 # one load to support different magnetometer sensor
 MTK_AUTO_DETECT_MAGNETOMETER=no

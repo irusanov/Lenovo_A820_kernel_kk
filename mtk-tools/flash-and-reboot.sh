@@ -3,6 +3,7 @@
 set -e
 
 adb kill-server
-adb push boot.img /sdcard/a820/
-adb shell busybox dd if=/sdcard/a820/boot.img of=/dev/bootimg
+
+adb push boot.img /sdcard/proton/
+adb shell busybox dd if=/sdcard/proton/boot.img of=/dev/bootimg
 adb reboot

@@ -52,11 +52,11 @@ static struct alsps_hw cust_alsps_hw_rpr400 = {
 int alsps_device_index = 0;// 0 unknow 1 avago 2 rohm
 struct alsps_hw *get_cust_alsps_hw(void) {
     if(alsps_device_index ==1)
-    return &cust_alsps_hw_apds9930;
+        return &cust_alsps_hw_apds9930;
     else if(alsps_device_index ==2)
-    return &cust_alsps_hw_rpr400;
+        return &cust_alsps_hw_rpr400;
     else
-    return &cust_alsps_hw_apds9930;
+        return &cust_alsps_hw_apds9930;
 }
 int APDS9930_CMM_PPCOUNT_VALUE = 0x06;
 int APDS9930_CMM_CONTROL_VALUE = 0x68;

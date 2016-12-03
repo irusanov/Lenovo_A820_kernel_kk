@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef __HWMSEN_CUSTOM_H__ 
+
+#ifndef __HWMSEN_CUSTOM_H__
 #define __HWMSEN_CUSTOM_H__
 
 #ifdef CUSTOM_KERNEL_ACCELEROMETER
-	#define ACCELEROMETER 		"BMA222 3-axis Accelerometer"
-	#define ACCELEROMETER_VENDER 	"Bosch"
+	#define ACCELEROMETER 		"KXTIK 3-axis Accelerometer"
+	#define ACCELEROMETER_VENDER 	"Kionix"
 #endif
 
 #ifdef CUSTOM_KERNEL_ALSPS
