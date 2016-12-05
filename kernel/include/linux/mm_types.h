@@ -56,23 +56,8 @@ struct page {
 		};
 
 		union {
-                    /* 
-                     * kernel patch:
-                     * commit: d3ae4a87530c1e10c0705995c87fe8a7b4267f4b
-                     * https://android.googlesource.com/kernel/common/+/d3ae4a87530c1e10c0705995c87fe8a7b4267f4b%5E!/#F0
-                     */
-#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-	defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
 			/* Used for cmpxchg_double in slub */
 			unsigned long counters;
-#else
-			/*
-			 * Keep _count separate from slub cmpxchg_double data.
-			 * As the rest of the double word is protected by
-			 * slab_lock but _count is not.
-			 */
-			unsigned counters;
-#endif
 
 			struct {
 

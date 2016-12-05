@@ -46,10 +46,10 @@ static void pty_close(struct tty_struct *tty, struct file *filp)
 	wake_up_interruptible(&tty->read_wait);
 	wake_up_interruptible(&tty->write_wait);
 	tty->packet = 0;
-        tty->peer_stops = 0;    
+        tty->peer_stops = 0;
 	if (!tty->link)
 		return;
-        tty->link->peer_stops = 0;
+    tty->link->packet = 0;
 	set_bit(TTY_OTHER_CLOSED, &tty->link->flags);
 	wake_up_interruptible(&tty->link->read_wait);
 	wake_up_interruptible(&tty->link->write_wait);
@@ -479,7 +479,7 @@ static int pty_unix98_ioctl(struct tty_struct *tty,
                      tty->link->peer_stops=1;
                      break;
                 case TCION:
-                     tty->link->peer_stops=0;           
+                     tty->link->peer_stops=0;
                      if (waitqueue_active(&tty->link->write_wait))
                          wake_up_interruptible(&tty->link->write_wait);
                      break;
@@ -648,9 +648,6 @@ static int ptmx_open(struct inode *inode, struct file *filp)
 	int index;
 
 	nonseekable_open(inode, filp);
-
-	/* We refuse fsnotify events on ptmx, since it's a shared resource */
-	filp->f_mode |= FMODE_NONOTIFY;
 
 	retval = tty_alloc_file(filp);
 	if (retval)

@@ -21,24 +21,13 @@
 
 #define STACK_TRACE_ENTRIES 500
 
-#ifdef CC_USING_FENTRY
-# define fentry		1
-#else
-# define fentry		0
-#endif
-
 static unsigned long stack_dump_trace[STACK_TRACE_ENTRIES+1] =
 	 { [0 ... (STACK_TRACE_ENTRIES)] = ULONG_MAX };
 static unsigned stack_dump_index[STACK_TRACE_ENTRIES];
 
-/*
- * Reserve one entry for the passed in ip. This will allow
- * us to remove most or all of the stack size overhead
- * added by the stack tracer itself.
- */
 static struct stack_trace max_stack_trace = {
-	.max_entries		= STACK_TRACE_ENTRIES - 1,
-	.entries		= &stack_dump_trace[1],
+	.max_entries		= STACK_TRACE_ENTRIES,
+	.entries		= stack_dump_trace,
 };
 
 static unsigned long max_stack_size;
@@ -56,7 +45,7 @@ static int last_stack_tracer_enabled;
 #if defined (CONFIG_MTK_AEE_FEATURE) && defined (CONFIG_MT_ENG_BUILD)
 #include <linux/aee.h>
 #include <linux/thread_info.h>
-/*768=sizeof(struct thread_info),1600 for buffer*/ 
+/*768=sizeof(struct thread_info),1600 for buffer*/
 static unsigned long stack_overflow_thd = THREAD_SIZE-768-1600;
 module_param_named(stack_overflow_thd, stack_overflow_thd, ulong, S_IRUGO | S_IWUSR);
 
@@ -67,7 +56,7 @@ static void dump_max_stack_trace(void) {
 			   "    (%d entries)\n"
 			   "        -----    ----   --------\n",
 			   max_stack_trace.nr_entries - 1);
-	
+
 	for (i=0; i<max_stack_trace.nr_entries; i++) {
 	    if (stack_dump_trace[i] == ULONG_MAX)
 		    continue;
@@ -83,22 +72,17 @@ static void dump_max_stack_trace(void) {
 }
 #endif
 
-static inline void
-check_stack(unsigned long ip, unsigned long *stack)
+static inline void check_stack(void)
 {
 	unsigned long this_size, flags;
 	unsigned long *p, *top, *start;
-	static int tracer_frame;
-	int frame_size = ACCESS_ONCE(tracer_frame);
 	int i;
 
-	this_size = ((unsigned long)stack) & (THREAD_SIZE-1);
+	this_size = ((unsigned long)&this_size) & (THREAD_SIZE-1);
 	this_size = THREAD_SIZE - this_size;
-	/* Remove the frame of the tracer */
-	this_size -= frame_size;
 
     /*LCH add for stack overflow debug, stack_tracer_enabled:
-     * 0:disable, 
+     * 0:disable,
      * 1:record stack_max_size and stack_trace
      * 2:only for overflow trigger kernel warning */
 #if defined (CONFIG_MTK_AEE_FEATURE) && defined (CONFIG_MT_ENG_BUILD)
@@ -115,15 +99,11 @@ check_stack(unsigned long ip, unsigned long *stack)
 		return;
 
 	/* we do not handle interrupt stacks yet */
-	if (!object_is_on_stack(stack))
+	if (!object_is_on_stack(&this_size))
 		return;
 
 	local_irq_save(flags);
 	arch_spin_lock(&max_stack_lock);
-
-	/* In case another CPU set the tracer_frame on us */
-	if (unlikely(!frame_size))
-		this_size -= tracer_frame;
 
 	/* a race could have already updated it */
 	if (this_size <= max_stack_size)
@@ -137,18 +117,10 @@ check_stack(unsigned long ip, unsigned long *stack)
 	save_stack_trace(&max_stack_trace);
 
 	/*
-	 * Add the passed in ip from the function tracer.
-	 * Searching for this on the stack will skip over
-	 * most of the overhead from the stack tracer itself.
-	 */
-	stack_dump_trace[0] = ip;
-	max_stack_trace.nr_entries++;
-
-	/*
 	 * Now find where in the stack these are.
 	 */
 	i = 0;
-	start = stack;
+	start = &this_size;
 	top = (unsigned long *)
 		(((unsigned long)start & ~(THREAD_SIZE-1)) + THREAD_SIZE);
 
@@ -172,18 +144,6 @@ check_stack(unsigned long ip, unsigned long *stack)
 				found = 1;
 				/* Start the search from here */
 				start = p + 1;
-				/*
-				 * We do not want to show the overhead
-				 * of the stack tracer stack in the
-				 * max stack. If we haven't figured
-				 * out what that is, then figure it out
-				 * now.
-				 */
-				if (unlikely(!tracer_frame) && i == 1) {
-					tracer_frame = (p - stack) *
-						sizeof(unsigned long);
-					max_stack_size -= tracer_frame;
-				}
 			}
 		}
 
@@ -205,7 +165,6 @@ check_stack(unsigned long ip, unsigned long *stack)
 static void
 stack_trace_call(unsigned long ip, unsigned long parent_ip)
 {
-	unsigned long stack;
 	int cpu;
 
 	if (unlikely(!ftrace_enabled || stack_trace_disabled))
@@ -218,26 +177,7 @@ stack_trace_call(unsigned long ip, unsigned long parent_ip)
 	if (per_cpu(trace_active, cpu)++ != 0)
 		goto out;
 
-	/*
-	 * When fentry is used, the traced function does not get
-	 * its stack frame set up, and we lose the parent.
-	 * The ip is pretty useless because the function tracer
-	 * was called before that function set up its stack frame.
-	 * In this case, we use the parent ip.
-	 *
-	 * By adding the return address of either the parent ip
-	 * or the current ip we can disregard most of the stack usage
-	 * caused by the stack tracer itself.
-	 *
-	 * The function tracer always reports the address of where the
-	 * mcount call was, but the stack will hold the return address.
-	 */
-	if (fentry)
-		ip = parent_ip;
-	else
-		ip += MCOUNT_INSN_SIZE;
-
-	check_stack(ip, &stack);
+	check_stack();
 
  out:
 	per_cpu(trace_active, cpu)--;
@@ -436,7 +376,7 @@ static const struct file_operations stack_trace_filter_fops = {
 	.open = stack_trace_filter_open,
 	.read = seq_read,
 	.write = ftrace_filter_write,
-	.llseek = ftrace_filter_lseek,
+	.llseek = ftrace_regex_lseek,
 	.release = ftrace_regex_release,
 };
 
@@ -450,12 +390,12 @@ static void stack_trace_early_suspend(struct early_suspend *h)
 	printk("[STACK_TRACER]stack_trace_early_suspend:%d\n", stack_tracer_enabled_backup);
 	if(stack_tracer_enabled) {
 	    mutex_lock(&stack_sysctl_mutex);
-	    
+
 	    stack_trace_disabled = 1;
 	    stack_tracer_enabled = 0;
 	    last_stack_tracer_enabled = !!stack_tracer_enabled;
 		unregister_ftrace_function(&trace_ops);
-		
+
 	    mutex_unlock(&stack_sysctl_mutex);
 	}
 }
@@ -465,13 +405,13 @@ static void stack_trace_late_resume(struct early_suspend *h)
 	printk("[STACK_TRACER]stack_trace_late_resume:%d\n", stack_tracer_enabled_backup);
 	if(stack_tracer_enabled_backup) {
 	    mutex_lock(&stack_sysctl_mutex);
-	    
+
 	    stack_tracer_enabled = stack_tracer_enabled_backup;
 	    last_stack_tracer_enabled = !!stack_tracer_enabled;
 		register_ftrace_function(&trace_ops);
 		stack_trace_disabled = 0;
-		
-	    mutex_unlock(&stack_sysctl_mutex);	
+
+	    mutex_unlock(&stack_sysctl_mutex);
 	}
 }
 
@@ -529,7 +469,7 @@ static __init int enable_stacktrace(char *str)
 {
 	if (strncmp(str, "_filter=", 8) == 0)
 		strncpy(stack_trace_filter_buf, str+8, COMMAND_LINE_SIZE);
-		
+
 /*LCH add for stack overflow debug */
 #if defined (CONFIG_MTK_AEE_FEATURE) && defined (CONFIG_MT_ENG_BUILD)
 	stack_tracer_enabled = 2;
@@ -547,8 +487,6 @@ static __init int stack_trace_init(void)
 	struct dentry *d_tracer;
 
 	d_tracer = tracing_init_dentry();
-	if (!d_tracer)
-		return 0;
 
 	trace_create_file("stack_max_size", 0644, d_tracer,
 			&max_stack_size, &stack_max_size_fops);
@@ -564,7 +502,7 @@ static __init int stack_trace_init(void)
 
 	if (stack_tracer_enabled) {
 		register_ftrace_function(&trace_ops);
-		
+
     #ifdef CONFIG_HAS_EARLYSUSPEND
         if (!stack_trace_early_suspend_register) {
             register_early_suspend(&stack_tracer_early_suspend_handler);

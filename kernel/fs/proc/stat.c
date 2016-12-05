@@ -51,9 +51,9 @@ static u64 get_idle_time(int cpu)
     #else
     u64 idle, idle_time = get_cpu_idle_time_us(cpu, NULL);
     #endif
-	
+
 	if (idle_time == -1ULL)
-		/* !NO_HZ or cpu offline so we can rely on cpustat.idle */
+		/* !NO_HZ so we can rely on cpustat.idle */
 		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
 	else
 		idle = usecs_to_cputime64(idle_time);
@@ -63,15 +63,14 @@ static u64 get_idle_time(int cpu)
 
 static u64 get_iowait_time(int cpu)
 {
-	u64 iowait, iowait_time = -1ULL;
     #ifdef CONFIG_MTK_IDLE_TIME_FIX
-	iowait_time = get_cpu_iowait_time_us_wo_cpuoffline(cpu, NULL);
+	u64 iowait, iowait_time = get_cpu_iowait_time_us_wo_cpuoffline(cpu, NULL);
     #else
-	iowait_time = get_cpu_iowait_time_us(cpu, NULL);
+	u64 iowait, iowait_time = get_cpu_iowait_time_us(cpu, NULL);
 	#endif
-	
+
 	if (iowait_time == -1ULL)
-		/* !NO_HZ or cpu offline so we can rely on cpustat.iowait */
+		/* !NO_HZ so we can rely on cpustat.iowait */
 		iowait = kcpustat_cpu(cpu).cpustat[CPUTIME_IOWAIT];
 	else
 		iowait = usecs_to_cputime64(iowait_time);

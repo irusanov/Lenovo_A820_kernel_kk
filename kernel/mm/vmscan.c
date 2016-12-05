@@ -776,7 +776,7 @@ static enum page_references page_check_references(struct page *page,
 		return PAGEREF_RECLAIM;
 
 	if (referenced_ptes) {
-		if (PageSwapBacked(page))
+		if (PageAnon(page))
 			return PAGEREF_ACTIVATE;
 		/*
 		 * All mapped pages start out with page table
@@ -2068,10 +2068,10 @@ static void get_scan_count(struct mem_cgroup_zone *mz, struct scan_control *sc,
 	 * proportional to the fraction of recently scanned pages on
 	 * each list that were recently referenced and in active use.
 	 */
-	ap = anon_prio * (reclaim_stat->recent_scanned[0] + 1);
+	ap = (anon_prio + 1) * (reclaim_stat->recent_scanned[0] + 1);
 	ap /= reclaim_stat->recent_rotated[0] + 1;
 
-	fp = file_prio * (reclaim_stat->recent_scanned[1] + 1);
+	fp = (file_prio + 1) * (reclaim_stat->recent_scanned[1] + 1);
 	fp /= reclaim_stat->recent_rotated[1] + 1;
 	spin_unlock_irq(&mz->zone->lru_lock);
 
@@ -2086,7 +2086,7 @@ out:
 		scan = zone_nr_lru_pages(mz, lru);
 		if (sc->hibernation_mode)
 			scan = SWAP_CLUSTER_MAX;
-		else if ((priority || noswap || !vmscan_swappiness(mz, sc))) {
+		else if (priority || noswap) {
 			scan >>= priority;
 			if (!scan && force_scan)
 				scan = SWAP_CLUSTER_MAX;
@@ -3119,10 +3119,7 @@ static void kswapd_try_to_sleep(pg_data_t *pgdat, int order, int classzone_idx)
 		 * them before going back to sleep.
 		 */
 		set_pgdat_percpu_threshold(pgdat, calculate_normal_threshold);
-
-		if (!kthread_should_stop())
-			schedule();
-
+		schedule();
 		set_pgdat_percpu_threshold(pgdat, calculate_pressure_threshold);
 	} else {
 		if (remaining)
@@ -3234,8 +3231,6 @@ static int kswapd(void *p)
 						&balanced_classzone_idx);
 		}
 	}
-
-	current->reclaim_state = NULL;
 	return 0;
 }
 
@@ -3407,25 +3402,15 @@ int kswapd_run(int nid)
 	return ret;
 }
 
-        /*
-         * kernel patch
-         * commit: 0e343dbe08acb440f7914d989bcc32c1d1576735
-         * https://android.googlesource.com/kernel/common/+/0e343dbe08acb440f7914d989bcc32c1d1576735%5E!/#F0
-         */
 /*
- * Called by memory hotplug when all memory in a node is offlined.  Caller must
- * hold lock_memory_hotplug().
+ * Called by memory hotplug when all memory in a node is offlined.
  */
 void kswapd_stop(int nid)
 {
 	struct task_struct *kswapd = NODE_DATA(nid)->kswapd;
 
-	//if (kswapd)
-	//	kthread_stop(kswapd);
-	if (kswapd) {
+	if (kswapd)
 		kthread_stop(kswapd);
-		NODE_DATA(nid)->kswapd = NULL;
-	}
 }
 
 static int __init kswapd_init(void)
@@ -3671,6 +3656,7 @@ int zone_reclaim(struct zone *zone, gfp_t gfp_mask, unsigned int order)
  */
 int page_evictable(struct page *page, struct vm_area_struct *vma)
 {
+
 	if (mapping_unevictable(page_mapping(page)))
 		return 0;
 
@@ -3837,10 +3823,10 @@ int mtkpasr_isolate_page(struct page *page)
 		spin_unlock_irqrestore(&zone->lru_lock, flags);
 		return -EACCES;
 	}
-	
+
 	/* Successfully isolated */
 	del_page_from_lru_list(zone, page, page_lru(page));
-	
+
 	/* Unlock this zone */
 	spin_unlock_irqrestore(&zone->lru_lock, flags);
 
@@ -3860,7 +3846,7 @@ int mtkpasr_drop_page(struct page *page)
 	/* Suitable scan control */
 	struct scan_control sc = {
 		.gfp_mask = GFP_KERNEL,
-		.order = PAGE_ALLOC_COSTLY_ORDER + 1, 
+		.order = PAGE_ALLOC_COSTLY_ORDER + 1,
 		.reclaim_mode = RECLAIM_MODE_SINGLE|RECLAIM_MODE_SYNC,	// We only handle "SwapBacked" pages in this reclaim_mode!
 	};
 
@@ -3873,7 +3859,7 @@ int mtkpasr_drop_page(struct page *page)
 	if (ret) {
 		return ret;
 	}
-	
+
 	/* Check whether it is evictable! */
 	if (unlikely(!page_evictable(page, NULL))) {
 		putback_lru_page(page);
@@ -3885,16 +3871,16 @@ int mtkpasr_drop_page(struct page *page)
 		active = TestClearPageActive(page);
 	}
 
-	/* If we fail to lock this page, ignore it */	
+	/* If we fail to lock this page, ignore it */
 	if (!trylock_page(page)) {
 		goto putback;
 	}
-	
+
 	/* If page is in writeback, we don't handle it here! */
 	if (PageWriteback(page)) {
 		goto unlock;
 	}
-	
+
 	/*
 	 * Anonymous process memory has backing store?
 	 * Try to allocate it some swap space here.
@@ -3906,7 +3892,7 @@ int mtkpasr_drop_page(struct page *page)
 			goto unlock;
 		}
 	}
-	
+
 	/* We don't handle dirty file cache here (Related devices may be suspended) */
 	if (page_is_file_cache(page)) {
 		/* How do we handle pages in VM_EXEC vmas? */
@@ -3915,13 +3901,13 @@ int mtkpasr_drop_page(struct page *page)
 		}
 		/* We don't handle dirty file pages! */
 		if (PageDirty(page)) {
-#ifdef CONFIG_MTKPASR_DEBUG 
+#ifdef CONFIG_MTKPASR_DEBUG
 			printk(KERN_ALERT "\n\n\n\n\n\n [%s][%d]\n\n\n\n\n\n",__FUNCTION__,__LINE__);
 #endif
 			goto unlock;
 		}
 	}
-		
+
 	/*
 	 * The page is mapped into the page tables of one or more
 	 * processes. Try to unmap it here.
@@ -3931,7 +3917,7 @@ int mtkpasr_drop_page(struct page *page)
 #if 0
 		/* Indicate unmap action for SwapBacked pages */
 		if (PageSwapBacked(page)) {
-			unmap_flags |= TTU_IGNORE_ACCESS; 
+			unmap_flags |= TTU_IGNORE_ACCESS;
 		}
 #endif
 		/* To unmap */
@@ -3948,8 +3934,8 @@ int mtkpasr_drop_page(struct page *page)
 
 		}
 	}
-	
-	/* Check whether it is dirtied. 
+
+	/* Check whether it is dirtied.
 	 * We have filtered out dirty file pages above. (IMPORTANT!)
 	 * "VM_BUG_ON(!PageSwapBacked(page))"
 	 * */
@@ -3981,7 +3967,7 @@ int mtkpasr_drop_page(struct page *page)
 			/* try to free the page below */
 			break;
 		default:
-#ifdef CONFIG_MTKPASR_DEBUG 
+#ifdef CONFIG_MTKPASR_DEBUG
 			printk(KERN_ALERT "\n\n\n\n\n\n [%s][%d]\n\n\n\n\n\n",__FUNCTION__,__LINE__);
 #endif
 			goto restore_unmap;
@@ -4007,12 +3993,12 @@ int mtkpasr_drop_page(struct page *page)
 	if (!mapping || !__remove_mapping(mapping, page)) {
 		goto unlock;
 	}
-		
+
 	__clear_page_locked(page);
 
 freeit:
 	free_hot_cold_page(page, 0);
-	return 0;	
+	return 0;
 
 restore_unmap:
 	/* Do something */
@@ -4024,11 +4010,11 @@ restore_swap:
 unlock:
 	unlock_page(page);
 
-putback:	
+putback:
 	/* Activate it again if needed! */
 	if (active)
 		SetPageActive(page);
-	
+
 	/* We don't putback them to corresponding LRUs, because we want to do more tasks outside this function!
 	putback_lru_page(page); */
 

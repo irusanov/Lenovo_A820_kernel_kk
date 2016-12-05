@@ -187,8 +187,6 @@ static int tlb_next_batch(struct mmu_gather *tlb)
 		return 1;
 	}
 
-	if (tlb->batch_count == MAX_GATHER_BATCH_COUNT)
-		return 0;
 #ifndef CONFIG_MTK_PAGERECORDER
 	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
 #else
@@ -197,7 +195,6 @@ static int tlb_next_batch(struct mmu_gather *tlb)
 	if (!batch)
 		return 0;
 
-	tlb->batch_count++;
 	batch->next = NULL;
 	batch->nr   = 0;
 	batch->max  = MAX_GATHER_BATCH;
@@ -1878,7 +1875,7 @@ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 
 	VM_BUG_ON(!!pages != !!(gup_flags & FOLL_GET));
 
-	/* 
+	/*
 	 * Require read or write permissions.
 	 * If FOLL_FORCE is set, we only require the "MAY" flags.
 	 */
@@ -2550,53 +2547,6 @@ int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
 }
 EXPORT_SYMBOL(remap_pfn_range);
 
-/**
- * vm_iomap_memory - remap memory to userspace
- * @vma: user vma to map to
- * @start: start of area
- * @len: size of area
- *
- * This is a simplified io_remap_pfn_range() for common driver use. The
- * driver just needs to give us the physical memory range to be mapped,
- * we'll figure out the rest from the vma information.
- *
- * NOTE! Some drivers might want to tweak vma->vm_page_prot first to get
- * whatever write-combining details or similar.
- */
-int vm_iomap_memory(struct vm_area_struct *vma, phys_addr_t start, unsigned long len)
-{
-	unsigned long vm_len, pfn, pages;
-
-	/* Check that the physical memory area passed in looks valid */
-	if (start + len < start)
-		return -EINVAL;
-	/*
-	 * You *really* shouldn't map things that aren't page-aligned,
-	 * but we've historically allowed it because IO memory might
-	 * just have smaller alignment.
-	 */
-	len += start & ~PAGE_MASK;
-	pfn = start >> PAGE_SHIFT;
-	pages = (len + ~PAGE_MASK) >> PAGE_SHIFT;
-	if (pfn + pages < pfn)
-		return -EINVAL;
-
-	/* We start the mapping 'vm_pgoff' pages into the area */
-	if (vma->vm_pgoff > pages)
-		return -EINVAL;
-	pfn += vma->vm_pgoff;
-	pages -= vma->vm_pgoff;
-
-	/* Can we fit all of the mapping? */
-	vm_len = vma->vm_end - vma->vm_start;
-	if (vm_len >> PAGE_SHIFT > pages)
-		return -EINVAL;
-
-	/* Ok, let it rip */
-	return io_remap_pfn_range(vma, vma->vm_start, pfn, vm_len, vma->vm_page_prot);
-}
-EXPORT_SYMBOL(vm_iomap_memory);
-
 static int apply_to_pte_range(struct mm_struct *mm, pmd_t *pmd,
 				     unsigned long addr, unsigned long end,
 				     pte_fn_t fn, void *data)
@@ -2938,13 +2888,13 @@ gotten:
 	pte_unmap_unlock(page_table, ptl);
 
 #ifdef CONFIG_ZEROPAGE
-	/* 
-	 * WARNING: CONFIG_ZEROPAGE is not compatible with MEMCG 
+	/*
+	 * WARNING: CONFIG_ZEROPAGE is not compatible with MEMCG
 	 */
 	count_vm_event(PGANFAULT);
 	mem_cgroup_count_vm_event(mm, PGANFAULT);
 
-#endif 
+#endif
 	if (unlikely(anon_vma_prepare(vma)))
 		goto oom;
 
@@ -3389,12 +3339,12 @@ static int do_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	pte_unmap(page_table);
 
 #ifdef CONFIG_ZEROPAGE
-	/* 
-	 * WARNING: CONFIG_ZEROPAGE is not compatible with MEMCG 
+	/*
+	 * WARNING: CONFIG_ZEROPAGE is not compatible with MEMCG
 	 */
 	count_vm_event(PGANFAULT);
 	mem_cgroup_count_vm_event(mm, PGANFAULT);
-#endif 
+#endif
 
 	/* Check if we need to add a guard page to the stack */
 	if (check_stack_guard_page(vma, address) < 0)
@@ -3778,7 +3728,6 @@ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	if (unlikely(is_vm_hugetlb_page(vma)))
 		return hugetlb_fault(mm, vma, address, flags);
 
-retry:
 	pgd = pgd_offset(mm, address);
 	pud = pud_alloc(mm, pgd, address);
 	if (!pud)
@@ -3792,24 +3741,13 @@ retry:
 							  pmd, flags);
 	} else {
 		pmd_t orig_pmd = *pmd;
-		int ret;
-
 		barrier();
 		if (pmd_trans_huge(orig_pmd)) {
 			if (flags & FAULT_FLAG_WRITE &&
 			    !pmd_write(orig_pmd) &&
-			    !pmd_trans_splitting(orig_pmd)) {
-				ret = do_huge_pmd_wp_page(mm, vma, address, pmd,
-							  orig_pmd);
-				/*
-				 * If COW results in an oom, the huge pmd will
-				 * have been split, so retry the fault on the
-				 * pte for a smaller charge.
-				 */
-				if (unlikely(ret & VM_FAULT_OOM))
-					goto retry;
-				return ret;
-			}
+			    !pmd_trans_splitting(orig_pmd))
+				return do_huge_pmd_wp_page(mm, vma, address,
+							   pmd, orig_pmd);
 			return 0;
 		}
 	}
@@ -4113,7 +4051,7 @@ static int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
 					break;
 				}
 			}
-			
+
 #endif
 			/*
 			 * Check if this is a VM_IO | VM_PFNMAP VMA, which

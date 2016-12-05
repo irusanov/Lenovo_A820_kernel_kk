@@ -603,15 +603,6 @@ static int compact_zone(struct zone *zone, struct compact_control *cc)
 		if (err) {
 			putback_lru_pages(&cc->migratepages);
 			cc->nr_migratepages = 0;
-                        /*
-                         * kernel patch
-                         * commit: 7a08b440fa93e036968102597c8a2ab809a9bdc4 
-                         * https://android.googlesource.com/kernel/common/+/7a08b440fa93e036968102597c8a2ab809a9bdc4%5E!/#F0
-                         */
-			if (err == -ENOMEM) {
-				ret = COMPACT_PARTIAL;
-				goto out;
-			}
 		}
 	}
 
@@ -750,7 +741,7 @@ static int compact_node(int nid)
 }
 
 /* Compact all nodes in the system */
-static void compact_nodes(void)
+static int compact_nodes(void)
 {
 	int nid;
 
@@ -759,6 +750,8 @@ static void compact_nodes(void)
 
 	for_each_online_node(nid)
 		compact_node(nid);
+
+	return COMPACT_COMPLETE;
 }
 
 /* The written value is actually unused, all memory is compacted */
@@ -769,7 +762,7 @@ int sysctl_compaction_handler(struct ctl_table *table, int write,
 			void __user *buffer, size_t *length, loff_t *ppos)
 {
 	if (write)
-		compact_nodes();
+		return compact_nodes();
 
 	return 0;
 }
@@ -819,7 +812,7 @@ static void kick_compaction_early_suspend(struct early_suspend *h)
 	struct zone *z = &NODE_DATA(0)->node_zones[ZONE_NORMAL];
 	int status;
 	int retry = 3;
-	int safe_order = THREAD_SIZE_ORDER + 1;	
+	int safe_order = THREAD_SIZE_ORDER + 1;
 	gfp_t gfp_mask = GFP_KERNEL;
 
 	/* Check whether gfp is restricted. */

@@ -207,7 +207,7 @@ static unsigned long highmem_dirtyable_memory(unsigned long total)
 #ifdef CONFIG_HIGHMEM
 	int node;
 	unsigned long x = 0;
-        unsigned long tmp = 0;
+    unsigned long tmp = 0;
 
 	for_each_node_state(node, N_HIGH_MEMORY) {
 		struct zone *z =
@@ -218,10 +218,8 @@ static unsigned long highmem_dirtyable_memory(unsigned long total)
 		     zone_reclaimable_pages(z);
                 if (tmp > z->dirty_balance_reserve)
                     x += tmp - z->dirty_balance_reserve;
-                else 
+                else
                     continue;
-		//x += zone_page_state(z, NR_FREE_PAGES) +
-		//     zone_reclaimable_pages(z) - z->dirty_balance_reserve;
 	}
 	/*
 	 * Make sure that the number of highmem pages is never larger

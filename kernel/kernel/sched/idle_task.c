@@ -43,6 +43,7 @@ static struct task_struct *pick_next_task_idle(struct rq *rq)
 	rq->post_schedule = 1;
 #endif
 #endif
+	calc_load_account_idle(rq);
 	return rq->idle;
 }
 

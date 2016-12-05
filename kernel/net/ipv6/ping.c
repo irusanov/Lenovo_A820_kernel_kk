@@ -28,7 +28,7 @@
 
 struct proto pingv6_prot = {
 	.name =		"PINGv6",
-	.owner =	THIS_MODULE,
+	//.owner =	THIS_MODULE,
 	.init =		ping_init_sock,
 	.close =	ping_close,
 	.connect =	ip6_datagram_connect,

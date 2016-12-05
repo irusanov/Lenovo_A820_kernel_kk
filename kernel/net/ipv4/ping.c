@@ -252,11 +252,11 @@ int ping_init_sock(struct sock *sk)
 	struct group_info *group_info;
 	int i, j, count;
 	int ret = 0;
-	
+
 	inet_get_ping_group_range_net(net, range, range+1);
 	if (range[0] <= group && group <= range[1])
 		return 0;
-		
+
 	group_info = get_current_groups();
 	count = group_info->ngroups;
 	for (i = 0; i < group_info->nblocks; i++) {
@@ -887,7 +887,7 @@ int ping_recvmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 	/* Copy the address and add cmsg data. */
 	if (family == AF_INET) {
 		sin = (struct sockaddr_in *) msg->msg_name;
-		if(sin) {		
+		if(sin) {
 			sin->sin_family = AF_INET;
 			sin->sin_port = 0 /* skb->h.uh->source */;
 			sin->sin_addr.s_addr = ip_hdr(skb)->saddr;

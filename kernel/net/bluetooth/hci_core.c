@@ -750,8 +750,6 @@ static int hci_dev_do_close(struct hci_dev *hdev)
 
 	cancel_work_sync(&hdev->le_scan);
 
-	cancel_delayed_work(&hdev->power_off);
-
 	hci_req_cancel(hdev, ENODEV);
 	hci_req_lock(hdev);
 
@@ -1120,15 +1118,11 @@ EXPORT_SYMBOL(hci_free_dev);
 static void hci_power_on(struct work_struct *work)
 {
 	struct hci_dev *hdev = container_of(work, struct hci_dev, power_on);
-	int err;
 
 	BT_DBG("%s", hdev->name);
 
-	err = hci_dev_open(hdev->id);
-	if (err < 0) {
-		mgmt_set_powered_failed(hdev, err);
+	if (hci_dev_open(hdev->id) < 0)
 		return;
-	}
 
 	if (test_bit(HCI_AUTO_OFF, &hdev->dev_flags))
 		schedule_delayed_work(&hdev->power_off,
@@ -1869,8 +1863,6 @@ void hci_unregister_dev(struct hci_dev *hdev)
 
 	for (i = 0; i < NUM_REASSEMBLY; i++)
 		kfree_skb(hdev->reassembly[i]);
-
-	cancel_work_sync(&hdev->power_on);
 
 	if (!test_bit(HCI_INIT, &hdev->flags) &&
 				!test_bit(HCI_SETUP, &hdev->dev_flags)) {

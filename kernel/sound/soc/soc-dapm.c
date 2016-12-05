@@ -1442,15 +1442,7 @@ static int dapm_power_widgets(struct snd_soc_dapm_context *dapm, int event)
 	}
 
 	list_for_each_entry(w, &card->widgets, list) {
-		switch (w->id) {
-		case snd_soc_dapm_pre:
-		case snd_soc_dapm_post:
-			/* These widgets always need to be powered */
-			break;
-		default:
-			list_del_init(&w->dirty);
-			break;
-		}
+		list_del_init(&w->dirty);
 
 		if (w->power) {
 			d = w->dapm;
@@ -3274,7 +3266,7 @@ void snd_soc_dapm_shutdown(struct snd_soc_card *card)
 {
 	struct snd_soc_codec *codec;
 
-	list_for_each_entry(codec, &card->codec_dev_list, card_list) {
+	list_for_each_entry(codec, &card->codec_dev_list, list) {
 		soc_dapm_shutdown_codec(&codec->dapm);
 		if (codec->dapm.bias_level == SND_SOC_BIAS_STANDBY)
 			snd_soc_dapm_set_bias_level(&codec->dapm,

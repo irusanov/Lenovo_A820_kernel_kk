@@ -13,12 +13,6 @@
 #include <linux/hugetlb.h>
 #include <linux/sched.h>
 #include <linux/ksm.h>
-/*
- * kernel patch
- * commit: 0c4ad5cc8c01f62fe5211b5ce9563c27f795a4ab
- * https://android.googlesource.com/kernel/common/+/0c4ad5cc8c01f62fe5211b5ce9563c27f795a4ab%5E!/#F0
- */
-#include <linux/file.h>
 
 /*
  * Any behaviour which results in changes to the vma->vm_flags needs to
@@ -233,28 +227,14 @@ static long madvise_remove(struct vm_area_struct *vma,
 	struct address_space *mapping;
 	loff_t offset, endoff;
 	int error;
-/*
- * kernel patch
- * commit: 0c4ad5cc8c01f62fe5211b5ce9563c27f795a4ab
- * https://android.googlesource.com/kernel/common/+/0c4ad5cc8c01f62fe5211b5ce9563c27f795a4ab%5E!/#F0
- */
-	struct file *f;
 
 	*prev = NULL;	/* tell sys_madvise we drop mmap_sem */
 
 	if (vma->vm_flags & (VM_LOCKED|VM_NONLINEAR|VM_HUGETLB))
 		return -EINVAL;
 
-/*
- * kernel patch
- * commit: 0c4ad5cc8c01f62fe5211b5ce9563c27f795a4ab
- * https://android.googlesource.com/kernel/common/+/0c4ad5cc8c01f62fe5211b5ce9563c27f795a4ab%5E!/#F0
- */
-	//if (!vma->vm_file || !vma->vm_file->f_mapping
-	//	|| !vma->vm_file->f_mapping->host) {
-	f = vma->vm_file;
-
-	if (!f || !f->f_mapping || !f->f_mapping->host) {
+	if (!vma->vm_file || !vma->vm_file->f_mapping
+		|| !vma->vm_file->f_mapping->host) {
 			return -EINVAL;
 	}
 
@@ -268,21 +248,9 @@ static long madvise_remove(struct vm_area_struct *vma,
 	endoff = (loff_t)(end - vma->vm_start - 1)
 			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
 
-/*
- * kernel patch
- * commit: 0c4ad5cc8c01f62fe5211b5ce9563c27f795a4ab
- * https://android.googlesource.com/kernel/common/+/0c4ad5cc8c01f62fe5211b5ce9563c27f795a4ab%5E!/#F0
- */
-	/*
-	 * vmtruncate_range may need to take i_mutex.  We need to
-	 * explicitly grab a reference because the vma (and hence the
-	 * vma's reference to the file) can go away as soon as we drop
-	 * mmap_sem.
-	 */
-	get_file(f);
+	/* vmtruncate_range needs to take i_mutex */
 	up_read(&current->mm->mmap_sem);
 	error = vmtruncate_range(mapping->host, offset, endoff);
-	fput(f);
 	down_read(&current->mm->mmap_sem);
 	return error;
 }
