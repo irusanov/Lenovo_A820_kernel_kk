@@ -14,14 +14,14 @@
 #include <asm/io.h>
 
 struct dram_console_buffer {
-	uint32_t    sig;
-	uint32_t    start;
-	uint32_t    size;
+	uint32_t sig;
+	uint32_t start;
+	uint32_t size;
 
- 	uint8_t     data[0];
+	uint8_t data[0];
 };
 
-#define RAM_CONSOLE_SIG (0x43474244) /* DBGC */
+#define RAM_CONSOLE_SIG (0x43474244)	/* DBGC */
 
 static char *ram_console_old_log;
 static size_t ram_console_old_log_size;
@@ -29,95 +29,81 @@ static size_t ram_console_old_log_size;
 static struct dram_console_buffer *dram_console_buffer;
 static size_t dram_console_buffer_size;
 
-static void
-dram_console_write(struct console *console, const char *msg, unsigned int count)
+static void dram_console_write(struct console *console, const char *msg, unsigned int count)
 {
 	struct dram_console_buffer *buffer = dram_console_buffer;
 	int rem;
-	
-	// count >= buffer_size, full the buffer
-	if(count >= dram_console_buffer_size)
-	{
-		memcpy(buffer->data, msg + (count - dram_console_buffer_size), dram_console_buffer_size);
+
+	/* count >= buffer_size, full the buffer */
+	if (count >= dram_console_buffer_size) {
+		memcpy(buffer->data, msg + (count - dram_console_buffer_size),
+		       dram_console_buffer_size);
 		buffer->start = 0;
 		buffer->size = dram_console_buffer_size;
-	}	
-	else if(count > (dram_console_buffer_size - buffer->start)) // count > last buffer, full them and fill the head buffer
+	} else if (count > (dram_console_buffer_size - buffer->start))	/* count > last buffer, full them and fill the head buffer */
 	{
 		rem = dram_console_buffer_size - buffer->start;
 		memcpy(buffer->data + buffer->start, msg, rem);
 		memcpy(buffer->data, msg + rem, count - rem);
 		buffer->start = count - rem;
 		buffer->size = dram_console_buffer_size;
-	}
-	else	// count <=  last buffer, fill in free buffer
+	} else			/* count <=  last buffer, fill in free buffer */
 	{
-		memcpy(buffer->data + buffer->start, msg, count); // count <= last buffer, fill them
+		memcpy(buffer->data + buffer->start, msg, count);	/* count <= last buffer, fill them */
 		buffer->start += count;
 		buffer->size += count;
-		if(buffer->start >= dram_console_buffer_size)
-		{
+		if (buffer->start >= dram_console_buffer_size) {
 			buffer->start = 0;
 		}
-		if(buffer->size > dram_console_buffer_size)
-		{
+		if (buffer->size > dram_console_buffer_size) {
 			buffer->size = dram_console_buffer_size;
 		}
 	}
 }
 
 static struct console dram_console = {
-	.name	= "dram",
-	.write	= dram_console_write,
-	.flags	= CON_PRINTBUFFER | CON_ENABLED | CON_ANYTIME,
-	.index	= -1,
+	.name = "dram",
+	.write = dram_console_write,
+	.flags = CON_PRINTBUFFER | CON_ENABLED | CON_ANYTIME,
+	.index = -1,
 };
 
 static void __init ram_console_save_old(const struct dram_console_buffer *buffer)
 {
-	
+
 	ram_console_old_log = kmalloc(buffer->size, GFP_KERNEL);
 	if (ram_console_old_log == NULL) {
-	  printk(KERN_ERR
-		 "ram_console: failed to allocate old buffer\n");
-	  return;
+		LOGE("ram_console: failed to allocate old buffer\n");
+		return;
 	}
 	ram_console_old_log_size = buffer->size;
-	
-	memcpy(ram_console_old_log,
-	       &buffer->data[buffer->start], buffer->size - buffer->start);
-	memcpy(ram_console_old_log + buffer->size - buffer->start,
-	       &buffer->data[0], buffer->start);	
+
+	memcpy(ram_console_old_log, &buffer->data[buffer->start], buffer->size - buffer->start);
+	memcpy(ram_console_old_log + buffer->size - buffer->start, &buffer->data[0], buffer->start);
 }
 
-static int __init ram_console_init(struct dram_console_buffer *buffer,
-				   size_t buffer_size)
+static int __init ram_console_init(struct dram_console_buffer *buffer, size_t buffer_size)
 {
 	dram_console_buffer = buffer;
-	dram_console_buffer_size =
-		buffer_size - sizeof(struct dram_console_buffer);	
+	dram_console_buffer_size = buffer_size - sizeof(struct dram_console_buffer);
 
 	if (buffer->sig == RAM_CONSOLE_SIG) {
-		if (buffer->size > dram_console_buffer_size
-		    || buffer->start > buffer->size)
-			printk(KERN_ERR "ram_console: found existing invalid "
-			       "buffer, size %d, start %d\n",
-			       buffer->size, buffer->start);
+		if (buffer->size > dram_console_buffer_size || buffer->start > buffer->size)
+			LOGE("ram_console: found existing invalid "
+			     "buffer, size %d, start %d\n", buffer->size, buffer->start);
 		else {
-			printk(KERN_ERR "ram_console: found existing buffer, "
-			       "size %d, start %d\n",
-			       buffer->size, buffer->start);
+			LOGE("ram_console: found existing buffer, "
+			     "size %d, start %d\n", buffer->size, buffer->start);
 			ram_console_save_old(buffer);
 		}
 	} else {
-		printk(KERN_ERR "ram_console: no valid data in buffer "
-		       "(sig = 0x%08x)\n", buffer->sig);
+		LOGE("ram_console: no valid data in buffer " "(sig = 0x%08x)\n", buffer->sig);
 	}
 	memset(buffer, 0, buffer_size);
 	buffer->sig = RAM_CONSOLE_SIG;
 
 	register_console(&dram_console);
-	
+
 	return 0;
 }
 
@@ -137,8 +123,7 @@ static void __init *remap_lowmem(phys_addr_t start, phys_addr_t size)
 
 	pages = kmalloc(sizeof(struct page *) * page_count, GFP_KERNEL);
 	if (!pages) {
-		pr_err("%s: Failed to allocate array for %u pages\n", __func__,
-			page_count);
+		pr_err("%s: Failed to allocate array for %u pages\n", __func__, page_count);
 		return NULL;
 	}
 
@@ -168,32 +153,30 @@ static int __init dram_console_early_init(void)
 
 	bufp = remap_lowmem(CONFIG_MTK_AEE_DRAM_CONSOLE_ADDR, CONFIG_MTK_AEE_DRAM_CONSOLE_SIZE);
 	if (bufp == NULL) {
-		printk("ioremap failed, no ram console available\n");
+		LOGE("ioremap failed, no ram console available\n");
 		return 0;
 	}
 	buffer_size = CONFIG_MTK_AEE_DRAM_CONSOLE_SIZE;
 
-	printk(KERN_ERR "%s: start: 0x%p, size: %d\n", __func__, bufp, buffer_size);
+	LOGE("%s: start: 0x%p, size: %d\n", __func__, bufp, buffer_size);
 	return ram_console_init(bufp, buffer_size);
 }
 
 static ssize_t dram_console_read_old(struct file *file, char __user *buf,
-				    size_t len, loff_t *offset)
+				     size_t len, loff_t *offset)
 {
 	loff_t pos = *offset;
 	ssize_t count;
 
-	if(pos >= ram_console_old_log_size)
-	{
+	if (pos >= ram_console_old_log_size) {
 		return 0;
 	}
-	
-	count = min(len, (size_t)(ram_console_old_log_size - pos));
-	if(copy_to_user(buf, ram_console_old_log + pos, count))
-	{	
+
+	count = min(len, (size_t) (ram_console_old_log_size - pos));
+	if (copy_to_user(buf, ram_console_old_log + pos, count)) {
 		return -EFAULT;
 	}
-	
+
 	*offset += count;
 	return count;
 }
@@ -207,15 +190,14 @@ void dram_console_init(struct proc_dir_entry *root_entry)
 {
 	struct proc_dir_entry *entry;
 
-	if (ram_console_old_log == NULL)
-	{
-		printk(KERN_ERR "%s: old log is null!\n", KBUILD_MODNAME);
+	if (ram_console_old_log == NULL) {
+		LOGE("%s: old log is null!\n", KBUILD_MODNAME);
 		return;
 	}
 
 	entry = create_proc_entry("last_dram_kmsg", S_IFREG | S_IRUGO, root_entry);
-	if(!entry) {
-		printk(KERN_ERR "%s: failed to create proc entry\n", __FUNCTION__);
+	if (!entry) {
+		LOGE("%s: failed to create proc entry\n", __func__);
 		kfree(ram_console_old_log);
 		ram_console_old_log = NULL;
 		return;
@@ -235,5 +217,4 @@ void aee_dram_console_reserve_memory(void)
 {
 	memblock_reserve(CONFIG_MTK_AEE_DRAM_CONSOLE_ADDR, CONFIG_MTK_AEE_DRAM_CONSOLE_SIZE);
 }
-
 console_initcall(dram_console_early_init);

@@ -56,7 +56,7 @@ module_param_named(debug_mask, debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
 	ANDROID_ALARM_RTC_WAKEUP_MASK | \
 	ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP_MASK)
 
-/* support old usespace code */
+/* support old userspace code */
 #define ANDROID_ALARM_SET_OLD               _IOW('a', 2, time_t) /* set alarm */
 #define ANDROID_ALARM_SET_AND_WAIT_OLD      _IOW('a', 3, time_t)
 
@@ -251,7 +251,7 @@ from_old_alarm_set:
 		spin_lock_irqsave(&alarm_slock, flags);
 		pr_alarm(IO, "alarm wait\n");
 		if (!alarm_pending && wait_pending) {
-			wake_unlock(&alarm_wake_lock);
+			__pm_relax(&alarm_wake_lock);
 			wait_pending = 0;
 		}
 		spin_unlock_irqrestore(&alarm_slock, flags);
@@ -397,14 +397,10 @@ static void devalarm_triggered(struct devalarm *alarm)
 	spin_unlock_irqrestore(&alarm_slock, flags);
 }
 
-
 static enum hrtimer_restart devalarm_hrthandler(struct hrtimer *hrt)
 {
 	struct devalarm *devalrm = container_of(hrt, struct devalarm, u.hrt);
 
-	//pr_alarm(INT, "devalarm_hrthandler\n");
-	xlog_printk(ANDROID_LOG_DEBUG, "Power/Alarm", "devalarm_hrthandler\n");
-	
 	devalarm_triggered(devalrm);
 	return HRTIMER_NORESTART;
 }
@@ -414,9 +410,6 @@ static enum alarmtimer_restart devalarm_alarmhandler(struct alarm *alrm,
 {
 	struct devalarm *devalrm = container_of(alrm, struct devalarm, u.alrm);
 
-	//pr_alarm(INT, "devalarm_alarmhandler\n");
-	xlog_printk(ANDROID_LOG_DEBUG, "Power/Alarm", "devalarm_alarmhandler\n");
-	
 	devalarm_triggered(devalrm);
 	return ALARMTIMER_NORESTART;
 }

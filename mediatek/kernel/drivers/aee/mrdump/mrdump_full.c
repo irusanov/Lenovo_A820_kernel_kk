@@ -22,7 +22,7 @@
 #if defined(CONFIG_SMP) && !defined(CONFIG_FIQ_GLUE)
 #error "MRDUMP cannot run without CONFIG_FIQ_GLUE enabled"
 #endif
-  
+
 extern void __inner_flush_dcache_all(void);
 extern void __inner_flush_dcache_L1(void);
 
@@ -43,12 +43,12 @@ static void save_current_task(void)
 	struct mrdump_crash_record *crash_record = &mrdump_cb->crash_record;
 
 	tsk = current_thread_info()->task;
-    
+
 	/* Grab kernel task stack trace */
-	trace.nr_entries	= 0;
-	trace.max_entries	= sizeof(stack_entries)/sizeof(stack_entries[0]);
-	trace.entries		= stack_entries;
-	trace.skip		= 1;
+	trace.nr_entries = 0;
+	trace.max_entries = sizeof(stack_entries) / sizeof(stack_entries[0]);
+	trace.entries = stack_entries;
+	trace.skip = 1;
 	save_stack_trace_tsk(tsk, &trace);
 
 	for (i = 0; i < trace.nr_entries; i++) {
@@ -67,20 +67,20 @@ static void aee_kdump_cpu_stop(void *arg, void *regs, void *svc_sp)
 	int cpu = 0;
 	register int sp asm("sp");
 	struct pt_regs *ptregs = (struct pt_regs *)regs;
-	
+
 	asm volatile("mov %0, %1\n\t"
 		     "mov fp, %2\n\t"
 		     : "=r" (sp)
 		     : "r" (svc_sp), "r" (ptregs->ARM_fp)
 		);
 	cpu = get_HW_cpuid();
-	
+
 	elf_core_copy_regs(&crash_record->cpu_regs[cpu], ptregs);
 
 	set_cpu_online(cpu, false);
 	local_fiq_disable();
 	local_irq_disable();
-	
+
 	__inner_flush_dcache_L1();
 	while (1)
 		cpu_relax();
@@ -92,7 +92,8 @@ void mrdump_platform_init(struct mrdump_control_block *cblock, const struct mrdu
 	mrdump_plat = plat;
 }
 
-static void __mrdump_reboot_va(AEE_REBOOT_MODE reboot_mode, struct pt_regs *regs, const char *msg, va_list ap)
+static void __mrdump_reboot_va(AEE_REBOOT_MODE reboot_mode, struct pt_regs *regs, const char *msg,
+			       va_list ap)
 {
 	struct mrdump_crash_record *crash_record = NULL;
 	struct cpumask mask;
@@ -119,7 +120,7 @@ static void __mrdump_reboot_va(AEE_REBOOT_MODE reboot_mode, struct pt_regs *regs
 
 	crash_record->fault_cpu = cpu;
 
-	// Wait up to one second for other CPUs to stop 
+	/* Wait up to one second for other CPUs to stop */
 	timeout = USEC_PER_SEC;
 	while (num_online_cpus() > 1 && timeout--)
 		udelay(1);
@@ -133,11 +134,11 @@ static void __mrdump_reboot_va(AEE_REBOOT_MODE reboot_mode, struct pt_regs *regs
 	__inner_flush_dcache_all();
 
 	if (reboot_mode == AEE_REBOOT_MODE_NESTED_EXCEPTION) {
-	  while (1) {
-	    cpu_relax();
-	  }
+		while (1) {
+			cpu_relax();
+		}
 	}
-	
+
 	mrdump_plat->reboot();
 }
 
@@ -161,14 +162,14 @@ static int mrdump_create_dump(struct notifier_block *this, unsigned long event, 
 {
 	if (mrdump_enable) {
 		aee_kdump_reboot(AEE_REBOOT_MODE_KERNEL_PANIC, "kernel panic");
-	}
-	else {
-		printk(KERN_INFO "MT-RAMDUMP no enable");
+	} else {
+		pr_err("MT-RAMDUMP no enable");
 	}
 	return NOTIFY_DONE;
 }
 
-void __mrdump_create_oops_dump(AEE_REBOOT_MODE reboot_mode, struct pt_regs *regs, const char *msg, ...)
+void __mrdump_create_oops_dump(AEE_REBOOT_MODE reboot_mode, struct pt_regs *regs, const char *msg,
+			       ...)
 {
 	va_list ap;
 
@@ -183,32 +184,29 @@ static int mrdump_create_oops_dump(struct notifier_block *self, unsigned long cm
 	if (mrdump_enable) {
 		struct die_args *dargs = (struct die_args *)ptr;
 		__mrdump_create_oops_dump(AEE_REBOOT_MODE_KERNEL_PANIC, dargs->regs, "kernel Oops");
-	}
-	else {
-		printk(KERN_INFO "MT-RAMDUMP no enable");
+	} else {
+		pr_err("MT-RAMDUMP no enable");
 	}
 	return NOTIFY_DONE;
 }
 
 static struct notifier_block mrdump_oops_blk = {
-	.notifier_call	= mrdump_create_oops_dump,
+	.notifier_call = mrdump_create_oops_dump,
 };
 #endif
 
 static struct notifier_block mrdump_panic_blk = {
-	.notifier_call	= mrdump_create_dump,
+	.notifier_call = mrdump_create_dump,
 };
 
 #if CONFIG_SYSFS
 
-static ssize_t dump_status_show(struct kobject *kobj, struct kobj_attribute *attr,
-			   char *page)
+static ssize_t dump_status_show(struct kobject *kobj, struct kobj_attribute *attr, char *page)
 {
 	return snprintf(page, PAGE_SIZE, "%s", mrdump_result->status);
 }
 
-static ssize_t dump_log_show(struct kobject *kobj, struct kobj_attribute *attr,
-			   char *page)
+static ssize_t dump_log_show(struct kobject *kobj, struct kobj_attribute *attr, char *page)
 {
 	int index;
 	char *p = page;
@@ -221,20 +219,18 @@ static ssize_t dump_log_show(struct kobject *kobj, struct kobj_attribute *attr,
 	return p - page;
 }
 
-static ssize_t dump_log_size_show(struct kobject *kobj, struct kobj_attribute *attr,
-			   char *buf)
+static ssize_t dump_log_size_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%d\n", mrdump_result->log_size);
 }
 
-static ssize_t manual_dump_show(struct kobject *kobj, struct kobj_attribute *attr,
-				char *buf)
+static ssize_t manual_dump_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "Trigger manual dump with message, format \"manualdump:HelloWorld\"\n");
 }
 
 static ssize_t manual_dump_store(struct kobject *kobj, struct kobj_attribute *attr,
-			 const char *buf, size_t count)
+				 const char *buf, size_t count)
 {
 	if (strncmp(buf, "manualdump:", 11) == 0) {
 		aee_kdump_reboot(AEE_REBOOT_MODE_MANUAL_KDUMP, buf + 11);
@@ -243,16 +239,15 @@ static ssize_t manual_dump_store(struct kobject *kobj, struct kobj_attribute *at
 }
 
 static struct kobj_attribute dump_status_attribute =
-	__ATTR(dump_status, 0400, dump_status_show, NULL);
+__ATTR(dump_status, 0400, dump_status_show, NULL);
 
-static struct kobj_attribute dump_log_attribute =
-	__ATTR(dump_log, 0440, dump_log_show, NULL);
+static struct kobj_attribute dump_log_attribute = __ATTR(dump_log, 0440, dump_log_show, NULL);
 
 static struct kobj_attribute dump_log_size_attribute =
-	__ATTR(dump_log_size, 0440, dump_log_size_show, NULL);
+__ATTR(dump_log_size, 0440, dump_log_size_show, NULL);
 
 static struct kobj_attribute manual_dump_attribute =
-	__ATTR(manualdump, 0600, manual_dump_show, manual_dump_store);
+__ATTR(manualdump, 0600, manual_dump_show, manual_dump_store);
 
 static struct attribute *attrs[] = {
 	&dump_status_attribute.attr,
@@ -272,31 +267,30 @@ static int __init mrdump_init_log(void)
 	/* Preserved last result */
 	mrdump_result = vmalloc(PAGE_ALIGN(sizeof(struct mrdump_cblock_result)));
 	if (mrdump_result == NULL) {
-		printk(KERN_ERR "%s: cannot allocate result memory\n", __FUNCTION__);
+		pr_err("%s: cannot allocate result memory\n", __func__);
 		return -EINVAL;
 	}
 	memset(mrdump_result, 0, sizeof(struct mrdump_cblock_result));
 
 	if (memcmp(mrdump_cb->sig, "XRDUMP01", 8) == 0) {
 		memcpy(mrdump_result, &mrdump_cb->result, sizeof(struct mrdump_cblock_result));
-	}
-	else {
-	  snprintf(mrdump_result->status, sizeof(mrdump_result->status), "NONE\nNo LK signature found\n");
+	} else {
+		snprintf(mrdump_result->status, sizeof(mrdump_result->status),
+			 "NONE\nNo LK signature found\n");
 	}
 	kobj = kset_find_obj(module_kset, KBUILD_MODNAME);
 	if (kobj) {
 		if (sysfs_create_group(kobj, &attr_group)) {
-			printk(KERN_ERR "%s: sysfs  create sysfs failed\n", __FUNCTION__);
+			pr_err("%s: sysfs  create sysfs failed\n", __func__);
 			goto error;
 		}
-	}
-	else {
-		printk(KERN_ERR "Cannot find module %s object\n", KBUILD_MODNAME);
+	} else {
+		pr_err("Cannot find module %s object\n", KBUILD_MODNAME);
 		goto error;
 	}
 	return 0;
 
-error:
+ error:
 	vfree(mrdump_result);
 	mrdump_result = NULL;
 	return -EINVAL;
@@ -313,9 +307,9 @@ static int __init mrdump_init(void)
 {
 	struct mrdump_machdesc *machdesc_p;
 
-	printk(KERN_ERR "MT-RAMDUMP init control block %p\n", mrdump_cb);
+	pr_err("MT-RAMDUMP init control block %p\n", mrdump_cb);
 	if (mrdump_cb == NULL) {
-		printk(KERN_ERR "%s: No control block memory found\n", __FUNCTION__);
+		pr_err("%s: No control block memory found\n", __func__);
 		return -EINVAL;
 	}
 	if (mrdump_init_log()) {
@@ -331,15 +325,15 @@ static int __init mrdump_init(void)
 	machdesc_p->page_offset = (void *)PAGE_OFFSET;
 	machdesc_p->high_memory = (void *)high_memory;
 
-        machdesc_p->vmalloc_start = (void *)VMALLOC_START;
-        machdesc_p->vmalloc_end = (void *)VMALLOC_END;
+	machdesc_p->vmalloc_start = (void *)VMALLOC_START;
+	machdesc_p->vmalloc_end = (void *)VMALLOC_END;
 
-        machdesc_p->modules_start = (void *)MODULES_VADDR;
-        machdesc_p->modules_end = (void *)MODULES_END;
+	machdesc_p->modules_start = (void *)MODULES_VADDR;
+	machdesc_p->modules_end = (void *)MODULES_END;
 
 	machdesc_p->phys_offset = (void *)PHYS_OFFSET;
 	machdesc_p->master_page_table = (void *)&swapper_pg_dir;
-	
+
 #if 0
 	register_die_notifier(&mrdump_oops_blk);
 #endif
@@ -359,14 +353,11 @@ static int param_set_mrdump_device(const char *val, const struct kernel_param *k
 
 	if (strcmp(strp, "null") == 0) {
 		eval = MRDUMP_DEV_NULL;
-	}
-	else if (strcmp(strp, "sdcard") == 0) {
+	} else if (strcmp(strp, "sdcard") == 0) {
 		eval = MRDUMP_DEV_SDCARD;
-	}
-	else if (strcmp(strp, "emmc") == 0) {
+	} else if (strcmp(strp, "emmc") == 0) {
 		eval = MRDUMP_DEV_EMMC;
-	}
-	else {
+	} else {
 		eval = MRDUMP_DEV_NULL;
 	}
 	*(int *)kp->arg = eval;
@@ -379,6 +370,9 @@ static int param_set_mrdump_device(const char *val, const struct kernel_param *k
 static int param_get_mrdump_device(char *buffer, const struct kernel_param *kp)
 {
 	char *dev;
+	if (mrdump_cb == NULL) {
+		return -EIO;
+	}
 	switch (mrdump_cb->machdesc.output_device) {
 	case MRDUMP_DEV_NULL:
 		dev = "null";
@@ -410,6 +404,7 @@ struct kernel_param_ops param_ops_mrdump_enable = {
 	.set = param_set_mrdump_enable,
 	.get = param_get_bool,
 };
+
 param_check_bool(enable, &mrdump_enable);
 module_param_cb(enable, &param_ops_mrdump_enable, &mrdump_enable, S_IRUGO | S_IWUSR);
 __MODULE_PARM_TYPE(device, bool);
@@ -428,4 +423,3 @@ late_initcall(mrdump_init);
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("MediaTek MRDUMP module");
 MODULE_AUTHOR("MediaTek Inc.");
-

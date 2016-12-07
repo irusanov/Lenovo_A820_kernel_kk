@@ -1,0 +1,51 @@
+--- net/bluetooth/sco.c
++++ net/bluetooth/sco.c
+@@ -193,13 +191,14 @@ static int sco_connect(struct sock *sk)
+ 	else
+ 		type = SCO_LINK;
+ 
+-	hcon = hci_connect(hdev, type, dst, BT_SECURITY_LOW, HCI_AT_NO_BONDING);
++	hcon = hci_connect(hdev, type, dst, BDADDR_BREDR, BT_SECURITY_LOW,
++			   HCI_AT_NO_BONDING);
+ 	if (IS_ERR(hcon)) {
+ 		err = PTR_ERR(hcon);
+ 		goto done;
+ 	}
+ 
+-	conn = sco_conn_add(hcon, 0);
++	conn = sco_conn_add(hcon);
+ 	if (!conn) {
+ 		hci_conn_put(hcon);
+ 		err = -ENOMEM;
+@@ -465,7 +465,6 @@ static int sco_sock_bind(struct socket *sock, struct sockaddr *addr, int addr_le
+ {
+ 	struct sockaddr_sco *sa = (struct sockaddr_sco *) addr;
+ 	struct sock *sk = sock->sk;
+-	bdaddr_t *src = &sa->sco_bdaddr;
+ 	int err = 0;
+ 
+ 	BT_DBG("sk %p %s", sk, batostr(&sa->sco_bdaddr));
+@@ -480,17 +479,14 @@ static int sco_sock_bind(struct socket *sock, struct sockaddr *addr, int addr_le
+ 		goto done;
+ 	}
+ 
+-	write_lock(&sco_sk_list.lock);
+-
+-	if (bacmp(src, BDADDR_ANY) && __sco_get_sock_by_addr(src)) {
+-		err = -EADDRINUSE;
+-	} else {
+-		/* Save source address */
+-		bacpy(&bt_sk(sk)->src, &sa->sco_bdaddr);
+-		sk->sk_state = BT_BOUND;
++	if (sk->sk_type != SOCK_SEQPACKET) {
++		err = -EINVAL;
++		goto done;
+ 	}
+ 
+-	write_unlock(&sco_sk_list.lock);
++	bacpy(&bt_sk(sk)->src, &sa->sco_bdaddr);
++
++	sk->sk_state = BT_BOUND;
+ 
+ done:
+ 	release_sock(sk);

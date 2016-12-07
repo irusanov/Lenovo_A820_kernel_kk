@@ -1,0 +1,16 @@
+--- kernel/watchdog.c
++++ kernel/watchdog.c
+@@ -372,6 +384,13 @@ static int watchdog(void *unused)
+ 
+ 
+ #ifdef CONFIG_HARDLOCKUP_DETECTOR
++/*
++ * People like the simple clean cpu node info on boot.
++ * Reduce the watchdog noise by only printing messages
++ * that are different from what cpu0 displayed.
++ */
++static unsigned long cpu0_err;
++
+ static int watchdog_nmi_enable(int cpu)
+ {
+ 	struct perf_event_attr *wd_attr;

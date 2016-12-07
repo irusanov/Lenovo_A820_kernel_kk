@@ -120,7 +120,7 @@ xt_socket_get4_sk(const struct sk_buff *skb, struct xt_action_param *par)
 		hp = skb_header_pointer(skb, ip_hdrlen(skb),
 					sizeof(_hdr), &_hdr);
 		if (hp == NULL)
-			return NULL;
+			return false;
 
 		protocol = iph->protocol;
 		saddr = iph->saddr;
@@ -131,9 +131,9 @@ xt_socket_get4_sk(const struct sk_buff *skb, struct xt_action_param *par)
 	} else if (iph->protocol == IPPROTO_ICMP) {
 		if (extract_icmp4_fields(skb, &protocol, &saddr, &daddr,
 					&sport, &dport))
-			return NULL;
+			return false;
 	} else {
-		return NULL;
+		return false;
 	}
 
 #ifdef XT_SOCKET_HAVE_CONNTRACK
@@ -275,9 +275,10 @@ xt_socket_get6_sk(const struct sk_buff *skb, struct xt_action_param *par)
 	struct sock *sk;
 	struct in6_addr *daddr, *saddr;
 	__be16 dport, sport;
-	int thoff, tproto;
+	int thoff = 0, tproto;
+	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
 
-	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL);
+	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
 	if (tproto < 0) {
 		pr_debug("unable to find transport header in IPv6 packet, dropping\n");
 		return NF_DROP;
@@ -287,7 +288,7 @@ xt_socket_get6_sk(const struct sk_buff *skb, struct xt_action_param *par)
 		hp = skb_header_pointer(skb, thoff,
 					sizeof(_hdr), &_hdr);
 		if (hp == NULL)
-			return NULL;
+			return false;
 
 		saddr = &iph->saddr;
 		sport = hp->source;
@@ -297,9 +298,9 @@ xt_socket_get6_sk(const struct sk_buff *skb, struct xt_action_param *par)
 	} else if (tproto == IPPROTO_ICMPV6) {
 		if (extract_icmp6_fields(skb, thoff, &tproto, &saddr, &daddr,
 					 &sport, &dport))
-			return NULL;
+			return false;
 	} else {
-		return NULL;
+		return false;
 	}
 
 	sk = nf_tproxy_get_sock_v6(dev_net(skb->dev), tproto,

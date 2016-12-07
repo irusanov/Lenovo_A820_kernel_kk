@@ -1,0 +1,20 @@
+--- arch/arm/kernel/signal.c
++++ arch/arm/kernel/signal.c
+@@ -614,17 +586,12 @@ static void do_signal(struct pt_regs *regs, int syscall)
+ 		}
+ 	}
+ 
+-	if (try_to_freeze())
+-		goto no_signal;
+-
+ 	/*
+ 	 * Get the signal to deliver.  When running under ptrace, at this
+ 	 * point the debugger may change all our registers ...
+ 	 */
+ 	signr = get_signal_to_deliver(&info, &ka, regs, NULL);
+ 	if (signr > 0) {
+-		sigset_t *oldset;
+-
+ 		/*
+ 		 * Depending on the signal settings we may need to revert the
+ 		 * decision to restart the system call.  But skip this if a

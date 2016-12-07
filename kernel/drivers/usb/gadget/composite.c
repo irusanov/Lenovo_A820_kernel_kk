@@ -43,27 +43,27 @@ static int (*composite_gadget_bind)(struct usb_composite_dev *cdev);
  */
 
 static ushort idVendor;
-module_param(idVendor, ushort, 0);
+module_param(idVendor, ushort, 0644);
 MODULE_PARM_DESC(idVendor, "USB Vendor ID");
 
 static ushort idProduct;
-module_param(idProduct, ushort, 0);
+module_param(idProduct, ushort, 0644);
 MODULE_PARM_DESC(idProduct, "USB Product ID");
 
 static ushort bcdDevice;
-module_param(bcdDevice, ushort, 0);
+module_param(bcdDevice, ushort, 0644);
 MODULE_PARM_DESC(bcdDevice, "USB Device version (BCD)");
 
 static char *iManufacturer;
-module_param(iManufacturer, charp, 0);
+module_param(iManufacturer, charp, 0644);
 MODULE_PARM_DESC(iManufacturer, "USB Manufacturer string");
 
 static char *iProduct;
-module_param(iProduct, charp, 0);
+module_param(iProduct, charp, 0644);
 MODULE_PARM_DESC(iProduct, "USB Product string");
 
 static char *iSerialNumber;
-module_param(iSerialNumber, charp, 0);
+module_param(iSerialNumber, charp, 0644);
 MODULE_PARM_DESC(iSerialNumber, "SerialNumber string");
 
 static char composite_manufacturer[50];
@@ -212,15 +212,9 @@ int usb_add_function(struct usb_configuration *config,
 {
 	int	value = -EINVAL;
 
-	xlog_printk(ANDROID_LOG_DEBUG, "USB", "%s: \n", __func__);
-
-
 	DBG(config->cdev, "adding '%s'/%p to config '%s'/%p\n",
 			function->name, function,
 			config->label, config);
-
-	USB_LOGGER(USB_ADD_FUNCTION, USB_ADD_FUNCTION, function->name, function, \
-		config->label, config);
 
 	if (!function->set_alt || !function->disable)
 		goto done;
@@ -405,9 +399,6 @@ static int config_buf(struct usb_configuration *config,
 
 		if (!descriptors)
 			continue;
-
-		USB_LOGGER(STRING, CONFIG_BUF, "usbfn", f->name);
-
 		status = usb_descriptor_fillbuf(next, len,
 			(const struct usb_descriptor_header **) descriptors);
 		if (status < 0)
@@ -418,12 +409,6 @@ static int config_buf(struct usb_configuration *config,
 
 	len = next - buf;
 	c->wTotalLength = cpu_to_le16(len);
-
-	USB_LOGGER(DEVICE_DESCRIPTOR, CONFIG_BUF, c->bLength, \
-					   c->bDescriptorType, c->wTotalLength, \
-					   c->bNumInterfaces, c->bConfigurationValue,\
-					   c->iConfiguration, c->bmAttributes, \
-					   c->bMaxPower);
 	return len;
 }
 
@@ -687,9 +672,6 @@ static int set_config(struct usb_composite_dev *cdev,
 		}
 
 		result = f->set_alt(f, tmp, 0);
-
-		USB_LOGGER(STRING, SET_CONFIG, "func", f->name);
-
 		if (result < 0) {
 			DBG(cdev, "interface %d (%s/%p) alt 0 --> %d\n",
 					tmp, f->name, f, result);
@@ -763,8 +745,20 @@ int usb_add_config(struct usb_composite_dev *cdev,
 
 	status = bind(config);
 	if (status < 0) {
+		while (!list_empty(&config->functions)) {
+			struct usb_function		*f;
+
+			f = list_first_entry(&config->functions,
+					struct usb_function, list);
+			list_del(&f->list);
+			if (f->unbind) {
+				DBG(cdev, "unbind function '%s'/%p\n",
+					f->name, f);
+				f->unbind(config, f);
+				/* may free memory for "f" */
+			}
+		}
 		list_del(&config->list);
-		xlog_printk(ANDROID_LOG_DEBUG, "USB","%s: bind fialed and the list should be init because there is one entry only");
 		config->cdev = NULL;
 	} else {
 		unsigned	i;
@@ -801,7 +795,7 @@ done:
 	return status;
 }
 
-static int unbind_config(struct usb_composite_dev *cdev,
+static void remove_config(struct usb_composite_dev *cdev,
 			      struct usb_configuration *config)
 {
 	while (!list_empty(&config->functions)) {
@@ -811,19 +805,17 @@ static int unbind_config(struct usb_composite_dev *cdev,
 				struct usb_function, list);
 		list_del(&f->list);
 		if (f->unbind) {
-			DBG(cdev, "unbind function '%s'/%p\n", f->name, f);
+			INFO(cdev, "unbind function '%s'/%p\n", f->name, f);
 			f->unbind(config, f);
 			/* may free memory for "f" */
 		}
 	}
-
+	list_del(&config->list);
 	if (config->unbind) {
-		DBG(cdev, "unbind config '%s'/%p\n", config->label, config);
+		INFO(cdev, "unbind config '%s'/%p\n", config->label, config);
 		config->unbind(config);
 		/* may free memory for "c" */
 	}
-
-	return 0;
 }
 
 /**
@@ -835,7 +827,7 @@ static int unbind_config(struct usb_composite_dev *cdev,
  * to disconnect the device from the host and make sure the host will not
  * try to enumerate the device while we are changing the config list.
  */
-int usb_remove_config(struct usb_composite_dev *cdev,
+void usb_remove_config(struct usb_composite_dev *cdev,
 		      struct usb_configuration *config)
 {
 	unsigned long flags;
@@ -845,11 +837,9 @@ int usb_remove_config(struct usb_composite_dev *cdev,
 	if (cdev->config == config)
 		reset_config(cdev);
 
-	list_del(&config->list);
-
 	spin_unlock_irqrestore(&cdev->lock, flags);
 
-	return unbind_config(cdev, config);
+	remove_config(cdev, config);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -863,7 +853,7 @@ int usb_remove_config(struct usb_composite_dev *cdev,
 static void collect_langs(struct usb_gadget_strings **sp, __le16 *buf)
 {
 	const struct usb_gadget_strings	*s;
-	u16				language;
+	__le16				language;
 	__le16				*tmp;
 
 	while (*sp) {
@@ -955,7 +945,7 @@ static int get_string(struct usb_composite_dev *cdev,
 	else if (cdev->product_override == id)
 		str = iProduct ?: composite->iProduct;
 	else if (cdev->serial_override == id)
-		str = iSerialNumber;
+		str = iSerialNumber ?: composite->iSerialNumber;
 	else
 		str = NULL;
 	if (str) {
@@ -1117,9 +1107,6 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 	req->complete = composite_setup_complete;
 	req->length = 0;
 	gadget->ep0->driver_data = cdev;
-
-	USB_LOGGER(COMPOSITE_SETUP, COMPOSITE_SETUP, ctrl->bRequestType, \
-		ctrl->bRequest, w_value, w_value, w_length);
 
 	switch (ctrl->bRequest) {
 
@@ -1336,18 +1323,15 @@ unknown:
 			break;
 		}
 
-		if (f && f->setup) {
-			USB_LOGGER(STRING, COMPOSITE_SETUP, "func", f->name);
+		if (f && f->setup)
 			value = f->setup(f, ctrl);
-		} else {
+		else {
 			struct usb_configuration	*c;
 
 			c = cdev->config;
-			if (c && c->setup) {
-				USB_LOGGER(STRING, COMPOSITE_SETUP, "config", c->label);
+			if (c && c->setup)
 				value = c->setup(c, ctrl);
 			}
-		}
 
 		goto done;
 	}
@@ -1369,7 +1353,6 @@ unknown:
 	}
 
 done:
-	USB_LOGGER(DEC_NUM, COMPOSITE_SETUP, "ret", value);
 	/* device either stalls (value < 0) or reports success */
 	return value;
 }
@@ -1428,8 +1411,7 @@ composite_unbind(struct usb_gadget *gadget)
 		struct usb_configuration	*c;
 		c = list_first_entry(&cdev->configs,
 				struct usb_configuration, list);
-		list_del(&c->list);
-		unbind_config(cdev, c);
+		remove_config(cdev, c);
 	}
 	if (composite->unbind)
 		composite->unbind(cdev);
@@ -1511,10 +1493,16 @@ static int composite_bind(struct usb_gadget *gadget)
 	/* standardized runtime overrides for device ID data */
 	if (idVendor)
 		cdev->desc.idVendor = cpu_to_le16(idVendor);
+	else
+		idVendor = le16_to_cpu(cdev->desc.idVendor);
 	if (idProduct)
 		cdev->desc.idProduct = cpu_to_le16(idProduct);
+	else
+		idProduct = le16_to_cpu(cdev->desc.idProduct);
 	if (bcdDevice)
 		cdev->desc.bcdDevice = cpu_to_le16(bcdDevice);
+	else
+		bcdDevice = le16_to_cpu(cdev->desc.bcdDevice);
 
 	/* string overrides */
 	if (iManufacturer || !cdev->desc.iManufacturer) {
@@ -1535,7 +1523,8 @@ static int composite_bind(struct usb_gadget *gadget)
 		cdev->product_override =
 			override_id(cdev, &cdev->desc.iProduct);
 
-	if (iSerialNumber)
+	if (iSerialNumber ||
+	    (!cdev->desc.iSerialNumber && composite->iSerialNumber))
 		cdev->serial_override =
 			override_id(cdev, &cdev->desc.iSerialNumber);
 
@@ -1656,8 +1645,6 @@ int usb_composite_probe(struct usb_composite_driver *driver,
 {
 	if (!driver || !driver->dev || !bind || composite)
 		return -EINVAL;
-
-	xlog_printk(ANDROID_LOG_DEBUG, "USB", "%s: driver->name = %s", __func__, driver->name);
 
 	if (!driver->name)
 		driver->name = "composite";

@@ -1,6 +1,5 @@
 #include <linux/cpu.h>
 #include <linux/cpumask.h>
-#include <linux/printk.h>
 #include <linux/ptrace.h>
 #include <linux/ratelimit.h>
 #include <linux/sched.h>
@@ -18,7 +17,6 @@
 #include <linux/semaphore.h>
 #include <linux/delay.h>
 
-#include "../common/aee-common.h"
 #include "aed.h"
 
 struct bt_sync {
@@ -56,7 +54,8 @@ int notrace aed_unwind_frame(struct stackframe *frame, unsigned long stack_addre
 	low = frame->sp;
 	high = ALIGN(low, THREAD_SIZE);
 	if (high != stack_address) {
-		printk("%s: sp base(%lx) not equal to process stack base(%lx)\n", __func__, low, stack_address);
+		LOGD("%s: sp base(%lx) not equal to process stack base(%lx)\n", __func__, low,
+		     stack_address);
 		return -EINVAL;
 	}
 	/* check current frame pointer is within bounds */
@@ -64,10 +63,10 @@ int notrace aed_unwind_frame(struct stackframe *frame, unsigned long stack_addre
 		return -EINVAL;
 
 	if ((fp < thread_info) || (fp >= (stack_address - 4))) {
-	  printk("%s: fp(%lx) out of process stack base(%lx)\n", __func__, fp, stack_address);
-	  return -EINVAL;
+		LOGD("%s: fp(%lx) out of process stack base(%lx)\n", __func__, fp, stack_address);
+		return -EINVAL;
 	}
-	
+
 	/* restore the registers from the stack frame */
 	frame->fp = *(unsigned long *)(fp - 12);
 	frame->sp = *(unsigned long *)(fp - 8);
@@ -81,7 +80,8 @@ int notrace aed_unwind_frame(struct stackframe *frame, unsigned long stack_addre
 asmlinkage void __sched preempt_schedule_irq(void);
 static struct aee_bt_frame aed_backtrace_buffer[AEE_NR_FRAME];
 
-static int aed_walk_stackframe(struct stackframe *frame, struct aee_process_bt *bt, unsigned int stack_address)
+static int aed_walk_stackframe(struct stackframe *frame, struct aee_process_bt *bt,
+			       unsigned int stack_address)
 {
 	int count;
 	struct stackframe current_stk;
@@ -94,8 +94,10 @@ static int aed_walk_stackframe(struct stackframe *frame, struct aee_process_bt *
 
 		bt->entries[bt->nr_entries].pc = current_stk.pc;
 		bt->entries[bt->nr_entries].lr = current_stk.lr;
-		snprintf(bt->entries[bt->nr_entries].pc_symbol, AEE_SZ_SYMBOL_S, "%pS", (void *)current_stk.pc);
-		snprintf(bt->entries[bt->nr_entries].lr_symbol, AEE_SZ_SYMBOL_L, "%pS", (void *)current_stk.lr);
+		snprintf(bt->entries[bt->nr_entries].pc_symbol, AEE_SZ_SYMBOL_S, "%pS",
+			 (void *)current_stk.pc);
+		snprintf(bt->entries[bt->nr_entries].lr_symbol, AEE_SZ_SYMBOL_L, "%pS",
+			 (void *)current_stk.lr);
 
 		bt->nr_entries++;
 		if (bt->nr_entries >= AEE_NR_FRAME) {
@@ -107,9 +109,11 @@ static int aed_walk_stackframe(struct stackframe *frame, struct aee_process_bt *
 		if (ret < 0)
 			break;
 
-		if (in_exception_text(current_stk.pc) || ((current_stk.pc - FUNCTION_OFFSET) == (unsigned long)preempt_schedule_irq)) {
+		if (in_exception_text(current_stk.pc)
+		    || ((current_stk.pc - FUNCTION_OFFSET) ==
+			(unsigned long)preempt_schedule_irq)) {
 			struct pt_regs *regs = (struct pt_regs *)(prev_fp + 4);
-			
+
 			/* passed exception point, return this if unwinding is sucessful */
 			current_stk.pc = regs->ARM_pc;
 			current_stk.lr = regs->ARM_lr;
@@ -142,7 +146,7 @@ static void aed_get_bt(struct task_struct *tsk, struct aee_process_bt *bt)
 		frame.lr = thread_saved_pc(tsk);
 		frame.pc = 0xffffffff;
 	} else {
-		register unsigned long current_sp asm ("sp");
+		register unsigned long current_sp asm("sp");
 
 		frame.fp = (unsigned long)__builtin_frame_address(0);
 		frame.sp = current_sp;
@@ -152,9 +156,8 @@ static void aed_get_bt(struct task_struct *tsk, struct aee_process_bt *bt)
 	stack_address = ALIGN(frame.sp, THREAD_SIZE);
 	if ((stack_address >= (PAGE_OFFSET + THREAD_SIZE)) && virt_addr_valid(stack_address)) {
 		aed_walk_stackframe(&frame, bt, stack_address);
-	}
-	else {
-		printk("%s: Invalid sp value %lx\n", __func__, frame.sp);
+	} else {
+		LOGD("%s: Invalid sp value %lx\n", __func__, frame.sp);
 	}
 }
 
@@ -168,7 +171,7 @@ int aed_get_process_bt(struct aee_process_bt *bt)
 	int timeout_max = 500000;
 
 	if (down_interruptible(&process_bt_sem) < 0) {
-	  return -ERESTARTSYS;
+		return -ERESTARTSYS;
 	}
 
 	err = 0;
@@ -178,8 +181,7 @@ int aed_get_process_bt(struct aee_process_bt *bt)
 			err = -EINVAL;
 			goto exit;
 		}
-	}
-	else {
+	} else {
 		err = -EINVAL;
 		goto exit;
 	}
@@ -192,7 +194,7 @@ int aed_get_process_bt(struct aee_process_bt *bt)
 		err = -EPERM;
 		goto exit;
 	}
- 
+
 	get_online_cpus();
 	preempt_disable();
 
@@ -226,9 +228,9 @@ int aed_get_process_bt(struct aee_process_bt *bt)
 	preempt_enable();
 	put_online_cpus();
 
-        mutex_unlock(&task->signal->cred_guard_mutex);
+	mutex_unlock(&task->signal->cred_guard_mutex);
 
-exit:
+ exit:
 	up(&process_bt_sem);
 	return err;
 

@@ -1,0 +1,14 @@
+--- fs/gfs2/log.c
++++ fs/gfs2/log.c
+@@ -795,11 +736,9 @@ int gfs2_logd(void *data)
+ 	struct gfs2_sbd *sdp = data;
+ 	unsigned long t = 1;
+ 	DEFINE_WAIT(wait);
+-	unsigned preflush;
+ 
+ 	while (!kthread_should_stop()) {
+ 
+-		preflush = atomic_read(&sdp->sd_log_pinned);
+ 		if (gfs2_jrnl_flush_reqd(sdp) || t == 0) {
+ 			gfs2_ail1_empty(sdp);
+ 			gfs2_log_flush(sdp, NULL);

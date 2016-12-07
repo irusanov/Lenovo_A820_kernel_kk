@@ -31,6 +31,7 @@
 #include <linux/delay.h>
 #include <linux/wakelock.h>
 #include <linux/rtc.h>
+#include <linux/aee.h>
 #include <asm/atomic.h>
 #include <ccci.h>
 #include <ccif.h>
@@ -82,10 +83,11 @@ extern unsigned int fs_tx_debug_enable[];
 extern unsigned int fs_rx_debug_enable[]; 
 
 #if defined (CONFIG_MTK_AEE_FEATURE) && defined (ENABLE_AEE_MD_EE)
-extern void aed_md_exception(const int *log, int log_size, const int *phy, int phy_size, const char* detail);
+extern void aed_md_exception_api(const int *log, int log_size, const int *phy, int phy_size, const char* detail, const int db_opt);
 extern __weak void aee_kernel_warning_api(const char *file, const int line, const int db_opt, const char *module, const char *msg, ...);
 
 #define DB_OPT_FTRACE		(1<<0)
+#define DB_OPT_CONST		(0)
 #endif
 
 extern int get_md_wakeup_src(int md_id, char *buf, unsigned int len);
@@ -1118,7 +1120,7 @@ void ccci_aed(int md_id, unsigned int dump_flag, char *aed_str)
 	}
 
 	#if defined (CONFIG_MTK_AEE_FEATURE) && defined (ENABLE_AEE_MD_EE)
-	aed_md_exception(ex_log_addr, ex_log_len, md_img_addr, md_img_len, buff);
+	aed_md_exception_api(ex_log_addr, ex_log_len, md_img_addr, md_img_len, buff, DB_OPT_CONST);
 	#endif
 }
 

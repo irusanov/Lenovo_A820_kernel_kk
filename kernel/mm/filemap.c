@@ -29,14 +29,11 @@
 #include <linux/pagevec.h>
 #include <linux/blkdev.h>
 #include <linux/security.h>
-#include <linux/syscalls.h>
 #include <linux/cpuset.h>
 #include <linux/hardirq.h> /* for BUG_ON(!in_atomic()) only */
 #include <linux/memcontrol.h>
 #include <linux/cleancache.h>
 #include "internal.h"
-
-#include <linux/mmc/mmc.h>
 
 /*
  * FIXME: remove all knowledge of the buffer layer from the core VM
@@ -133,19 +130,6 @@ void __delete_from_page_cache(struct page *page)
 	__dec_zone_page_state(page, NR_FILE_PAGES);
 	if (PageSwapBacked(page))
 		__dec_zone_page_state(page, NR_SHMEM);
-	if (page_mapped(page)) {
-		printk(KERN_ALERT"page 0x%08lx is mapped, pfn: %lu, %s page\n", 
-			(unsigned long)page, (unsigned long)page_to_pfn(page),
-			PageHighMem(page)? "high": "low");
-		printk(KERN_ALERT"mapping: 0x%08lx, m->flags: 0x%08lx\n",
-			(unsigned long)mapping, (unsigned long)mapping->flags);
-		if (PageTail(page)) {
-			printk(KERN_ALERT"tail page\n");
-		} else if (PageHead(page)) {
-			printk(KERN_ALERT"head page\n");
-		}
-		dump_page(page);
-	}
 	BUG_ON(page_mapped(page));
 
 	/*
@@ -1107,30 +1091,11 @@ static void do_generic_file_read(struct file *filp, loff_t *ppos,
 	unsigned int prev_offset;
 	int error;
 
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-    int j = 0;
-#endif
 	index = *ppos >> PAGE_CACHE_SHIFT;
 	prev_index = ra->prev_pos >> PAGE_CACHE_SHIFT;
 	prev_offset = ra->prev_pos & (PAGE_CACHE_SIZE-1);
 	last_index = (*ppos + desc->count + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
 	offset = *ppos & ~PAGE_CACHE_MASK;
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-    if (g_mtk_mmc_clear == 0){
-        memset(g_req_buf, 0, 8*4000*30);
-        memset(g_mmcqd_buf, 0, 8*400*300);
-        g_dbg_req_count = 0;
-        g_dbg_raw_count = 0;
-        g_dbg_raw_count_old = 0;
-        g_mtk_mmc_clear = 1;
-    }
-
-    j = 0;
-    if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 18)){
-		g_dbg_raw_count ++;   /* increment 1 means trigger 8k r/w */ 
-        g_req_buf[(g_dbg_raw_count-1) * 2 + j][0] = sched_clock(); /* start time, static with 4k each */
-    }	
-#endif /* end of MTK_IO_PERFORMANCE_DEBUG */
 
 	for (;;) {
 		struct page *page;
@@ -1145,13 +1110,6 @@ find_page:
 			page_cache_sync_readahead(mapping,
 					ra, filp,
 					index, last_index - index);
-
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-    if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 18)){
-        g_req_buf[(g_dbg_raw_count-1) * 2 + j][1] = sched_clock(); 
-    }	
-#endif
-
 			page = find_get_page(mapping, index);
 			if (unlikely(page == NULL))
 				goto no_cached_page;
@@ -1160,12 +1118,6 @@ find_page:
 			page_cache_async_readahead(mapping,
 					ra, filp, page,
 					index, last_index - index);
-
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-    if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 18)){
-        g_req_buf[(g_dbg_raw_count-1) * 2 + j][2] = sched_clock(); 
-    }	
-#endif
 		}
 		if (!PageUptodate(page)) {
 			if (inode->i_blkbits == PAGE_CACHE_SHIFT ||
@@ -1182,12 +1134,6 @@ find_page:
 			unlock_page(page);
 		}
 page_ok:
-
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-    if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 18)){
-        g_req_buf[(g_dbg_raw_count-1) * 2 + j][3] = sched_clock(); 
-    }	
-#endif
 		/*
 		 * i_size must be checked after we know the page is Uptodate.
 		 *
@@ -1246,22 +1192,9 @@ page_ok:
 		offset &= ~PAGE_CACHE_MASK;
 		prev_offset = offset;
 
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-    if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 18)){
-        g_req_buf[(g_dbg_raw_count-1) * 2 + j][4] = sched_clock(); 
-    }	
-#endif
-
 		page_cache_release(page);
 		if (ret == nr && desc->count)
-#ifdef MTK_IO_PERFORMANCE_DEBUG 
-        {
-            j++;
 			continue;
-        }
-#else
-			continue;
-#endif
 		goto out;
 
 page_not_up_to_date:
@@ -1544,44 +1477,6 @@ out:
 }
 EXPORT_SYMBOL(generic_file_aio_read);
 
-static ssize_t
-do_readahead(struct address_space *mapping, struct file *filp,
-	     pgoff_t index, unsigned long nr)
-{
-	if (!mapping || !mapping->a_ops || !mapping->a_ops->readpage)
-		return -EINVAL;
-
-	force_page_cache_readahead(mapping, filp, index, nr);
-	return 0;
-}
-
-SYSCALL_DEFINE(readahead)(int fd, loff_t offset, size_t count)
-{
-	ssize_t ret;
-	struct file *file;
-
-	ret = -EBADF;
-	file = fget(fd);
-	if (file) {
-		if (file->f_mode & FMODE_READ) {
-			struct address_space *mapping = file->f_mapping;
-			pgoff_t start = offset >> PAGE_CACHE_SHIFT;
-			pgoff_t end = (offset + count - 1) >> PAGE_CACHE_SHIFT;
-			unsigned long len = end - start + 1;
-			ret = do_readahead(mapping, file, start, len);
-		}
-		fput(file);
-	}
-	return ret;
-}
-#ifdef CONFIG_HAVE_SYSCALL_WRAPPERS
-asmlinkage long SyS_readahead(long fd, loff_t offset, long count)
-{
-	return SYSC_readahead((int) fd, offset, (size_t) count);
-}
-SYSCALL_ALIAS(sys_readahead, SyS_readahead);
-#endif
-
 #ifdef CONFIG_MMU
 /**
  * page_cache_read - adds requested page to the page cache if not already there
@@ -1707,16 +1602,10 @@ int filemap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	struct page *page;
 	pgoff_t size;
 	int ret = 0;
-#ifdef CONFIG_MT_ENG_BUILD
-	void add_kmem_status_filemap_fault_counter(void);
-	add_kmem_status_filemap_fault_counter();
-#endif
+
 	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
-	if (offset >= size) {
-                printk(KERN_ALERT"SIGBUS debug: %s, %d, offset: %lu, size: %lu\n", 
-                        __FUNCTION__, __LINE__, (unsigned long)offset, (unsigned long)size);
+	if (offset >= size)
 		return VM_FAULT_SIGBUS;
-        }
 
 	/*
 	 * Do we have something in the page cache already?
@@ -1731,7 +1620,6 @@ int filemap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	} else {
 		/* No page in the page cache at all */
 		do_sync_mmap_readahead(vma, ra, file, offset);
-		count_vm_event(PGFMFAULT);
 		count_vm_event(PGMAJFAULT);
 		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
 		ret = VM_FAULT_MAJOR;
@@ -1769,7 +1657,6 @@ retry_find:
 	if (unlikely(offset >= size)) {
 		unlock_page(page);
 		page_cache_release(page);
-                printk(KERN_ALERT"SIGBUS debug: %s, %d\n", __FUNCTION__, __LINE__);
 		return VM_FAULT_SIGBUS;
 	}
 
@@ -1798,7 +1685,6 @@ no_cached_page:
 	 */
 	if (error == -ENOMEM)
 		return VM_FAULT_OOM;
-        printk(KERN_ALERT"SIGBUS debug: %s, %d\n", __FUNCTION__, __LINE__);
 	return VM_FAULT_SIGBUS;
 
 page_not_uptodate:
@@ -1822,7 +1708,6 @@ page_not_uptodate:
 
 	/* Things didn't work out. Return zero to tell the mm layer so. */
 	shrink_readahead_size_eio(file, ra);
-        printk(KERN_ALERT"SIGBUS debug: %s, %d\n", __FUNCTION__, __LINE__);
 	return VM_FAULT_SIGBUS;
 }
 EXPORT_SYMBOL(filemap_fault);
@@ -2013,71 +1898,6 @@ struct page *read_cache_page(struct address_space *mapping,
 	return wait_on_page_read(read_cache_page_async(mapping, index, filler, data));
 }
 EXPORT_SYMBOL(read_cache_page);
-
-/*
- * The logic we want is
- *
- *	if suid or (sgid and xgrp)
- *		remove privs
- */
-int should_remove_suid(struct dentry *dentry)
-{
-	umode_t mode = dentry->d_inode->i_mode;
-	int kill = 0;
-
-	/* suid always must be killed */
-	if (unlikely(mode & S_ISUID))
-		kill = ATTR_KILL_SUID;
-
-	/*
-	 * sgid without any exec bits is just a mandatory locking mark; leave
-	 * it alone.  If some exec bits are set, it's a real sgid; kill it.
-	 */
-	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
-		kill |= ATTR_KILL_SGID;
-
-	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
-		return kill;
-
-	return 0;
-}
-EXPORT_SYMBOL(should_remove_suid);
-
-static int __remove_suid(struct dentry *dentry, int kill)
-{
-	struct iattr newattrs;
-
-	newattrs.ia_valid = ATTR_FORCE | kill;
-	return notify_change(dentry, &newattrs);
-}
-
-int file_remove_suid(struct file *file)
-{
-	struct dentry *dentry = file->f_path.dentry;
-	struct inode *inode = dentry->d_inode;
-	int killsuid;
-	int killpriv;
-	int error = 0;
-
-	/* Fast path for nothing security related */
-	if (IS_NOSEC(inode))
-		return 0;
-
-	killsuid = should_remove_suid(dentry);
-	killpriv = security_inode_need_killpriv(dentry);
-
-	if (killpriv < 0)
-		return killpriv;
-	if (killpriv)
-		error = security_inode_killpriv(dentry);
-	if (!error && killsuid)
-		error = __remove_suid(dentry, killsuid);
-	if (!error && (inode->i_sb->s_flags & MS_NOSEC))
-		inode->i_flags |= S_NOSEC;
-
-	return error;
-}
-EXPORT_SYMBOL(file_remove_suid);
 
 static size_t __iovec_copy_from_user_inatomic(char *vaddr,
 			const struct iovec *iov, size_t base, size_t bytes)
@@ -2578,31 +2398,16 @@ ssize_t __generic_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 	loff_t		pos;
 	ssize_t		written;
 	ssize_t		err;
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-		if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-			g_req_write_buf[g_dbg_write_count][1] = sched_clock(); 
-		}	
-#endif
 
 	ocount = 0;
 	err = generic_segment_checks(iov, &nr_segs, &ocount, VERIFY_READ);
 	if (err)
 		return err;
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-		if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-			g_req_write_buf[g_dbg_write_count][2] = sched_clock(); 
-		}	
-#endif
 
 	count = ocount;
 	pos = *ppos;
 
 	vfs_check_frozen(inode->i_sb, SB_FREEZE_WRITE);
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-		if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-			g_req_write_buf[g_dbg_write_count][3] = sched_clock(); 
-		}	
-#endif
 
 	/* We can write back this queue in page reclaim */
 	current->backing_dev_info = mapping->backing_dev_info;
@@ -2611,11 +2416,6 @@ ssize_t __generic_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 	err = generic_write_checks(file, &pos, &count, S_ISBLK(inode->i_mode));
 	if (err)
 		goto out;
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-		if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-			g_req_write_buf[g_dbg_write_count][4] = sched_clock(); 
-		}	
-#endif
 
 	if (count == 0)
 		goto out;
@@ -2623,18 +2423,10 @@ ssize_t __generic_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 	err = file_remove_suid(file);
 	if (err)
 		goto out;
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-		if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-			g_req_write_buf[g_dbg_write_count][5] = sched_clock(); 
-		}	
-#endif
 
-	file_update_time(file);
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-		if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-			g_req_write_buf[g_dbg_write_count][6] = sched_clock(); 
-		}	
-#endif
+	err = file_update_time(file);
+	if (err)
+		goto out;
 
 	/* coalesce the iovecs and go direct-to-BIO for O_DIRECT */
 	if (unlikely(file->f_flags & O_DIRECT)) {
@@ -2643,12 +2435,6 @@ ssize_t __generic_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 
 		written = generic_file_direct_write(iocb, iov, &nr_segs, pos,
 							ppos, count, ocount);
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-		if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-				g_req_write_buf[g_dbg_write_count][7] = sched_clock(); 
-		}	
-#endif
-
 		if (written < 0 || written == count)
 			goto out;
 		/*
@@ -2660,11 +2446,6 @@ ssize_t __generic_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 		written_buffered = generic_file_buffered_write(iocb, iov,
 						nr_segs, pos, ppos, count,
 						written);
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-		if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-				g_req_write_buf[g_dbg_write_count][8] = sched_clock(); 
-		}	
-#endif
 		/*
 		 * If generic_file_buffered_write() retuned a synchronous error
 		 * then we want to return the number of bytes which were
@@ -2684,21 +2465,11 @@ ssize_t __generic_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 		 */
 		endbyte = pos + written_buffered - written - 1;
 		err = filemap_write_and_wait_range(file->f_mapping, pos, endbyte);
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-		if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-			g_req_write_buf[g_dbg_write_count][9] = sched_clock(); 
-		}	
-#endif
 		if (err == 0) {
 			written = written_buffered;
 			invalidate_mapping_pages(mapping,
 						 pos >> PAGE_CACHE_SHIFT,
 						 endbyte >> PAGE_CACHE_SHIFT);
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-		if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-			g_req_write_buf[g_dbg_write_count][10] = sched_clock(); 
-		}	
-#endif
 		} else {
 			/*
 			 * We don't know how much we wrote, so just return
@@ -2708,11 +2479,6 @@ ssize_t __generic_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 	} else {
 		written = generic_file_buffered_write(iocb, iov, nr_segs,
 				pos, ppos, count, written);
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-		if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-			g_req_write_buf[g_dbg_write_count][11] = sched_clock(); 
-		}	
-#endif
 	}
 out:
 	current->backing_dev_info = NULL;
@@ -2748,19 +2514,8 @@ ssize_t generic_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 
 	if (ret > 0 || ret == -EIOCBQUEUED) {
 		ssize_t err;
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-	if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-		g_req_write_buf[g_dbg_write_count][12] = sched_clock(); 
-	}	
-#endif
 
 		err = generic_write_sync(file, pos, ret);
-#ifdef MTK_IO_PERFORMANCE_DEBUG   
-	if (('l' == *(current->comm)) && ('m' == *(current->comm + 1)) && ('d' == *(current->comm + 2)) && ('d' == *(current->comm + 3)) && (g_check_read_write == 25)){
-		g_req_write_buf[g_dbg_write_count][13] = sched_clock(); 
-	}	
-#endif
-
 		if (err < 0 && ret > 0)
 			ret = err;
 	}

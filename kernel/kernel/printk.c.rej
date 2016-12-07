@@ -1,0 +1,463 @@
+--- kernel/printk.c
++++ kernel/printk.c
+@@ -55,8 +56,6 @@ void asmlinkage __attribute__((weak)) early_printk(const char *fmt, ...)
+ {
+ }
+ 
+-#define __LOG_BUF_LEN	(1 << CONFIG_LOG_BUF_SHIFT)
+-
+ /* printk's without a loglevel use this.. */
+ #define DEFAULT_MESSAGE_LOGLEVEL CONFIG_DEFAULT_MESSAGE_LOGLEVEL
+ 
+@@ -100,24 +99,6 @@ EXPORT_SYMBOL_GPL(console_drivers);
+ static int console_locked, console_suspended;
+ 
+ /*
+- * logbuf_lock protects log_buf, log_start, log_end, con_start and logged_chars
+- * It is also used in interesting ways to provide interlocking in
+- * console_unlock();.
+- */
+-static DEFINE_RAW_SPINLOCK(logbuf_lock);
+-
+-#define LOG_BUF_MASK (log_buf_len-1)
+-#define LOG_BUF(idx) (log_buf[(idx) & LOG_BUF_MASK])
+-
+-/*
+- * The indices into log_buf are not constrained to log_buf_len - they
+- * must be masked before subscripting
+- */
+-static unsigned log_start;	/* Index into log_buf: next char to be read by syslog() */
+-static unsigned con_start;	/* Index into log_buf: next char to be sent to consoles */
+-static unsigned log_end;	/* Index into log_buf: most-recently-written-char + 1 */
+-
+-/*
+  * If exclusive_console is non-NULL then only this console is to be printed to.
+  */
+ static struct console *exclusive_console;
+@@ -1212,39 +1913,6 @@ SYSCALL_DEFINE3(syslog, int, type, char __user *, buf, int, len)
+ 	return do_syslog(type, buf, len, SYSLOG_FROM_CALL);
+ }
+ 
+-#ifdef	CONFIG_KGDB_KDB
+-/* kdb dmesg command needs access to the syslog buffer.  do_syslog()
+- * uses locks so it cannot be used during debugging.  Just tell kdb
+- * where the start and end of the physical and logical logs are.  This
+- * is equivalent to do_syslog(3).
+- */
+-void kdb_syslog_data(char *syslog_data[4])
+-{
+-	syslog_data[0] = log_buf;
+-	syslog_data[1] = log_buf + log_buf_len;
+-	syslog_data[2] = log_buf + log_end -
+-		(logged_chars < log_buf_len ? logged_chars : log_buf_len);
+-	syslog_data[3] = log_buf + log_end;
+-}
+-#endif	/* CONFIG_KGDB_KDB */
+-
+-/*
+- * Call the console drivers on a range of log_buf
+- */
+-static void __call_console_drivers(unsigned start, unsigned end)
+-{
+-	struct console *con;
+-
+-	for_each_console(con) {
+-		if (exclusive_console && con != exclusive_console)
+-			continue;
+-		if ((con->flags & CON_ENABLED) && con->write &&
+-				(cpu_online(smp_processor_id()) ||
+-				(con->flags & CON_ANYTIME)))
+-			con->write(con, &LOG_BUF(start), end - start);
+-	}
+-}
+-
+ static bool __read_mostly ignore_loglevel;
+ 
+ static int __init ignore_loglevel_setup(char *str)
+@@ -1312,16 +1871,6 @@ static void zap_locks(void)
+ 	sema_init(&console_sem, 1);
+ }
+ 
+-#if defined(CONFIG_PRINTK_TIME)
+-static bool printk_time = 1;
+-#else
+-static bool printk_time = 0;
+-#endif
+-module_param_named(time, printk_time, bool, S_IRUGO | S_IWUSR);
+-
+-static bool always_kmsg_dump;
+-module_param_named(always_kmsg_dump, always_kmsg_dump, bool, S_IRUGO | S_IWUSR);
+-
+ /* Check if we have any console registered that can be called early in boot. */
+ static int have_callable_console(void)
+ {
+@@ -1398,15 +1897,99 @@ static inline void printk_delay(void)
+ 	}
+ }
+ 
+-asmlinkage int vprintk(const char *fmt, va_list args)
++/*
++ * Continuation lines are buffered, and not committed to the record buffer
++ * until the line is complete, or a race forces it. The line fragments
++ * though, are printed immediately to the consoles to ensure everything has
++ * reached the console in case of a kernel crash.
++ */
++static struct cont {
++	char buf[LOG_LINE_MAX];
++	size_t len;			/* length == 0 means unused buffer */
++	size_t cons;			/* bytes written to console */
++	struct task_struct *owner;	/* task of first print*/
++	u64 ts_nsec;			/* time of first print */
++	u8 level;			/* log level of first message */
++	u8 facility;			/* log level of first message */
++	bool flushed:1;			/* buffer sealed and committed */
++} cont;
++
++static void cont_flush(void)
+ {
+-	int printed_len = 0;
+-	int current_log_level = default_message_loglevel;
++	if (cont.flushed)
++		return;
++	if (cont.len == 0)
++		return;
++
++	log_store(cont.facility, cont.level, LOG_NOCONS, cont.ts_nsec,
++		  NULL, 0, cont.buf, cont.len);
++
++	cont.flushed = true;
++}
++
++static bool cont_add(int facility, int level, const char *text, size_t len)
++{
++	if (cont.len && cont.flushed)
++		return false;
++
++	if (cont.len + len > sizeof(cont.buf)) {
++		cont_flush();
++		return false;
++	}
++
++	if (!cont.len) {
++		cont.facility = facility;
++		cont.level = level;
++		cont.owner = current;
++		cont.ts_nsec = local_clock();
++		cont.cons = 0;
++		cont.flushed = false;
++	}
++
++	memcpy(cont.buf + cont.len, text, len);
++	cont.len += len;
++	return true;
++}
++
++static size_t cont_print_text(char *text, size_t size)
++{
++	size_t textlen = 0;
++	size_t len;
++
++	if (cont.cons == 0) {
++		textlen += print_time(cont.ts_nsec, text);
++		size -= textlen;
++	}
++
++	len = cont.len - cont.cons;
++	if (len > 0) {
++		if (len+1 > size)
++			len = size-1;
++		memcpy(text + textlen, cont.buf + cont.cons, len);
++		textlen += len;
++		cont.cons = cont.len;
++	}
++
++	if (cont.flushed) {
++		text[textlen++] = '\n';
++		/* got everything, release buffer */
++		cont.len = 0;
++	}
++	return textlen;
++}
++
++asmlinkage int vprintk_emit(int facility, int level,
++			    const char *dict, size_t dictlen,
++			    const char *fmt, va_list args)
++{
++	static int recursion_bug;
++	static char textbuf[LOG_LINE_MAX];
++	char *text = textbuf;
++	size_t text_len;
++	enum log_flags lflags = 0;
+ 	unsigned long flags;
+ 	int this_cpu;
+-	char *p;
+-	size_t plen;
+-	char special;
++	int printed_len = 0;
+ 
+ 	boot_delay_msec();
+ 	printk_delay();
+@@ -1435,97 +2018,91 @@ asmlinkage int vprintk(const char *fmt, va_list args)
+ 
+ 	lockdep_off();
+ 	raw_spin_lock(&logbuf_lock);
+-	printk_cpu = this_cpu;
++	logbuf_cpu = this_cpu;
+ 
+ 	if (recursion_bug) {
++		static const char recursion_msg[] =
++			"BUG: recent printk recursion!";
++
+ 		recursion_bug = 0;
+-		strcpy(printk_buf, recursion_bug_msg);
+-		printed_len = strlen(recursion_bug_msg);
++		printed_len += strlen(recursion_msg);
++		/* emit KERN_CRIT message */
++		log_store(0, 2, LOG_PREFIX|LOG_NEWLINE, 0,
++			  NULL, 0, recursion_msg, printed_len);
+ 	}
+-	/* Emit the output into the temporary buffer */
+-	printed_len += vscnprintf(printk_buf + printed_len,
+-				  sizeof(printk_buf) - printed_len, fmt, args);
+ 
+-	p = printk_buf;
++	/*
++	 * The printf needs to come first; we need the syslog
++	 * prefix which might be passed-in as a parameter.
++	 */
++	text_len = vscnprintf(text, sizeof(textbuf), fmt, args);
+ 
+-	/* Read log level and handle special printk prefix */
+-	plen = log_prefix(p, &current_log_level, &special);
+-	if (plen) {
+-		p += plen;
++	/* mark and strip a trailing newline */
++	if (text_len && text[text_len-1] == '\n') {
++		text_len--;
++		lflags |= LOG_NEWLINE;
++	}
+ 
+-		switch (special) {
+-		case 'c': /* Strip <c> KERN_CONT, continue line */
+-			plen = 0;
+-			break;
+-		case 'd': /* Strip <d> KERN_DEFAULT, start new line */
+-			plen = 0;
+-		default:
+-			if (!new_text_line) {
+-				emit_log_char('\n');
+-				new_text_line = 1;
+-			}
++	/* strip syslog prefix and extract log level or control flags */
++	if (text[0] == '<' && text[1] && text[2] == '>') {
++		switch (text[1]) {
++		case '0' ... '7':
++			if (level == -1)
++				level = text[1] - '0';
++		case 'd':	/* KERN_DEFAULT */
++			lflags |= LOG_PREFIX;
++		case 'c':	/* KERN_CONT */
++			text += 3;
++			text_len -= 3;
+ 		}
+ 	}
+ 
+-	/*
+-	 * Copy the output into log_buf. If the caller didn't provide
+-	 * the appropriate log prefix, we insert them here
+-	 */
+-	for (; *p; p++) {
+-		if (new_text_line) {
+-			new_text_line = 0;
+-
+-			if (plen) {
+-				/* Copy original log prefix */
+-				int i;
+-
+-				for (i = 0; i < plen; i++)
+-					emit_log_char(printk_buf[i]);
+-				printed_len += plen;
+-			} else {
+-				/* Add log prefix */
+-				emit_log_char('<');
+-				emit_log_char(current_log_level + '0');
+-				emit_log_char('>');
+-				printed_len += 3;
+-			}
++	if (level == -1)
++		level = default_message_loglevel;
+ 
+-			if (printk_time) {
+-				/* Add the current time stamp */
+-				char tbuf[50], *tp;
+-				unsigned tlen;
+-				unsigned long long t;
+-				unsigned long nanosec_rem;
+-
+-				t = cpu_clock(printk_cpu);
+-				nanosec_rem = do_div(t, 1000000000);
+-				tlen = sprintf(tbuf, "[%5lu.%06lu] ",
+-						(unsigned long) t,
+-						nanosec_rem / 1000);
+-
+-				for (tp = tbuf; tp < tbuf + tlen; tp++)
+-					emit_log_char(*tp);
+-				printed_len += tlen;
+-			}
++	if (dict)
++		lflags |= LOG_PREFIX|LOG_NEWLINE;
+ 
+-			if (!*p)
+-				break;
++	if (!(lflags & LOG_NEWLINE)) {
++		/*
++		 * Flush the conflicting buffer. An earlier newline was missing,
++		 * or another task also prints continuation lines.
++		 */
++		if (cont.len && (lflags & LOG_PREFIX || cont.owner != current))
++			cont_flush();
++
++		/* buffer line if possible, otherwise store it right away */
++		if (!cont_add(facility, level, text, text_len))
++			log_store(facility, level, lflags | LOG_CONT, 0,
++				  dict, dictlen, text, text_len);
++	} else {
++		bool stored = false;
++
++		/*
++		 * If an earlier newline was missing and it was the same task,
++		 * either merge it with the current buffer and flush, or if
++		 * there was a race with interrupts (prefix == true) then just
++		 * flush it out and store this line separately.
++		 */
++		if (cont.len && cont.owner == current) {
++			if (!(lflags & LOG_PREFIX))
++				stored = cont_add(facility, level, text, text_len);
++			cont_flush();
+ 		}
+ 
+-		emit_log_char(*p);
+-		if (*p == '\n')
+-			new_text_line = 1;
++		if (!stored)
++			log_store(facility, level, lflags, 0,
++				  dict, dictlen, text, text_len);
+ 	}
++	printed_len += text_len;
+ 
+ 	/*
+-	 * Try to acquire and then immediately release the
+-	 * console semaphore. The release will do all the
+-	 * actual magic (print out buffers, wake up klogd,
+-	 * etc). 
++	 * Try to acquire and then immediately release the console semaphore.
++	 * The release will print out buffers and wake up /dev/kmsg and syslog()
++	 * users.
+ 	 *
+-	 * The console_trylock_for_printk() function
+-	 * will release 'logbuf_lock' regardless of whether it
+-	 * actually gets the semaphore or not.
++	 * The console_trylock_for_printk() function will release 'logbuf_lock'
++	 * regardless of whether it actually gets the console semaphore or not.
+ 	 */
+ 	if (console_trylock_for_printk(this_cpu))
+ 		console_unlock();
+@@ -1902,15 +2556,17 @@ void wake_up_klogd(void)
+  * by printk().  If this is the case, console_unlock(); emits
+  * the output prior to releasing the lock.
+  *
+- * If there is output waiting for klogd, we wake it up.
++ * If there is output waiting, we wake /dev/kmsg and syslog() users.
+  *
+  * console_unlock(); may be called from any context.
+  */
+ void console_unlock(void)
+ {
++	static char text[LOG_LINE_MAX];
++	static u64 seen_seq;
+ 	unsigned long flags;
+-	unsigned _con_start, _log_end;
+-	unsigned wake_klogd = 0, retry = 0;
++	bool wake_klogd = false;
++	bool retry;
+ 
+ 	if (console_suspended) {
+ 		up(&console_sem);
+@@ -1919,18 +2575,69 @@ void console_unlock(void)
+ 
+ 	console_may_schedule = 0;
+ 
++	/* flush buffered message fragment immediately to console */
++	raw_spin_lock_irqsave(&logbuf_lock, flags);
++	if (cont.len && (cont.cons < cont.len || cont.flushed)) {
++		size_t len;
++
++		len = cont_print_text(text, sizeof(text));
++		raw_spin_unlock(&logbuf_lock);
++		stop_critical_timings();
++		call_console_drivers(cont.level, text, len);
++		start_critical_timings();
++		local_irq_restore(flags);
++	} else
++		raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++
+ again:
+-	for ( ; ; ) {
++	for (;;) {
++		struct log *msg;
++		size_t len;
++		int level;
++
+ 		raw_spin_lock_irqsave(&logbuf_lock, flags);
+-		wake_klogd |= log_start - log_end;
+-		if (con_start == log_end)
+-			break;			/* Nothing to print */
+-		_con_start = con_start;
+-		_log_end = log_end;
+-		con_start = log_end;		/* Flush */
++		if (seen_seq != log_next_seq) {
++			wake_klogd = true;
++			seen_seq = log_next_seq;
++		}
++
++		if (console_seq < log_first_seq) {
++			/* messages are gone, move to first one */
++			console_seq = log_first_seq;
++			console_idx = log_first_idx;
++			console_prev = 0;
++		}
++skip:
++		if (console_seq == log_next_seq)
++			break;
++
++		msg = log_from_idx(console_idx);
++		if (msg->flags & LOG_NOCONS) {
++			/*
++			 * Skip record we have buffered and already printed
++			 * directly to the console when we received it.
++			 */
++			console_idx = log_next(console_idx);
++			console_seq++;
++			/*
++			 * We will get here again when we register a new
++			 * CON_PRINTBUFFER console. Clear the flag so we
++			 * will properly dump everything later.
++			 */
++			msg->flags &= ~LOG_NOCONS;
++			goto skip;
++		}
++
++		level = msg->level;
++		len = msg_print_text(msg, console_prev, false,
++				     text, sizeof(text));
++		console_idx = log_next(console_idx);
++		console_seq++;
++		console_prev = msg->flags;
+ 		raw_spin_unlock(&logbuf_lock);
++
+ 		stop_critical_timings();	/* don't trace print latency */
+-		call_console_drivers(_con_start, _log_end);
++		call_console_drivers(level, text, len);
+ 		start_critical_timings();
+ 		local_irq_restore(flags);
+ 	}

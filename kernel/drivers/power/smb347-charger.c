@@ -11,7 +11,7 @@
  * published by the Free Software Foundation.
  */
 
-#include <linux/debugfs.h>
+#include <linux/err.h>
 #include <linux/gpio.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -42,6 +42,7 @@
 #define CFG_VARIOUS_FUNCTION                    0x02
 #define CFG_INPUT_SOURCE_PRIORITY               BIT(2)
 #define CFG_FLOAT_VOLTAGE			0x03
+#define CFG_FLOAT_VOLTAGE_FLOAT_MASK		0x3f
 #define CFG_FLOAT_VOLTAGE_THRESHOLD_MASK	0xc0
 #define CFG_FLOAT_VOLTAGE_MASK			0x3F
 #define CFG_FLOAT_VOLTAGE_THRESHOLD_SHIFT	6
@@ -210,14 +211,6 @@ static const unsigned int ccc_tbl[] = {
 	1200000,
 };
 
-/* Convert register value to current using lookup table */
-static int hw_to_current(const unsigned int *tbl, size_t size, unsigned int val)
-{
-	if (val >= size)
-		return -EINVAL;
-	return tbl[val];
-}
-
 /* Convert current to register value using lookup table */
 static int current_to_hw(const unsigned int *tbl, size_t size, unsigned int val)
 {
@@ -229,43 +222,22 @@ static int current_to_hw(const unsigned int *tbl, size_t size, unsigned int val)
 	return i > 0 ? i - 1 : -EINVAL;
 }
 
-static int smb347_read(struct smb347_charger *smb, u8 reg)
-{
-	int ret;
-
-	ret = i2c_smbus_read_byte_data(smb->client, reg);
-	if (ret < 0)
-		dev_warn(&smb->client->dev, "failed to read reg 0x%x: %d\n",
-			 reg, ret);
-	return ret;
-}
-
-static int smb347_write(struct smb347_charger *smb, u8 reg, u8 val)
-{
-	int ret;
-
-	ret = i2c_smbus_write_byte_data(smb->client, reg, val);
-	if (ret < 0)
-		dev_warn(&smb->client->dev, "failed to write reg 0x%x: %d\n",
-			 reg, ret);
-	return ret;
-}
-
 /**
- * smb347_update_status - updates the charging status
+ * smb347_update_ps_status - refreshes the power source status
  * @smb: pointer to smb347 charger instance
  *
- * Function checks status of the charging and updates internal state
- * accordingly. Returns %0 if there is no change in status, %1 if the
- * status has changed and negative errno in case of failure.
+ * Function checks whether any power source is connected to the charger and
+ * updates internal state accordingly. If there is a change to previous state
+ * function returns %1, otherwise %0 and negative errno in case of errror.
  */
-static int smb347_update_status(struct smb347_charger *smb)
+static int smb347_update_ps_status(struct smb347_charger *smb)
 {
 	bool usb = false;
 	bool dc = false;
+	unsigned int val;
 	int ret;
 
-	ret = smb347_read(smb, IRQSTAT_E);
+	ret = regmap_read(smb->regmap, IRQSTAT_E, &val);
 	if (ret < 0)
 		return ret;
 
@@ -274,9 +246,9 @@ static int smb347_update_status(struct smb347_charger *smb)
 	 * platform data _and_ whether corresponding undervoltage is set.
 	 */
 	if (smb->pdata->use_mains)
-		dc = !(ret & IRQSTAT_E_DCIN_UV_STAT);
+		dc = !(val & IRQSTAT_E_DCIN_UV_STAT);
 	if (smb->pdata->use_usb)
-		usb = !(ret & IRQSTAT_E_USBIN_UV_STAT);
+		usb = !(val & IRQSTAT_E_USBIN_UV_STAT);
 
 	mutex_lock(&smb->lock);
 	ret = smb->mains_online != dc || smb->usb_online != usb;
@@ -288,15 +260,15 @@ static int smb347_update_status(struct smb347_charger *smb)
 }
 
 /*
- * smb347_is_online - returns whether input power source is connected
+ * smb347_is_ps_online - returns whether input power source is connected
  * @smb: pointer to smb347 charger instance
  *
  * Returns %true if input power source is connected. Note that this is
  * dependent on what platform has configured for usable power sources. For
- * example if USB is disabled, this will return %false even if the USB
- * cable is connected.
+ * example if USB is disabled, this will return %false even if the USB cable
+ * is connected.
  */
-static bool smb347_is_online(struct smb347_charger *smb)
+static bool smb347_is_ps_online(struct smb347_charger *smb)
 {
 	bool ret;
 
@@ -316,16 +288,17 @@ static bool smb347_is_online(struct smb347_charger *smb)
  */
 static int smb347_charging_status(struct smb347_charger *smb)
 {
+	unsigned int val;
 	int ret;
 
-	if (!smb347_is_online(smb))
+	if (!smb347_is_ps_online(smb))
 		return 0;
 
-	ret = smb347_read(smb, STAT_C);
+	ret = regmap_read(smb->regmap, STAT_C, &val);
 	if (ret < 0)
 		return 0;
 
-	return (ret & STAT_C_CHG_MASK) >> STAT_C_CHG_SHIFT;
+	return (val & STAT_C_CHG_MASK) >> STAT_C_CHG_SHIFT;
 }
 
 static int smb347_charging_set(struct smb347_charger *smb, bool enable)
@@ -376,7 +349,7 @@ static inline int smb347_charging_disable(struct smb347_charger *smb)
 	return smb347_charging_set(smb, false);
 }
 
-static int smb347_update_online(struct smb347_charger *smb)
+static int smb347_start_stop_charging(struct smb347_charger *smb)
 {
 	int ret;
 
@@ -385,16 +358,14 @@ static int smb347_update_online(struct smb347_charger *smb)
 	 * disable or enable the charging. We do it manually because it
 	 * depends on how the platform has configured the valid inputs.
 	 */
-	if (smb347_is_online(smb)) {
+	if (smb347_is_ps_online(smb)) {
 		ret = smb347_charging_enable(smb);
 		if (ret < 0)
-			dev_err(&smb->client->dev,
-				"failed to enable charging\n");
+			dev_err(smb->dev, "failed to enable charging\n");
 	} else {
 		ret = smb347_charging_disable(smb);
 		if (ret < 0)
-			dev_err(&smb->client->dev,
-				"failed to disable charging\n");
+			dev_err(smb->dev, "failed to disable charging\n");
 	}
 
 	return ret;
@@ -517,21 +488,12 @@ static int smb347_set_temp_limits(struct smb347_charger *smb)
 		val = clamp_val(val, 100, 130) - 100;
 		val /= 10;
 
-		ret = smb347_read(smb, CFG_OTG);
-		if (ret < 0)
-			return ret;
-
-		ret &= ~CFG_OTG_TEMP_THRESHOLD_MASK;
-		ret |= val << CFG_OTG_TEMP_THRESHOLD_SHIFT;
-
-		ret = smb347_write(smb, CFG_OTG, ret);
+		ret = regmap_update_bits(smb->regmap, CFG_OTG,
+					 CFG_OTG_TEMP_THRESHOLD_MASK,
+					 val << CFG_OTG_TEMP_THRESHOLD_SHIFT);
 		if (ret < 0)
 			return ret;
 	}
-
-	ret = smb347_read(smb, CFG_TEMP_LIMIT);
-	if (ret < 0)
-		return ret;
 
 	if (smb->pdata->soft_cold_temp_limit != SMB347_TEMP_USE_DEFAULT) {
 		val = smb->pdata->soft_cold_temp_limit;
@@ -541,8 +503,11 @@ static int smb347_set_temp_limits(struct smb347_charger *smb)
 		/* this goes from higher to lower so invert the value */
 		val = ~val & 0x3;
 
-		ret &= ~CFG_TEMP_LIMIT_SOFT_COLD_MASK;
-		ret |= val << CFG_TEMP_LIMIT_SOFT_COLD_SHIFT;
+		ret = regmap_update_bits(smb->regmap, CFG_TEMP_LIMIT,
+					 CFG_TEMP_LIMIT_SOFT_COLD_MASK,
+					 val << CFG_TEMP_LIMIT_SOFT_COLD_SHIFT);
+		if (ret < 0)
+			return ret;
 
 		enable_therm_monitor = true;
 	}
@@ -553,8 +518,11 @@ static int smb347_set_temp_limits(struct smb347_charger *smb)
 		val = clamp_val(val, 40, 55) - 40;
 		val /= 5;
 
-		ret &= ~CFG_TEMP_LIMIT_SOFT_HOT_MASK;
-		ret |= val << CFG_TEMP_LIMIT_SOFT_HOT_SHIFT;
+		ret = regmap_update_bits(smb->regmap, CFG_TEMP_LIMIT,
+					 CFG_TEMP_LIMIT_SOFT_HOT_MASK,
+					 val << CFG_TEMP_LIMIT_SOFT_HOT_SHIFT);
+		if (ret < 0)
+			return ret;
 
 		enable_therm_monitor = true;
 	}
@@ -567,8 +535,11 @@ static int smb347_set_temp_limits(struct smb347_charger *smb)
 		/* this goes from higher to lower so invert the value */
 		val = ~val & 0x3;
 
-		ret &= ~CFG_TEMP_LIMIT_HARD_COLD_MASK;
-		ret |= val << CFG_TEMP_LIMIT_HARD_COLD_SHIFT;
+		ret = regmap_update_bits(smb->regmap, CFG_TEMP_LIMIT,
+					 CFG_TEMP_LIMIT_HARD_COLD_MASK,
+					 val << CFG_TEMP_LIMIT_HARD_COLD_SHIFT);
+		if (ret < 0)
+			return ret;
 
 		enable_therm_monitor = true;
 	}
@@ -579,15 +550,14 @@ static int smb347_set_temp_limits(struct smb347_charger *smb)
 		val = clamp_val(val, 50, 65) - 50;
 		val /= 5;
 
-		ret &= ~CFG_TEMP_LIMIT_HARD_HOT_MASK;
-		ret |= val << CFG_TEMP_LIMIT_HARD_HOT_SHIFT;
+		ret = regmap_update_bits(smb->regmap, CFG_TEMP_LIMIT,
+					 CFG_TEMP_LIMIT_HARD_HOT_MASK,
+					 val << CFG_TEMP_LIMIT_HARD_HOT_SHIFT);
+		if (ret < 0)
+			return ret;
 
 		enable_therm_monitor = true;
 	}
-
-	ret = smb347_write(smb, CFG_TEMP_LIMIT, ret);
-	if (ret < 0)
-		return ret;
 
 	/*
 	 * If any of the temperature limits are set, we also enable the
@@ -600,25 +570,15 @@ static int smb347_set_temp_limits(struct smb347_charger *smb)
 	 * depending on the configuration.
 	 */
 	if (enable_therm_monitor) {
-		ret = smb347_read(smb, CFG_THERM);
-		if (ret < 0)
-			return ret;
-
-		ret &= ~CFG_THERM_MONITOR_DISABLED;
-
-		ret = smb347_write(smb, CFG_THERM, ret);
+		ret = regmap_update_bits(smb->regmap, CFG_THERM,
+					 CFG_THERM_MONITOR_DISABLED, 0);
 		if (ret < 0)
 			return ret;
 	}
 
 	if (smb->pdata->suspend_on_hard_temp_limit) {
-		ret = smb347_read(smb, CFG_SYSOK);
-		if (ret < 0)
-			return ret;
-
-		ret &= ~CFG_SYSOK_SUSPEND_HARD_LIMIT_DISABLED;
-
-		ret = smb347_write(smb, CFG_SYSOK, ret);
+		ret = regmap_update_bits(smb->regmap, CFG_SYSOK,
+				 CFG_SYSOK_SUSPEND_HARD_LIMIT_DISABLED, 0);
 		if (ret < 0)
 			return ret;
 	}
@@ -627,17 +587,15 @@ static int smb347_set_temp_limits(struct smb347_charger *smb)
 	    SMB347_SOFT_TEMP_COMPENSATE_DEFAULT) {
 		val = smb->pdata->soft_temp_limit_compensation & 0x3;
 
-		ret = smb347_read(smb, CFG_THERM);
+		ret = regmap_update_bits(smb->regmap, CFG_THERM,
+				 CFG_THERM_SOFT_HOT_COMPENSATION_MASK,
+				 val << CFG_THERM_SOFT_HOT_COMPENSATION_SHIFT);
 		if (ret < 0)
 			return ret;
 
-		ret &= ~CFG_THERM_SOFT_HOT_COMPENSATION_MASK;
-		ret |= val << CFG_THERM_SOFT_HOT_COMPENSATION_SHIFT;
-
-		ret &= ~CFG_THERM_SOFT_COLD_COMPENSATION_MASK;
-		ret |= val << CFG_THERM_SOFT_COLD_COMPENSATION_SHIFT;
-
-		ret = smb347_write(smb, CFG_THERM, ret);
+		ret = regmap_update_bits(smb->regmap, CFG_THERM,
+				 CFG_THERM_SOFT_COLD_COMPENSATION_MASK,
+				 val << CFG_THERM_SOFT_COLD_COMPENSATION_SHIFT);
 		if (ret < 0)
 			return ret;
 	}
@@ -648,14 +606,9 @@ static int smb347_set_temp_limits(struct smb347_charger *smb)
 		if (val < 0)
 			return val;
 
-		ret = smb347_read(smb, CFG_OTG);
-		if (ret < 0)
-			return ret;
-
-		ret &= ~CFG_OTG_CC_COMPENSATION_MASK;
-		ret |= (val & 0x3) << CFG_OTG_CC_COMPENSATION_SHIFT;
-
-		ret = smb347_write(smb, CFG_OTG, ret);
+		ret = regmap_update_bits(smb->regmap, CFG_OTG,
+				CFG_OTG_CC_COMPENSATION_MASK,
+				(val & 0x3) << CFG_OTG_CC_COMPENSATION_SHIFT);
 		if (ret < 0)
 			return ret;
 	}
@@ -702,41 +655,18 @@ static int smb347_irq_set(struct smb347_charger *smb, bool enable)
 	 *	- termination current reached
 	 *	- charger error
 	 */
-	if (enable) {
-		ret = smb347_write(smb, CFG_FAULT_IRQ, CFG_FAULT_IRQ_DCIN_UV);
-		if (ret < 0)
-			goto fail;
+	ret = regmap_update_bits(smb->regmap, CFG_FAULT_IRQ, 0xff,
+				 enable ? CFG_FAULT_IRQ_DCIN_UV : 0);
+	if (ret < 0)
+		goto fail;
 
-		ret = smb347_write(smb, CFG_STATUS_IRQ,
-				   CFG_STATUS_IRQ_TERMINATION_OR_TAPER);
-		if (ret < 0)
-			goto fail;
+	ret = regmap_update_bits(smb->regmap, CFG_STATUS_IRQ, 0xff,
+			enable ? CFG_STATUS_IRQ_TERMINATION_OR_TAPER : 0);
+	if (ret < 0)
+		goto fail;
 
-		ret = smb347_read(smb, CFG_PIN);
-		if (ret < 0)
-			goto fail;
-
-		ret |= CFG_PIN_EN_CHARGER_ERROR;
-
-		ret = smb347_write(smb, CFG_PIN, ret);
-	} else {
-		ret = smb347_write(smb, CFG_FAULT_IRQ, 0);
-		if (ret < 0)
-			goto fail;
-
-		ret = smb347_write(smb, CFG_STATUS_IRQ, 0);
-		if (ret < 0)
-			goto fail;
-
-		ret = smb347_read(smb, CFG_PIN);
-		if (ret < 0)
-			goto fail;
-
-		ret &= ~CFG_PIN_EN_CHARGER_ERROR;
-
-		ret = smb347_write(smb, CFG_PIN, ret);
-	}
-
+	ret = regmap_update_bits(smb->regmap, CFG_PIN, CFG_PIN_EN_CHARGER_ERROR,
+				 enable ? CFG_PIN_EN_CHARGER_ERROR : 0);
 fail:
 	smb347_set_writable(smb, false);
 	return ret;
@@ -846,7 +776,7 @@ static int smb347_irq_init(struct smb347_charger *smb)
 fail_gpio:
 	gpio_free(pdata->irq_gpio);
 fail:
-	smb->client->irq = 0;
+	client->irq = 0;
 	return ret;
 }
 
@@ -1208,7 +1138,7 @@ static int smb347_battery_get_property(struct power_supply *psy,
 		break;
 
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-		if (!smb347_is_online(smb))
+		if (!smb347_is_ps_online(smb))
 			return -ENODATA;
 
 		/*
@@ -1238,44 +1168,6 @@ static int smb347_battery_get_property(struct power_supply *psy,
 
 	case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
 		val->intval = pdata->battery_info.voltage_max_design;
-		break;
-
-	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-		if (!smb347_is_online(smb))
-			return -ENODATA;
-		ret = smb347_read(smb, STAT_A);
-		if (ret < 0)
-			return ret;
-
-		ret &= STAT_A_FLOAT_VOLTAGE_MASK;
-		if (ret > 0x3d)
-			ret = 0x3d;
-
-		val->intval = 3500000 + ret * 20000;
-		break;
-
-	case POWER_SUPPLY_PROP_CURRENT_NOW:
-		if (!smb347_is_online(smb))
-			return -ENODATA;
-
-		ret = smb347_read(smb, STAT_B);
-		if (ret < 0)
-			return ret;
-
-		/*
-		 * The current value is composition of FCC and PCC values
-		 * and we can detect which table to use from bit 5.
-		 */
-		if (ret & 0x20) {
-			val->intval = hw_to_current(fcc_tbl,
-						    ARRAY_SIZE(fcc_tbl),
-						    ret & 7);
-		} else {
-			ret >>= 3;
-			val->intval = hw_to_current(pcc_tbl,
-						    ARRAY_SIZE(pcc_tbl),
-						    ret & 7);
-		}
 		break;
 
 	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
@@ -1488,20 +1380,13 @@ static int smb347_probe(struct i2c_client *client,
 		smb->battery.external_power_changed = power_supply_changed;
 	}
 
-	ret = power_supply_register(dev, &smb->mains);
-	if (ret < 0)
-		return ret;
-
-	ret = power_supply_register(dev, &smb->usb);
-	if (ret < 0) {
-		power_supply_unregister(&smb->mains);
-		return ret;
-	}
 
 	ret = power_supply_register(dev, &smb->battery);
 	if (ret < 0) {
-		power_supply_unregister(&smb->usb);
-		power_supply_unregister(&smb->mains);
+		if (smb->pdata->use_usb)
+			power_supply_unregister(&smb->usb);
+		if (smb->pdata->use_mains)
+			power_supply_unregister(&smb->mains);
 		return ret;
 	}
 
@@ -1510,24 +1395,21 @@ static int smb347_probe(struct i2c_client *client,
 	 * interrupt support here.
 	 */
 	if (pdata->irq_gpio >= 0) {
-		ret = smb347_irq_init(smb);
+		ret = smb347_irq_init(smb, client);
 		if (ret < 0) {
 			dev_warn(dev, "failed to initialize IRQ: %d\n", ret);
 			dev_warn(dev, "disabling IRQ support\n");
+		} else {
+			smb347_irq_enable(smb);
 		}
 	}
 
-	smb->dentry = debugfs_create_file("smb347-regs", S_IRUSR, NULL, smb,
-					  &smb347_debugfs_fops);
 	return 0;
 }
 
 static int smb347_remove(struct i2c_client *client)
 {
 	struct smb347_charger *smb = i2c_get_clientdata(client);
-
-	if (!IS_ERR_OR_NULL(smb->dentry))
-		debugfs_remove(smb->dentry);
 
 	if (client->irq) {
 		smb347_irq_disable(smb);
@@ -1537,8 +1419,10 @@ static int smb347_remove(struct i2c_client *client)
 	}
 
 	power_supply_unregister(&smb->battery);
-	power_supply_unregister(&smb->usb);
-	power_supply_unregister(&smb->mains);
+	if (smb->pdata->use_usb)
+		power_supply_unregister(&smb->usb);
+	if (smb->pdata->use_mains)
+		power_supply_unregister(&smb->mains);
 	return 0;
 }
 
@@ -1581,17 +1465,7 @@ static struct i2c_driver smb347_driver = {
 	.id_table     = smb347_id,
 };
 
-static int __init smb347_init(void)
-{
-	return i2c_add_driver(&smb347_driver);
-}
-module_init(smb347_init);
-
-static void __exit smb347_exit(void)
-{
-	i2c_del_driver(&smb347_driver);
-}
-module_exit(smb347_exit);
+module_i2c_driver(smb347_driver);
 
 MODULE_AUTHOR("Bruce E. Robertson <bruce.e.robertson@intel.com>");
 MODULE_AUTHOR("Mika Westerberg <mika.westerberg@linux.intel.com>");

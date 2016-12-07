@@ -9,6 +9,8 @@
 #ifndef _WMT_LIB_H_
 #define _WMT_LIB_H_
 
+
+#include "osal_typedef.h"
 #include "osal.h"
 #include "wmt_core.h"
 #include "wmt_exp.h"

@@ -1,0 +1,64 @@
+--- kernel/cgroup.c
++++ kernel/cgroup.c
+@@ -2219,9 +2278,9 @@ retry_find_task:
+ 		 * only need to check permissions on one of them.
+ 		 */
+ 		tcred = __task_cred(tsk);
+-		if (cred->euid &&
+-		    cred->euid != tcred->uid &&
+-		    cred->euid != tcred->suid) {
++		if (!uid_eq(cred->euid, GLOBAL_ROOT_UID) &&
++		    !uid_eq(cred->euid, tcred->uid) &&
++		    !uid_eq(cred->euid, tcred->suid)) {
+ 			rcu_read_unlock();
+ 			ret = -EACCES;
+ 			goto out_unlock_cgroup;
+@@ -4962,21 +5239,43 @@ static void check_for_release(struct cgroup *cgrp)
+ }
+ 
+ /* Caller must verify that the css is not for root cgroup */
+-void __css_put(struct cgroup_subsys_state *css, int count)
++bool __css_tryget(struct cgroup_subsys_state *css)
++{
++	do {
++		int v = css_refcnt(css);
++
++		if (atomic_cmpxchg(&css->refcnt, v, v + 1) == v)
++			return true;
++		cpu_relax();
++	} while (!test_bit(CSS_REMOVED, &css->flags));
++
++	return false;
++}
++EXPORT_SYMBOL_GPL(__css_tryget);
++
++/* Caller must verify that the css is not for root cgroup */
++void __css_put(struct cgroup_subsys_state *css)
+ {
+ 	struct cgroup *cgrp = css->cgroup;
+-	int val;
++	int v;
++
+ 	rcu_read_lock();
+-	val = atomic_sub_return(count, &css->refcnt);
+-	if (val == 1) {
++	v = css_unbias_refcnt(atomic_dec_return(&css->refcnt));
++
++	switch (v) {
++	case 1:
+ 		if (notify_on_release(cgrp)) {
+ 			set_bit(CGRP_RELEASABLE, &cgrp->flags);
+ 			check_for_release(cgrp);
+ 		}
+ 		cgroup_wakeup_rmdir_waiter(cgrp);
++		break;
++	case 0:
++		if (!test_bit(CSS_CLEAR_CSS_REFS, &css->flags))
++			schedule_work(&css->dput_work);
++		break;
+ 	}
+ 	rcu_read_unlock();
+-	WARN_ON_ONCE(val < 1);
+ }
+ EXPORT_SYMBOL_GPL(__css_put);
+ 

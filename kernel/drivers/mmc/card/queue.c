@@ -58,29 +58,10 @@ static int mmc_queue_thread(void *d)
 	do {
 		struct request *req = NULL;
 		struct mmc_queue_req *tmp;
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-		int dir = 0;
-		unsigned long long check_point = 0;
-#endif
 
 		spin_lock_irq(q->queue_lock);
 		set_current_state(TASK_INTERRUPTIBLE);
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-		if ((1 == g_mtk_mmc_perf_dbg) && (2 == g_mtk_mmc_dbg_range)){
-			check_point = sched_clock();
-		}
-#endif
 		req = blk_fetch_request(q);
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-			if (req && (1 == g_mtk_mmc_perf_dbg) && (2 == g_mtk_mmc_dbg_range)){
-					dir = (blk_rq_sectors(req)>1 ? (rq_data_dir(req) == READ ? 18 : 25) : 0);
-					if ((blk_rq_pos(req) >= g_dbg_range_start) && ((blk_rq_pos(req) <= g_dbg_range_end) && (dir == g_check_read_write))){
-						g_dbg_req_count++;
-						g_mmcqd_buf[g_dbg_req_count][1] = sched_clock();
-						g_mmcqd_buf[g_dbg_req_count][0] = check_point;
-					}
-				}
-#endif	
 		mq->mqrq_cur->req = req;
 		spin_unlock_irq(q->queue_lock);
 
@@ -115,7 +96,7 @@ static int mmc_queue_thread(void *d)
  * on any queue on this host, and attempt to issue it.  This may
  * not be the queue we were asked to process.
  */
-static void mmc_request(struct request_queue *q)
+static void mmc_request_fn(struct request_queue *q)
 {
 	struct mmc_queue *mq = q->queuedata;
 	struct request *req;
@@ -190,12 +171,10 @@ int mmc_init_queue(struct mmc_queue *mq, struct mmc_card *card,
 		limit = *mmc_dev(host)->dma_mask;
 
 	mq->card = card;
-	mq->queue = blk_init_queue(mmc_request, lock);
+	mq->queue = blk_init_queue(mmc_request_fn, lock);
 	if (!mq->queue)
 		return -ENOMEM;
 
-	memset(&mq->mqrq_cur, 0, sizeof(mq->mqrq_cur));
-	memset(&mq->mqrq_prev, 0, sizeof(mq->mqrq_prev));
 #ifdef CONFIG_ZRAM    
     if (mmc_card_mmc(card) &&
         (totalram_pages << (PAGE_SHIFT - 10)) <= (256 * 1024))

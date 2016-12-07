@@ -1,0 +1,135 @@
+--- mm/vmscan.c
++++ mm/vmscan.c
+@@ -138,44 +112,21 @@ static bool global_reclaim(struct scan_control *sc)
+ {
+ 	return !sc->target_mem_cgroup;
+ }
+-
+-static bool scanning_global_lru(struct mem_cgroup_zone *mz)
+-{
+-	return !mz->mem_cgroup;
+-}
+ #else
+ static bool global_reclaim(struct scan_control *sc)
+ {
+ 	return true;
+ }
+-
+-static bool scanning_global_lru(struct mem_cgroup_zone *mz)
+-{
+-	return true;
+-}
+ #endif
+ 
+-static struct zone_reclaim_stat *get_reclaim_stat(struct mem_cgroup_zone *mz)
++static unsigned long get_lru_size(struct lruvec *lruvec, enum lru_list lru)
+ {
+-	if (!scanning_global_lru(mz))
+-		return mem_cgroup_get_reclaim_stat(mz->mem_cgroup, mz->zone);
++	if (!mem_cgroup_disabled())
++		return mem_cgroup_get_lru_size(lruvec, lru);
+ 
+-	return &mz->zone->reclaim_stat;
++	return zone_page_state(lruvec_zone(lruvec), NR_LRU_BASE + lru);
+ }
+ 
+-static unsigned long zone_nr_lru_pages(struct mem_cgroup_zone *mz,
+-				       enum lru_list lru)
+-{
+-	if (!scanning_global_lru(mz))
+-		return mem_cgroup_zone_nr_lru_pages(mz->mem_cgroup,
+-						    zone_to_nid(mz->zone),
+-						    zone_idx(mz->zone),
+-						    BIT(lru));
+-
+-	return zone_page_state(mz->zone, NR_LRU_BASE + lru);
+-}
+-
+-
+ /*
+  * Add a shrinker callback to be called from the vm
+  */
+@@ -1650,8 +1324,8 @@ static void get_scan_count(struct mem_cgroup_zone *mz, struct scan_control *sc,
+ 	 * With swappiness at 100, anonymous and file have the same priority.
+ 	 * This scanning priority is essentially the inverse of IO cost.
+ 	 */
+-	anon_prio = vmscan_swappiness(mz, sc);
+-	file_prio = 200 - vmscan_swappiness(mz, sc);
++	anon_prio = vmscan_swappiness(sc);
++	file_prio = 200 - anon_prio;
+ 
+ 	/*
+ 	 * OK, so we have swap space and a fair amount of page cache
+@@ -1695,9 +1369,9 @@ out:
+ 		int file = is_file_lru(lru);
+ 		unsigned long scan;
+ 
+-		scan = zone_nr_lru_pages(mz, lru);
+-		if (priority || noswap) {
+-			scan >>= priority;
++		scan = get_lru_size(lruvec, lru);
++		if (sc->priority || noswap || !vmscan_swappiness(sc)) {
++			scan >>= sc->priority;
+ 			if (!scan && force_scan)
+ 				scan = SWAP_CLUSTER_MAX;
+ 			scan = div64_u64(scan * fraction[file], denominator);
+@@ -1830,35 +1515,33 @@ restart:
+ 	 * Even if we did not try to evict anon pages at all, we want to
+ 	 * rebalance the anon lru active/inactive ratio.
+ 	 */
+-	if (inactive_anon_is_low(mz))
+-		shrink_active_list(SWAP_CLUSTER_MAX, mz, sc, priority, 0);
++	if (inactive_anon_is_low(lruvec))
++		shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
++				   sc, LRU_ACTIVE_ANON);
+ 
+ 	/* reclaim/compaction might need reclaim to continue */
+-	if (should_continue_reclaim(mz, nr_reclaimed,
+-					sc->nr_scanned - nr_scanned, sc))
++	if (should_continue_reclaim(lruvec, nr_reclaimed,
++				    sc->nr_scanned - nr_scanned, sc))
+ 		goto restart;
+ 
+ 	throttle_vm_writeout(sc->gfp_mask);
+ }
+ 
+-static void shrink_zone(int priority, struct zone *zone,
+-			struct scan_control *sc)
++static void shrink_zone(struct zone *zone, struct scan_control *sc)
+ {
+ 	struct mem_cgroup *root = sc->target_mem_cgroup;
+ 	struct mem_cgroup_reclaim_cookie reclaim = {
+ 		.zone = zone,
+-		.priority = priority,
++		.priority = sc->priority,
+ 	};
+ 	struct mem_cgroup *memcg;
+ 
+ 	memcg = mem_cgroup_iter(root, NULL, &reclaim);
+ 	do {
+-		struct mem_cgroup_zone mz = {
+-			.mem_cgroup = memcg,
+-			.zone = zone,
+-		};
++		struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
++
++		shrink_lruvec(lruvec, sc);
+ 
+-		shrink_mem_cgroup_zone(priority, &mz, sc);
+ 		/*
+ 		 * Limit reclaim has historically picked one memcg and
+ 		 * scanned it with decreasing priority levels until
+@@ -2057,11 +1739,9 @@ static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
+ 	if (global_reclaim(sc))
+ 		count_vm_event(ALLOCSTALL);
+ 
+-	for (priority = DEF_PRIORITY; priority >= 0; priority--) {
++	do {
+ 		sc->nr_scanned = 0;
+-		if (!priority)
+-			disable_swap_token(sc->target_mem_cgroup);
+-		aborted_reclaim = shrink_zones(priority, zonelist, sc);
++		aborted_reclaim = shrink_zones(zonelist, sc);
+ 
+ 		/*
+ 		 * Don't shrink slabs when reclaiming memory from

@@ -1,0 +1,16 @@
+--- net/unix/af_unix.c
++++ net/unix/af_unix.c
+@@ -1438,11 +1439,12 @@ static int unix_dgram_sendmsg(struct kiocb *kiocb, struct socket *sock,
+ 	struct sock *other = NULL;
+ 	int namelen = 0; /* fake GCC */
+ 	int err;
+-	unsigned hash;
++	unsigned int hash;
+ 	struct sk_buff *skb;
+ 	long timeo;
+ 	struct scm_cookie tmp_scm;
+ 	int max_level;
++	int data_len = 0;
+ 
+ 	if (NULL == siocb->scm)
+ 		siocb->scm = &tmp_scm;

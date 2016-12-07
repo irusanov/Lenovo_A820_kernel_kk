@@ -3,159 +3,197 @@
 
 #include <generated/autoconf.h>
 #include <linux/kallsyms.h>
-#include <linux/xlog.h>
 #include <linux/kmsg_dump.h>
-//#include "partition_define.h"
-#include "../../../../../../kernel/drivers/staging/android/logger.h"
+/* #include "staging/android/logger.h" */
+#include <linux/aee.h>
 #include "ipanic_version.h"
 
 #define AEE_IPANIC_PLABEL "expdb"
 
 #define IPANIC_MODULE_TAG "KERNEL-PANIC"
 
-#define IPANIC_LOG_TAG "aee/ipanic"
-
 #define AEE_IPANIC_MAGIC 0xaee0dead
-#define AEE_IPANIC_PHDR_VERSION   0x04
-#define AEE_IPANIC_DATALENGTH_MAX (512 * 1024)
+#define AEE_IPANIC_PHDR_VERSION   0x10
+#define IPANIC_NR_SECTIONS		32
+#if (AEE_IPANIC_PHDR_VERSION >= 0x10)
+#define IPANIC_USERSPACE_READ		1
+#endif
+
+#define AEE_LOG_LEVEL 8
+#define LOG_DEBUG(fmt, ...)			\
+	if (aee_in_nested_panic())			\
+		aee_nested_printf(fmt, ##__VA_ARGS__);	\
+	else						\
+		pr_debug(fmt, ##__VA_ARGS__)
+
+#define LOG_ERROR(fmt, ...)			\
+	if (aee_in_nested_panic())			\
+		aee_nested_printf(fmt, ##__VA_ARGS__);	\
+	else						\
+		pr_err(fmt, ##__VA_ARGS__)
+
+#define LOGV(fmt, msg...)
+#define LOGD LOG_DEBUG
+#define LOGI LOG_DEBUG
+#define LOGW LOG_ERROR
+#define LOGE LOG_ERROR
+
+struct ipanic_data_header {
+	u32 type;		/* data type(0-31) */
+	u32 valid;		/* set to 1 when dump succeded */
+	u32 offset;		/* offset in EXPDB partition */
+	u32 used;		/* valid data size */
+	u32 total;		/* allocated partition size */
+	u32 encrypt;		/* data encrypted */
+	u32 raw;		/* raw data or plain text */
+	u32 compact;		/* data and header in same block, to save space */
+	u8 name[32];
+};
 
 struct ipanic_header {
 	/* The magic/version field cannot be moved or resize */
 	u32 magic;
-	u32 version;
-
-	u32 oops_header_offset;
-	u32 oops_header_length;
-
-	u32 oops_detail_offset;
-	u32 oops_detail_length;
-
-	u32 console_offset;
-	u32 console_length;
-
-	u32 android_main_offset;
-	u32 android_main_length;
-	
-	u32 android_event_offset;
-	u32 android_event_length;
-	
-	u32 android_radio_offset;
-	u32 android_radio_length;
-	
-	u32 android_system_offset;
-	u32 android_system_length;
-
-	u32 userspace_info_offset;
-	u32 userspace_info_length;
-
-	u32 mmprofile_offset;
-	u32 mmprofile_length;
-	
-	u32 mini_rdump_offset;
-	u32 mini_rdump_length;
+	u32 version;		/* ipanic version */
+	u32 size;		/* ipanic_header size */
+	u32 datas;		/* bitmap of data sections dumped */
+	u32 dhblk;		/* data header blk size, 0 if no dup data headers */
+	u32 blksize;
+	u32 partsize;		/* expdb partition totoal size */
+	u32 bufsize;
+	u64 buf;
+	struct ipanic_data_header data_hdr[IPANIC_NR_SECTIONS];
 };
 
-#ifndef MTK_EMMC_SUPPORT
-struct mtd_ipanic_data {
-	struct mtd_info	*mtd;
-	struct ipanic_header curr;
-	void *bounce;
-	u32 blk_offset[512];
-
-	struct proc_dir_entry *oops;
-};
-#endif
-
-#define IPANIC_OOPS_HEADER_PROCESS_NAME_LENGTH 256
-#define IPANIC_OOPS_HEADER_BACKTRACE_LENGTH 3840
-#define IPANIC_OOPS_MMPROFILE_LENGTH_LIMIT 3000000
-
-struct ipanic_oops_header 
-{
-	char process_path[IPANIC_OOPS_HEADER_PROCESS_NAME_LENGTH];
-	char backtrace[IPANIC_OOPS_HEADER_BACKTRACE_LENGTH];
-};
+#define IPANIC_MMPROFILE_LIMIT		0x220000
 
 struct ipanic_ops {
 
-	struct aee_oops *(*oops_copy)(void);
-  
-	void (*oops_free)(struct aee_oops *oops, int erase);
+	struct aee_oops *(*oops_copy) (void);
+
+	void (*oops_free) (struct aee_oops *oops, int erase);
 };
 
 void register_ipanic_ops(struct ipanic_ops *op);
-
 struct aee_oops *ipanic_oops_copy(void);
-
 void ipanic_oops_free(struct aee_oops *oops, int erase);
-
-extern struct ipanic_oops_header oops_header;
-
-/*
- * Check if valid header is legitimate
- * return
- *  0: contain good panic data 
- *  1: no panic data
- *  2: contain bad panic data
- */
-int ipanic_header_check(const struct ipanic_header *hdr);
-
-void ipanic_header_dump(const struct ipanic_header *header);
-
 void ipanic_block_scramble(u8 *buf, int buflen);
-
-void ipanic_oops_start(void);
-
-void ipanic_oops_end(void);
-
-/* User space process support functions */
-
-#define MAX_NATIVEINFO  32*1024
-#define MAX_NATIVEHEAP  2048
-
-extern char NativeInfo[MAX_NATIVEINFO]; //check that 32k is enought??
-
-extern unsigned long User_Stack[MAX_NATIVEHEAP];//8K Heap
-
-int DumpNativeInfo(void);
-
-/* External ipanic support functions */
-
-//int card_dump_func_read(unsigned char* buf, unsigned int len, unsigned int offset, unsigned int dev);
-
-//int card_dump_func_write(unsigned char* buf, unsigned int len, unsigned int offset, unsigned int dev);
-
+/* for WDT timeout case : dump timer/schedule/irq/softirq etc... debug information */
+extern void aee_wdt_dump_info(void);
+extern int mt_dump_wq_debugger(void);
+void aee_disable_api(void);
 int panic_dump_android_log(char *buf, size_t size, int type);
 
-/*
-*  to check expdb parition size bigger than the buffer size.
-*  layout
-     -------------------------------------------------------------------------------------------
-     | oops_header  | ipanic_detail | kernel buffer | usespace info| android buf|ipanic_header |
-*/
-
-#define __LOG_BUF_LEN	(1 << CONFIG_LOG_BUF_SHIFT)
-#define BLOCK_DEVICE_SECTOR_ALIGN     512
+/* User space process support functions */
+#define MAX_NATIVEINFO  32*1024
+#define MAX_NATIVEHEAP  2048
+extern char NativeInfo[MAX_NATIVEINFO];	/* check that 32k is enought?? */
+extern unsigned long User_Stack[MAX_NATIVEHEAP];	/* 8K Heap */
+int DumpNativeInfo(void);
 /*
 * Since ipanic_detail and usersapce info size is not known
 * until run time, we do a guess here
 */
 #define IPANIC_DETAIL_USERSPACE_SIZE    (100 * 1024)
 
-#define  PANIC_INFO_SIZE        \
-sizeof(struct ipanic_oops_header) + __LOG_BUF_LEN +  \
-        __MAIN_BUF_SIZE +  IPANIC_DETAIL_USERSPACE_SIZE + \
-            __RADIO_BUF_SIZE + __SYSTEM_BUF_SIZE +  \
-            sizeof(struct ipanic_header) + (6 * BLOCK_DEVICE_SECTOR_ALIGN)
+#if 1
+#ifdef CONFIG_MTK_AEE_IPANIC_TYPES
+#define IPANIC_DT_DUMP			CONFIG_MTK_AEE_IPANIC_TYPES
+#else
+#define IPANIC_DT_DUMP			0x0fffffff
+#endif
+#define IPANIC_DT_ENCRYPT		0xfffffffe
 
+typedef enum {
+	IPANIC_DT_HEADER = 0,
+	IPANIC_DT_KERNEL_LOG = 1,
+	IPANIC_DT_WDT_LOG,
+	IPANIC_DT_WQ_LOG,
+	IPANIC_DT_CURRENT_TSK = 6,
+	IPANIC_DT_OOPS_LOG,
+	IPANIC_DT_MINI_RDUMP = 8,
+	IPANIC_DT_MMPROFILE,
+	IPANIC_DT_MAIN_LOG,
+	IPANIC_DT_SYSTEM_LOG,
+	IPANIC_DT_EVENTS_LOG,
+	IPANIC_DT_RADIO_LOG,
+	IPANIC_DT_LAST_LOG,
+	IPANIC_DT_RAM_DUMP = 28,
+	IPANIC_DT_SHUTDOWN_LOG = 30,
+	IPANIC_DT_RESERVED31 = 31,
+} IPANIC_DT;
+
+struct ipanic_memory_block {
+	unsigned long kstart;	/* start kernel addr of memory dump */
+	unsigned long kend;	/* end kernel addr of memory dump */
+	unsigned long pos;	/* next pos to dump */
+	unsigned long reserved;	/* reserved */
+};
+
+typedef struct ipanic_dt_op {
+	char string[32];
+	int size;
+	int (*next) (void *data, unsigned char *buffer, size_t sz_buf);
+} ipanic_dt_op_t;
+
+#define ipanic_dt_encrypt(x)		((IPANIC_DT_ENCRYPT >> x) & 1)
+#define ipanic_dt_active(x)		((IPANIC_DT_DUMP >> x) & 1)
+
+/* copy from kernel/drivers/staging/android/logger.h */
 /*
- * the trick is if PART_SIZE_EXPDB is less than PANIC_INFO_SIZE, 
- * compiler error will occure
- */
-//typedef unsigned int ipanic_check_expdb[PART_SIZE_EXPDB - PANIC_INFO_SIZE];
+  SMP porting, we double the android buffer
+* and kernel buffer size for dual core
+*/
+#ifdef CONFIG_SMP
+#ifndef __MAIN_BUF_SIZE
+#define __MAIN_BUF_SIZE 256*1024
+#endif
 
-/* for WDT timeout case : dump timer/schedule/irq/softirq etc... debug information */
-extern void aee_wdt_dump_info(void);
+#ifndef __EVENTS_BUF_SIZE
+#define __EVENTS_BUF_SIZE 256*1024
+#endif
 
-int ipanic_kmsg_dump3(struct kmsg_dumper *dumper, char *buf, size_t len);
+#ifndef __RADIO_BUF_SIZE
+#define __RADIO_BUF_SIZE 256*1024
+#endif
+
+#ifndef __SYSTEM_BUF_SIZE
+#define __SYSTEM_BUF_SIZE 256*1024
+#endif
+#else
+#ifndef __MAIN_BUF_SIZE
+#define __MAIN_BUF_SIZE 256*1024
+#endif
+
+#ifndef __EVENTS_BUF_SIZE
+#define __EVENTS_BUF_SIZE 256*1024
+#endif
+
+#ifndef __RADIO_BUF_SIZE
+#define __RADIO_BUF_SIZE 64*1024
+#endif
+
+#ifndef __SYSTEM_BUF_SIZE
+#define __SYSTEM_BUF_SIZE 64*1024
+#endif
+#endif
+
+#ifndef __LOG_BUF_LEN
+#define __LOG_BUF_LEN	(1 << CONFIG_LOG_BUF_SHIFT)
+#endif
+
+#define OOPS_LOG_LEN	__LOG_BUF_LEN
+#define WDT_LOG_LEN	__LOG_BUF_LEN
+#define WQ_LOG_LEN	32*1024
+#define LAST_LOG_LEN	(AEE_LOG_LEVEL == 8 ? __LOG_BUF_LEN : 32*1024)
+
+char *ipanic_read_size(int off, int len);
+int ipanic_write_size(void *buf, int off, int len);
+void ipanic_erase(void);
+struct ipanic_header *ipanic_header(void);
+void ipanic_msdc_init(void);
+int ipanic_msdc_info(struct ipanic_header *iheader);
+void ipanic_log_temp_init(void);
+void ipanic_klog_region(struct kmsg_dumper *dumper);
+int ipanic_klog_buffer(void *data, unsigned char *buffer, size_t sz_buf);
+#endif
 #endif

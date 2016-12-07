@@ -60,8 +60,8 @@ static void spin_dump(raw_spinlock_t *lock, const char *msg)
 	printk(KERN_EMERG "BUG: spinlock %s on CPU#%d, %s/%d\n",
 		msg, raw_smp_processor_id(),
 		current->comm, task_pid_nr(current));
-	printk(KERN_EMERG " lock: %p, .magic: %08x, .owner: %s/%d, "
-			".owner_cpu: %d, value: %d\n",
+	printk(KERN_EMERG " lock: %ps, .magic: %08x, .owner: %s/%d, "
+			".owner_cpu: %d\n",
 		lock, lock->magic,
 		owner ? owner->comm : "<none>",
 		owner ? task_pid_nr(owner) : -1,
@@ -132,7 +132,7 @@ static void __spin_lock_debug(raw_spinlock_t *lock)
         printk("spin time: %llu ns(start:%llu ns, lpj:%lu, HZ:%d)", sched_clock() - t1, t1, loops_per_jiffy, (int)LOOP_HZ);
 		if (print_once) {
 			print_once = 0;
-			spin_dump(lock, "lockup");
+			spin_dump(lock, "lockup suspected");
 #ifdef CONFIG_SMP
 			trigger_all_cpu_backtrace();
 #endif

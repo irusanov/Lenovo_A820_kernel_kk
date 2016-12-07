@@ -1,0 +1,16 @@
+--- drivers/tty/pty.c
++++ drivers/tty/pty.c
+@@ -26,11 +26,13 @@
+ #include <linux/bitops.h>
+ #include <linux/devpts_fs.h>
+ #include <linux/slab.h>
++#include <linux/mutex.h>
+ 
+ 
+ #ifdef CONFIG_UNIX98_PTYS
+ static struct tty_driver *ptm_driver;
+ static struct tty_driver *pts_driver;
++static DEFINE_MUTEX(devpts_mutex);
+ #endif
+ 
+ static void pty_close(struct tty_struct *tty, struct file *filp)

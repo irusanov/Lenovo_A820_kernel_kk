@@ -1,0 +1,16 @@
+--- net/ipv4/fib_semantics.c
++++ net/ipv4/fib_semantics.c
+@@ -162,13 +168,7 @@ void free_fib_info(struct fib_info *fi)
+ 		pr_warn("Freeing alive fib_info %p\n", fi);
+ 		return;
+ 	}
+-	change_nexthops(fi) {
+-		if (nexthop_nh->nh_dev)
+-			dev_put(nexthop_nh->nh_dev);
+-		nexthop_nh->nh_dev = NULL;
+-	} endfor_nexthops(fi);
+ 	fib_info_cnt--;
+-	release_net(fi->fib_net);
+ 	call_rcu(&fi->rcu, free_fib_info_rcu);
+ }
+ 

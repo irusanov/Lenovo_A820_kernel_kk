@@ -107,7 +107,6 @@
     } \
     else { \
         value = NULL; \
-        osal_assert(!RB_EMPTY(prb)); \
     } \
 }
 
@@ -338,6 +337,11 @@ extern INT32
 osal_signal_deinit (
     P_OSAL_SIGNAL
     );
+extern INT32
+osal_signal_active_state (
+    P_OSAL_SIGNAL pSignal
+    );
+
 
 extern INT32 osal_event_init(P_OSAL_EVENT);
 extern INT32 osal_wait_for_event(P_OSAL_EVENT, P_COND , void *);

@@ -1,0 +1,10 @@
+--- include/sound/soc.h
++++ include/sound/soc.h
+@@ -861,6 +922,7 @@ struct snd_soc_card {
+ 
+ 	struct list_head list;
+ 	struct mutex mutex;
++	struct mutex dapm_mutex;
+ 
+ 	bool instantiated;
+ 

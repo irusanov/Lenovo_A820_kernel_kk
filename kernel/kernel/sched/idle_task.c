@@ -4,7 +4,7 @@
  * idle-task scheduling class.
  *
  * (NOTE: these are not related to SCHED_IDLE tasks which are
- *  handled in sched_fair.c)
+ *  handled in sched/fair.c)
  */
 
 #ifdef CONFIG_SMP
@@ -43,7 +43,6 @@ static struct task_struct *pick_next_task_idle(struct rq *rq)
 	rq->post_schedule = 1;
 #endif
 #endif
-	calc_load_account_idle(rq);
 	return rq->idle;
 }
 

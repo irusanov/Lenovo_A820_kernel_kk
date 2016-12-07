@@ -27,6 +27,7 @@
 #include <linux/fs.h>
 #include <linux/syscalls.h>
 #include <linux/timer.h>
+#include <linux/aee.h>
 #include <asm/atomic.h>
 #include <ccci.h>
 #include <linux/wakelock.h>
@@ -1627,11 +1628,6 @@ int ack_md_sleep(char *buf, unsigned int len)
 }
 
 
-#ifdef CONFIG_MTK_AEE_FEATURE
-extern void aed_md_exception(int *, int, int *, int, char *);
-
-#endif
-
 void ccci_aed(unsigned int dump_flag, char *aed_str)
 {
 	#define AED_STR_LEN		(512)
@@ -1662,7 +1658,7 @@ void ccci_aed(unsigned int dump_flag, char *aed_str)
 	}
 
 	#ifdef CONFIG_MTK_AEE_FEATURE
-	aed_md_exception(ex_log_addr, ex_log_len, md_img_addr, md_img_len, buff);
+	aed_md_exception_api(ex_log_addr, ex_log_len, md_img_addr, md_img_len, buff,0);
 	#endif
 }
 

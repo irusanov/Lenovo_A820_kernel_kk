@@ -1,0 +1,44 @@
+--- fs/proc/task_mmu.c
++++ fs/proc/task_mmu.c
+@@ -403,24 +404,33 @@ static void smaps_pte_entry(pte_t ptent, unsigned long addr,
+ {
+ 	struct mem_size_stats *mss = walk->private;
+ 	struct vm_area_struct *vma = mss->vma;
+-	struct page *page;
++	pgoff_t pgoff = linear_page_index(vma, addr);
++	struct page *page = NULL;
+ 	int mapcount;
+ 
+-	if (is_swap_pte(ptent)) {
+-		mss->swap += ptent_size;
+-		return;
++	if (pte_present(ptent)) {
++		page = vm_normal_page(vma, addr, ptent);
++	} else if (is_swap_pte(ptent)) {
++		swp_entry_t swpent = pte_to_swp_entry(ptent);
++
++		if (!non_swap_entry(swpent))
++			mss->swap += ptent_size;
++		else if (is_migration_entry(swpent))
++			page = migration_entry_to_page(swpent);
++	} else if (pte_file(ptent)) {
++		if (pte_to_pgoff(ptent) != pgoff)
++			mss->nonlinear += ptent_size;
+ 	}
+ 
+-	if (!pte_present(ptent))
+-		return;
+-
+-	page = vm_normal_page(vma, addr, ptent);
+ 	if (!page)
+ 		return;
+ 
+ 	if (PageAnon(page))
+ 		mss->anonymous += ptent_size;
+ 
++	if (page->index != pgoff)
++		mss->nonlinear += ptent_size;
++
+ 	mss->resident += ptent_size;
+ 	/* Accumulate the size in pages that have been accessed. */
+ 	if (pte_young(ptent) || PageReferenced(page))

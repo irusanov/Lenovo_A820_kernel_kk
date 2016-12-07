@@ -1,0 +1,21 @@
+--- arch/arm/Kconfig
++++ arch/arm/Kconfig
+@@ -34,10 +38,17 @@ config ARM
+ 	select HAVE_HW_BREAKPOINT if (PERF_EVENTS && (CPU_V6 || CPU_V6K || CPU_V7))
+ 	select HAVE_C_RECORDMCOUNT
+ 	select HAVE_GENERIC_HARDIRQS
++	select HARDIRQS_SW_RESEND
++	select GENERIC_IRQ_PROBE
+ 	select GENERIC_IRQ_SHOW
++	select GENERIC_IRQ_PROBE
++	select HARDIRQS_SW_RESEND
+ 	select CPU_PM if (SUSPEND || CPU_IDLE)
+ 	select GENERIC_PCI_IOMAP
+-	select HAVE_BPF_JIT if NET
++	select HAVE_BPF_JIT
++	select GENERIC_SMP_IDLE_THREAD
++	select KTIME_SCALAR
++	select GENERIC_CLOCKEVENTS_BROADCAST if SMP
+ 	help
+ 	  The ARM series is a line of low-power-consumption RISC chip designs
+ 	  licensed by ARM Ltd and targeted at embedded applications and

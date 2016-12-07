@@ -1,0 +1,359 @@
+--- kernel/sched/fair.c
++++ kernel/sched/fair.c
+@@ -3632,41 +3501,43 @@ fix_small_capacity(struct sched_domain *sd, struct sched_group *group)
+ 
+ /**
+  * update_sg_lb_stats - Update sched_group's statistics for load balancing.
+- * @sd: The sched_domain whose statistics are to be updated.
++ * @env: The load balancing environment.
+  * @group: sched_group whose statistics are to be updated.
+- * @this_cpu: Cpu for which load balance is currently performed.
+- * @idle: Idle status of this_cpu
+  * @load_idx: Load index of sched_domain of this_cpu for load calc.
+  * @local_group: Does group contain this_cpu.
+  * @cpus: Set of cpus considered for load balancing.
+  * @balance: Should we balance.
+  * @sgs: variable to hold the statistics for this group.
+  */
+-static inline void update_sg_lb_stats(struct sched_domain *sd,
+-			struct sched_group *group, int this_cpu,
+-			enum cpu_idle_type idle, int load_idx,
++static inline void update_sg_lb_stats(struct lb_env *env,
++			struct sched_group *group, int load_idx,
+ 			int local_group, const struct cpumask *cpus,
+ 			int *balance, struct sg_lb_stats *sgs)
+ {
+-	unsigned long load, max_cpu_load, min_cpu_load, max_nr_running;
+-	int i;
++	unsigned long nr_running, max_nr_running, min_nr_running;
++	unsigned long load, max_cpu_load, min_cpu_load;
+ 	unsigned int balance_cpu = -1, first_idle_cpu = 0;
+ 	unsigned long avg_load_per_task = 0;
++	int i;
+ 
+ 	if (local_group)
+-		balance_cpu = group_first_cpu(group);
++		balance_cpu = group_balance_cpu(group);
+ 
+ 	/* Tally up the load of all CPUs in the group */
+ 	max_cpu_load = 0;
+ 	min_cpu_load = ~0UL;
+ 	max_nr_running = 0;
++	min_nr_running = ~0UL;
+ 
+ 	for_each_cpu_and(i, sched_group_cpus(group), cpus) {
+ 		struct rq *rq = cpu_rq(i);
+ 
++		nr_running = rq->nr_running;
++
+ 		/* Bias balancing toward cpus of our domain */
+ 		if (local_group) {
+-			if (idle_cpu(i) && !first_idle_cpu) {
++			if (idle_cpu(i) && !first_idle_cpu &&
++					cpumask_test_cpu(i, sched_group_mask(group))) {
+ 				first_idle_cpu = 1;
+ 				balance_cpu = i;
+ 			}
+@@ -3674,16 +3545,19 @@ static inline void update_sg_lb_stats(struct sched_domain *sd,
+ 			load = target_load(i, load_idx);
+ 		} else {
+ 			load = source_load(i, load_idx);
+-			if (load > max_cpu_load) {
++			if (load > max_cpu_load)
+ 				max_cpu_load = load;
+-				max_nr_running = rq->nr_running;
+-			}
+ 			if (min_cpu_load > load)
+ 				min_cpu_load = load;
++
++			if (nr_running > max_nr_running)
++				max_nr_running = nr_running;
++			if (min_nr_running > nr_running)
++				min_nr_running = nr_running;
+ 		}
+ 
+ 		sgs->group_load += load;
+-		sgs->sum_nr_running += rq->nr_running;
++		sgs->sum_nr_running += nr_running;
+ 		sgs->sum_weighted_load += weighted_cpuload(i);
+ 		if (idle_cpu(i))
+ 			sgs->idle_cpus++;
+@@ -3737,20 +3612,18 @@ static inline void update_sg_lb_stats(struct sched_domain *sd,
+ 
+ /**
+  * update_sd_pick_busiest - return 1 on busiest group
+- * @sd: sched_domain whose statistics are to be checked
++ * @env: The load balancing environment.
+  * @sds: sched_domain statistics
+  * @sg: sched_group candidate to be checked for being the busiest
+  * @sgs: sched_group statistics
+- * @this_cpu: the current cpu
+  *
+  * Determine if @sg is a busier group than the previously selected
+  * busiest group.
+  */
+-static bool update_sd_pick_busiest(struct sched_domain *sd,
++static bool update_sd_pick_busiest(struct lb_env *env,
+ 				   struct sd_lb_stats *sds,
+ 				   struct sched_group *sg,
+-				   struct sg_lb_stats *sgs,
+-				   int this_cpu)
++				   struct sg_lb_stats *sgs)
+ {
+ 	if (sgs->avg_load <= sds->max_load)
+ 		return false;
+@@ -3780,35 +3653,32 @@ static bool update_sd_pick_busiest(struct sched_domain *sd,
+ 
+ /**
+  * update_sd_lb_stats - Update sched_domain's statistics for load balancing.
+- * @sd: sched_domain whose statistics are to be updated.
+- * @this_cpu: Cpu for which load balance is currently performed.
+- * @idle: Idle status of this_cpu
++ * @env: The load balancing environment.
+  * @cpus: Set of cpus considered for load balancing.
+  * @balance: Should we balance.
+  * @sds: variable to hold the statistics for this sched_domain.
+  */
+-static inline void update_sd_lb_stats(struct sched_domain *sd, int this_cpu,
+-			enum cpu_idle_type idle, const struct cpumask *cpus,
+-			int *balance, struct sd_lb_stats *sds)
++static inline void update_sd_lb_stats(struct lb_env *env,
++				      const struct cpumask *cpus,
++				      int *balance, struct sd_lb_stats *sds)
+ {
+-	struct sched_domain *child = sd->child;
+-	struct sched_group *sg = sd->groups;
++	struct sched_domain *child = env->sd->child;
++	struct sched_group *sg = env->sd->groups;
+ 	struct sg_lb_stats sgs;
+ 	int load_idx, prefer_sibling = 0;
+ 
+ 	if (child && child->flags & SD_PREFER_SIBLING)
+ 		prefer_sibling = 1;
+ 
+-	init_sd_power_savings_stats(sd, sds, idle);
+-	load_idx = get_sd_load_idx(sd, idle);
++	load_idx = get_sd_load_idx(env->sd, env->idle);
+ 
+ 	do {
+ 		int local_group;
+ 
+-		local_group = cpumask_test_cpu(this_cpu, sched_group_cpus(sg));
++		local_group = cpumask_test_cpu(env->dst_cpu, sched_group_cpus(sg));
+ 		memset(&sgs, 0, sizeof(sgs));
+-		update_sg_lb_stats(sd, sg, this_cpu, idle, load_idx,
+-				local_group, cpus, balance, &sgs);
++		update_sg_lb_stats(env, sg, load_idx, local_group,
++				   cpus, balance, &sgs);
+ 
+ 		if (local_group && !(*balance))
+ 			return;
+@@ -3836,7 +3706,7 @@ static inline void update_sd_lb_stats(struct sched_domain *sd, int this_cpu,
+ 			sds->this_load_per_task = sgs.sum_weighted_load;
+ 			sds->this_has_capacity = sgs.group_has_capacity;
+ 			sds->this_idle_cpus = sgs.idle_cpus;
+-		} else if (update_sd_pick_busiest(sd, sds, sg, &sgs, this_cpu)) {
++		} else if (update_sd_pick_busiest(env, sds, sg, &sgs)) {
+ 			sds->max_load = sgs.avg_load;
+ 			sds->busiest = sg;
+ 			sds->busiest_nr_running = sgs.sum_nr_running;
+@@ -4054,9 +3914,7 @@ static inline void calculate_imbalance(struct sd_lb_stats *sds, int this_cpu,
+  *		   put to idle by rebalancing its tasks onto our group.
+  */
+ static struct sched_group *
+-find_busiest_group(struct sched_domain *sd, int this_cpu,
+-		   unsigned long *imbalance, enum cpu_idle_type idle,
+-		   const struct cpumask *cpus, int *balance)
++find_busiest_group(struct lb_env *env, const struct cpumask *cpus, int *balance)
+ {
+ 	struct sd_lb_stats sds;
+ 
+@@ -4066,7 +3924,7 @@ find_busiest_group(struct sched_domain *sd, int this_cpu,
+ 	 * Compute the various statistics relavent for load balancing at
+ 	 * this level.
+ 	 */
+-	update_sd_lb_stats(sd, this_cpu, idle, cpus, balance, &sds);
++	update_sd_lb_stats(env, cpus, balance, &sds);
+ 
+ 	/*
+ 	 * this_cpu is not the appropriate cpu to perform load balancing at
+@@ -4127,34 +3985,27 @@ find_busiest_group(struct sched_domain *sd, int this_cpu,
+ 		 * In the CPU_NEWLY_IDLE, CPU_NOT_IDLE cases, use
+ 		 * imbalance_pct to be conservative.
+ 		 */
+-		if (100 * sds.max_load <= sd->imbalance_pct * sds.this_load)
++		if (100 * sds.max_load <= env->sd->imbalance_pct * sds.this_load)
+ 			goto out_balanced;
+ 	}
+ 
+ force_balance:
+ 	/* Looks like there is an imbalance. Compute it */
+-	calculate_imbalance(&sds, this_cpu, imbalance);
++	calculate_imbalance(env, &sds);
+ 	return sds.busiest;
+ 
+ out_balanced:
+-	/*
+-	 * There is no obvious imbalance. But check if we can do some balancing
+-	 * to save power.
+-	 */
+-	if (check_power_save_busiest_group(&sds, this_cpu, imbalance))
+-		return sds.busiest;
+ ret:
+-	*imbalance = 0;
++	env->imbalance = 0;
+ 	return NULL;
+ }
+ 
+ /*
+  * find_busiest_queue - find the busiest runqueue among the cpus in group.
+  */
+-static struct rq *
+-find_busiest_queue(struct sched_domain *sd, struct sched_group *group,
+-		   enum cpu_idle_type idle, unsigned long imbalance,
+-		   const struct cpumask *cpus)
++static struct rq *find_busiest_queue(struct lb_env *env,
++				     struct sched_group *group,
++				     const struct cpumask *cpus)
+ {
+ 	struct rq *busiest = NULL, *rq;
+ 	unsigned long max_load = 0;
+@@ -4255,8 +4084,7 @@ static int load_balance(int this_cpu, struct rq *this_rq,
+ 	schedstat_inc(sd, lb_count[idle]);
+ 
+ redo:
+-	group = find_busiest_group(sd, this_cpu, &imbalance, idle,
+-				   cpus, balance);
++	group = find_busiest_group(&env, cpus, balance);
+ 
+ 	if (*balance == 0)
+ 		goto out_balanced;
+@@ -4285,10 +4113,9 @@ redo:
+ 		 * correctly treated as an imbalance.
+ 		 */
+ 		env.flags |= LBF_ALL_PINNED;
+-		env.load_move	= imbalance;
+-		env.src_cpu	= busiest->cpu;
+-		env.src_rq	= busiest;
+-		env.loop_max	= min_t(unsigned long, sysctl_sched_nr_migrate, busiest->nr_running);
++		env.src_cpu   = busiest->cpu;
++		env.src_rq    = busiest;
++		env.loop_max  = min(sysctl_sched_nr_migrate, busiest->nr_running);
+ 
+ more_balance:
+ 		local_irq_save(flags);
+@@ -4542,104 +4370,15 @@ static struct {
+ 	unsigned long next_balance;     /* in jiffy units */
+ } nohz ____cacheline_aligned;
+ 
+-#if defined(CONFIG_SCHED_MC) || defined(CONFIG_SCHED_SMT)
+-/**
+- * lowest_flag_domain - Return lowest sched_domain containing flag.
+- * @cpu:	The cpu whose lowest level of sched domain is to
+- *		be returned.
+- * @flag:	The flag to check for the lowest sched_domain
+- *		for the given cpu.
+- *
+- * Returns the lowest sched_domain of a cpu which contains the given flag.
+- */
+-static inline struct sched_domain *lowest_flag_domain(int cpu, int flag)
+-{
+-	struct sched_domain *sd;
+-
+-	for_each_domain(cpu, sd)
+-		if (sd->flags & flag)
+-			break;
+-
+-	return sd;
+-}
+-
+-/**
+- * for_each_flag_domain - Iterates over sched_domains containing the flag.
+- * @cpu:	The cpu whose domains we're iterating over.
+- * @sd:		variable holding the value of the power_savings_sd
+- *		for cpu.
+- * @flag:	The flag to filter the sched_domains to be iterated.
+- *
+- * Iterates over all the scheduler domains for a given cpu that has the 'flag'
+- * set, starting from the lowest sched_domain to the highest.
+- */
+-#define for_each_flag_domain(cpu, sd, flag) \
+-	for (sd = lowest_flag_domain(cpu, flag); \
+-		(sd && (sd->flags & flag)); sd = sd->parent)
+-
+-/**
+- * find_new_ilb - Finds the optimum idle load balancer for nomination.
+- * @cpu:	The cpu which is nominating a new idle_load_balancer.
+- *
+- * Returns:	Returns the id of the idle load balancer if it exists,
+- *		Else, returns >= nr_cpu_ids.
+- *
+- * This algorithm picks the idle load balancer such that it belongs to a
+- * semi-idle powersavings sched_domain. The idea is to try and avoid
+- * completely idle packages/cores just for the purpose of idle load balancing
+- * when there are other idle cpu's which are better suited for that job.
+- */
+-static int find_new_ilb(int cpu)
++static inline int find_new_ilb(int call_cpu)
+ {
+ 	int ilb = cpumask_first(nohz.idle_cpus_mask);
+-	struct sched_group *ilbg;
+-	struct sched_domain *sd;
+-
+-	/*
+-	 * Have idle load balancer selection from semi-idle packages only
+-	 * when power-aware load balancing is enabled
+-	 */
+-	if (!(sched_smt_power_savings || sched_mc_power_savings))
+-		goto out_done;
+-
+-	/*
+-	 * Optimize for the case when we have no idle CPUs or only one
+-	 * idle CPU. Don't walk the sched_domain hierarchy in such cases
+-	 */
+-	if (cpumask_weight(nohz.idle_cpus_mask) < 2)
+-		goto out_done;
+ 
+-	rcu_read_lock();
+-	for_each_flag_domain(cpu, sd, SD_POWERSAVINGS_BALANCE) {
+-		ilbg = sd->groups;
+-
+-		do {
+-			if (ilbg->group_weight !=
+-				atomic_read(&ilbg->sgp->nr_busy_cpus)) {
+-				ilb = cpumask_first_and(nohz.idle_cpus_mask,
+-							sched_group_cpus(ilbg));
+-				goto unlock;
+-			}
+-
+-			ilbg = ilbg->next;
+-
+-		} while (ilbg != sd->groups);
+-	}
+-unlock:
+-	rcu_read_unlock();
+-
+-out_done:
+ 	if (ilb < nr_cpu_ids && idle_cpu(ilb))
+ 		return ilb;
+ 
+ 	return nr_cpu_ids;
+ }
+-#else /*  (CONFIG_SCHED_MC || CONFIG_SCHED_SMT) */
+-static inline int find_new_ilb(int call_cpu)
+-{
+-	return nr_cpu_ids;
+-}
+-#endif
+ 
+ /*
+  * Kick a CPU to do the nohz balancing, if it is time for it. We pick the
+@@ -4862,7 +4601,7 @@ static void nohz_idle_balance(int this_cpu, enum cpu_idle_type idle)
+ 
+ 		raw_spin_lock_irq(&this_rq->lock);
+ 		update_rq_clock(this_rq);
+-		update_cpu_load(this_rq);
++		update_idle_cpu_load(this_rq);
+ 		raw_spin_unlock_irq(&this_rq->lock);
+ 
+ 		rebalance_domains(balance_cpu, CPU_IDLE);

@@ -165,8 +165,6 @@ static int ueth_change_mtu(struct net_device *net, int new_mtu)
 		net->mtu = new_mtu;
 	spin_unlock_irqrestore(&dev->lock, flags);
 
-	xlog_printk(ANDROID_LOG_INFO, UETHER_LOG, "ueth_change_mtu to %d, status is %d\n", new_mtu , status);
-
 	return status;
 }
 
@@ -247,7 +245,6 @@ rx_submit(struct eth_dev *dev, struct usb_request *req, gfp_t gfp_flags)
 
 	skb = alloc_skb(size + NET_IP_ALIGN, gfp_flags);
 	if (skb == NULL) {
-		xlog_printk(ANDROID_LOG_INFO, UETHER_LOG, "rx_submit : no rx skb\n");
 		DBG(dev, "no rx skb\n");
 		goto enomem;
 	}
@@ -651,7 +648,6 @@ static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
 	switch (retval) {
 	default:
 		DBG(dev, "tx queue err %d\n", retval);
-		xlog_printk(ANDROID_LOG_INFO, UETHER_LOG, "eth_start_xmit : tx queue err %d\n", retval);
 		break;
 	case 0:
 		net->trans_start = jiffies;
@@ -676,7 +672,6 @@ drop:
 static void eth_start(struct eth_dev *dev, gfp_t gfp_flags)
 {
 	DBG(dev, "%s\n", __func__);
-	xlog_printk(ANDROID_LOG_INFO, UETHER_LOG, "%s\n", __func__);
 
 	/* fill the rx queue */
 	rx_fill(dev, gfp_flags);
@@ -692,8 +687,6 @@ static int eth_open(struct net_device *net)
 	struct gether	*link;
 
 	DBG(dev, "%s\n", __func__);
-	xlog_printk(ANDROID_LOG_INFO, UETHER_LOG, "%s\n", __func__);
-
 	if (netif_carrier_ok(dev->net))
 		eth_start(dev, GFP_KERNEL);
 
@@ -712,8 +705,6 @@ static int eth_stop(struct net_device *net)
 	unsigned long	flags;
 
 	VDBG(dev, "%s\n", __func__);
-	xlog_printk(ANDROID_LOG_INFO, UETHER_LOG, "%s\n", __func__);
-
 	netif_stop_queue(net);
 
 	DBG(dev, "stop stats: rx/tx %ld/%ld, errs %ld/%ld\n",
@@ -798,24 +789,6 @@ static const struct net_device_ops eth_netdev_ops = {
 static struct device_type gadget_type = {
 	.name	= "gadget",
 };
-
-/**
- * gether_setup - initialize one ethernet-over-usb link
- * @g: gadget to associated with these links
- * @ethaddr: NULL, or a buffer in which the ethernet address of the
- *	host side of the link is recorded
- * Context: may sleep
- *
- * This sets up the single network link that may be exported by a
- * gadget driver using this framework.  The link layer addresses are
- * set up using module parameters.
- *
- * Returns negative errno, or zero on success
- */
-int gether_setup(struct usb_gadget *g, u8 ethaddr[ETH_ALEN])
-{
-	return gether_setup_name(g, ethaddr, "usb");
-}
 
 /**
  * gether_setup_name - initialize one ethernet-over-usb link

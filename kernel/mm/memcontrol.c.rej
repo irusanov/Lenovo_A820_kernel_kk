@@ -1,0 +1,20 @@
+--- mm/memcontrol.c
++++ mm/memcontrol.c
+@@ -4915,6 +4814,17 @@ mem_cgroup_create(struct cgroup *cont)
+ 	memcg->move_charge_at_immigrate = 0;
+ 	mutex_init(&memcg->thresholds_lock);
+ 	spin_lock_init(&memcg->move_lock);
++
++	error = memcg_init_kmem(memcg, &mem_cgroup_subsys);
++	if (error) {
++		/*
++		 * We call put now because our (and parent's) refcnts
++		 * are already in place. mem_cgroup_put() will internally
++		 * call __mem_cgroup_free, so return directly
++		 */
++		mem_cgroup_put(memcg);
++		return ERR_PTR(error);
++	}
+ 	return &memcg->css;
+ free_out:
+ 	__mem_cgroup_free(memcg);

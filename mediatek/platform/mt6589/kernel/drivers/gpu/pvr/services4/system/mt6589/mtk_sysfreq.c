@@ -8,7 +8,6 @@ static bool mt_keep_freq_non_od_set = false;
 
 //#define MTK_GPU_DVFS 0
 
-
 void MtkInitSetFreqTbl(unsigned int tbltype)
 {
 	int volt_max = proton_gpu_voltage_get(0);
@@ -176,4 +175,3 @@ void MtkSetKeepFreq(void)
         }
     }
 }
-

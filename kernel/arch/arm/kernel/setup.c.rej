@@ -1,0 +1,10 @@
+--- arch/arm/kernel/setup.c
++++ arch/arm/kernel/setup.c
+@@ -81,6 +81,7 @@ __setup("fpe=", fpe_setup);
+ extern void paging_init(struct machine_desc *desc);
+ extern void sanity_check_meminfo(void);
+ extern void reboot_setup(char *str);
++extern void setup_dma_zone(struct machine_desc *desc);
+ 
+ unsigned int processor_id;
+ EXPORT_SYMBOL(processor_id);

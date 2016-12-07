@@ -1,0 +1,11 @@
+--- drivers/usb/gadget/u_ether.c
++++ drivers/usb/gadget/u_ether.c
+@@ -782,7 +784,7 @@ int gether_setup(struct usb_gadget *g, u8 ethaddr[ETH_ALEN])
+ 
+ 	/* network device setup */
+ 	dev->net = net;
+-	strcpy(net->name, "usb%d");
++	snprintf(net->name, sizeof(net->name), "%s%%d", netname);
+ 
+ 	if (get_ether_addr(dev_addr, net->dev_addr))
+ 		dev_warn(&g->dev,

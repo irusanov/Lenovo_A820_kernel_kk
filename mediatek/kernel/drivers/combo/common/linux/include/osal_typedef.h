@@ -19,7 +19,6 @@ typedef unsigned char UINT8;
 typedef unsigned char *PUINT8;
 typedef unsigned char UCHAR;
 typedef unsigned char  *PUCHAR;
-
 typedef signed short INT16;
 typedef signed short *PINT16;
 typedef unsigned short UINT16;

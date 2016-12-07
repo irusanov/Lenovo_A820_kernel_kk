@@ -1,0 +1,19 @@
+--- arch/arm/boot/compressed/head.S
++++ arch/arm/boot/compressed/head.S
+@@ -750,16 +744,6 @@ call_cache_fn:	adr	r12, proc_types
+ 		.align	2
+ 		.type	proc_types,#object
+ proc_types:
+-		.word	0x41560600		@ ARM6/610
+-		.word	0xffffffe0
+-		W(b)	__arm6_mmu_cache_off	@ works, but slow
+-		W(b)	__arm6_mmu_cache_off
+-		mov	pc, lr
+- THUMB(		nop				)
+-@		b	__arm6_mmu_cache_on		@ untested
+-@		b	__arm6_mmu_cache_off
+-@		b	__armv3_mmu_cache_flush
+-
+ 		.word	0x00000000		@ old ARM ID
+ 		.word	0x0000f000
+ 		mov	pc, lr

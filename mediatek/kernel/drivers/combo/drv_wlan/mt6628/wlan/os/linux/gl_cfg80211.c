@@ -52,7 +52,32 @@
 *                              C O N S T A N T S
 ********************************************************************************
 */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 5, 0)   
+#define NLA_PUT(skb, attrtype, attrlen, data) \
+			 do { \
+					 if (unlikely(nla_put(skb, attrtype, attrlen, data) < 0)) \
+							 goto nla_put_failure; \
+			 } while(0)
+	 
+#define NLA_PUT_TYPE(skb, type, attrtype, value) \
+			 do { \
+					 type __tmp = value; \
+					 NLA_PUT(skb, attrtype, sizeof(type), &__tmp); \
+			 } while(0)
+	 
+#define NLA_PUT_U8(skb, attrtype, value) \
+			 NLA_PUT_TYPE(skb, u8, attrtype, value)
 
+#define NLA_PUT_U16(skb, attrtype, value) \
+			 NLA_PUT_TYPE(skb, u16, attrtype, value)
+	
+#define NLA_PUT_U32(skb, attrtype, value) \
+			 NLA_PUT_TYPE(skb, u32, attrtype, value)
+	
+#define NLA_PUT_U64(skb, attrtype, value) \
+			 NLA_PUT_TYPE(skb, u64, attrtype, value)
+	
+#endif
 /*******************************************************************************
 *                             D A T A   T Y P E S
 ********************************************************************************
@@ -1546,29 +1571,6 @@ mtk_cfg80211_testmode_get_sta_statistics(
     IN int len,
     IN P_GLUE_INFO_T prGlueInfo)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)   
-#define NLA_PUT(skb, attrtype, attrlen, data) \
-         do { \
-                 if (unlikely(nla_put(skb, attrtype, attrlen, data) < 0)) \
-                         printk("NLA PUT Error!!!!\n"); \
-         } while(0)
- 
-#define NLA_PUT_TYPE(skb, type, attrtype, value) \
-         do { \
-                 type __tmp = value; \
-                 NLA_PUT(skb, attrtype, sizeof(type), &__tmp); \
-         } while(0)
- 
-#define NLA_PUT_U8(skb, attrtype, value) \
-         NLA_PUT_TYPE(skb, u8, attrtype, value)
-
-#define NLA_PUT_U16(skb, attrtype, value) \
-         NLA_PUT_TYPE(skb, u16, attrtype, value)
-
-#define NLA_PUT_U32(skb, attrtype, value) \
-         NLA_PUT_TYPE(skb, u32, attrtype, value)
-
-#endif
     WLAN_STATUS rStatus = WLAN_STATUS_SUCCESS;
     INT_32 i4Status = -EINVAL;
 	UINT_32 u4BufLen;

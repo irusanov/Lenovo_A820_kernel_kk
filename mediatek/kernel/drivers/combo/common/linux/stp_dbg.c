@@ -494,7 +494,7 @@ INT32 wcn_core_dump_flush(INT32 rst)
     #if WMT_PLAT_ALPS
     // call AEE driver API
 	aee_kernel_dal_show("COMBO_CONSYS coredump end\n");
-    aed_combo_exception(NULL, 0, (const int*)pbuf, len, (const char*)g_core_dump->info);
+    aed_combo_exception_api(NULL, 0, (const int*)pbuf, len, (const char*)g_core_dump->info, 0);
     #endif
     // reset
     wcn_core_dump_reset(g_core_dump, STP_CORE_DUMP_TIMEOUT);

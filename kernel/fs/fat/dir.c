@@ -150,10 +150,10 @@ next:
         else {
            err_print_num++;  
            if (err_print_num <= ERR_PRINT_THRESHOLD) {
-               fat_msg(sb, KERN_ERR, "Directory bread(block %llu) failed",
-                   (llu)phys);
+               	   fat_msg_ratelimit(sb, KERN_ERR,
+					   "Directory bread(block %llu) failed", (llu)phys);
                if (err_print_num == ERR_PRINT_THRESHOLD) {
-                   fat_msg(sb, KERN_ERR, "Too much error! Skip the next error messages.");                  
+                   fat_msg_ratelimit(sb, KERN_ERR, "Too much error! Skip the next error messages.");                  
                }       
             } 
             else {

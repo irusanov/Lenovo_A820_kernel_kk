@@ -24,14 +24,14 @@ struct mrdump_crash_record {
 
 	char msg[128];
 	char backtrace[512];
-	
+
 	uint32_t fault_cpu;
 	elf_gregset_t cpu_regs[MRDUMP_CPU_MAX];
 };
 
 struct mrdump_machdesc {
 	uint32_t crc;
-  
+
 	uint32_t output_device;
 
 	uint32_t nr_cpus;
@@ -39,11 +39,11 @@ struct mrdump_machdesc {
 	void *page_offset;
 	void *high_memory;
 
-        void *vmalloc_start;
-        void *vmalloc_end;
+	void *vmalloc_start;
+	void *vmalloc_end;
 
-        void *modules_start;
-        void *modules_end;
+	void *modules_start;
+	void *modules_end;
 
 	void *phys_offset;
 	void *master_page_table;
@@ -73,8 +73,8 @@ struct mrdump_control_block {
 };
 
 struct mrdump_platform {
-	void (*hw_enable)(bool enabled);
-	void (*reboot)(void);
+	void (*hw_enable) (bool enabled);
+	void (*reboot) (void);
 };
 
 /* NOTE!! any change to this struct should be compatible in aed */
@@ -93,25 +93,82 @@ struct mrdump_mini_header {
 	struct mrdump_mini_reg_desc reg_desc[ELF_NGREG];
 };
 
-#if defined(CONFIG_MTK_AEE_MRDUMP)
+#define MRDUMP_MINI_NR_SECTION 40
+#define MRDUMP_MINI_SECTION_SIZE (32 * 1024)
+#define NT_IPANIC_MISC 4095
+#define MRDUMP_MINI_NR_MISC 20
 
+struct mrdump_mini_elf_misc {
+	unsigned long vaddr;
+	unsigned long paddr;
+	unsigned long start;
+	unsigned long size;
+};
+
+struct mrdump_mini_elf_header {
+	struct elfhdr ehdr;
+	struct elf_phdr phdrs[MRDUMP_MINI_NR_SECTION];
+	struct {
+		struct elf_note note;
+		char name[8];
+		struct elf_prpsinfo data;
+	} psinfo;
+	struct {
+		struct elf_note note;
+		char name[8];
+		struct elf_prstatus data;
+	} prstatus[NR_CPUS + 1];
+	struct {
+		struct elf_note note;
+		char name[16];
+		struct mrdump_mini_elf_misc data;
+	} misc[MRDUMP_MINI_NR_MISC];
+};
+
+#define MRDUMP_MINI_HEADER_SIZE ALIGN(sizeof(struct mrdump_mini_elf_header), PAGE_SIZE)
+#define MRDUMP_MINI_DATA_SIZE (MRDUMP_MINI_NR_SECTION * MRDUMP_MINI_SECTION_SIZE)
+#define MRDUMP_MINI_BUF_SIZE (MRDUMP_MINI_HEADER_SIZE + MRDUMP_MINI_DATA_SIZE)
+#define MRDUMP_MINI_BUF_PADDR 0x83f00000
+
+#if defined(CONFIG_MTK_AEE_MRDUMP)
 void mrdump_reserve_memory(void);
 
-void mrdump_platform_init(struct mrdump_control_block *cblock, const struct mrdump_platform *plafrom);
+void mrdump_platform_init(struct mrdump_control_block *cblock,
+			  const struct mrdump_platform *plafrom);
 
-void __mrdump_create_oops_dump(AEE_REBOOT_MODE reboot_mode, struct pt_regs *regs, const char *msg, ...);
+void __mrdump_create_oops_dump(AEE_REBOOT_MODE reboot_mode, struct pt_regs *regs, const char *msg,
+			       ...);
 #else
+static inline void mrdump_reserve_memory(void)
+{
+}
 
-static inline void mrdump_reserve_memory(void) {}
+static inline void mrdump_platform_init(struct mrdump_control_block *cblock,
+					void (*hw_enable) (bool enabled))
+{
+}
 
-static inline void mrdump_platform_init(struct mrdump_control_block *cblock, void (*hw_enable)(bool enabled)) {}
-
-static inline void __mrdump_create_oops_dump(AEE_REBOOT_MODE reboot_mode, struct pt_regs *regs, const char *msg, ...) {}
+static inline void __mrdump_create_oops_dump(AEE_REBOOT_MODE reboot_mode, struct pt_regs *regs,
+					     const char *msg, ...)
+{
+}
 #endif
 
-#define MRDUMP_MINI_HEADER_SIZE (SZ_2K)
-#define MRDUMP_MINI_DATA_SIZE (SZ_1M)
-#define MRDUMP_MINI_BUF_SIZE (MRDUMP_MINI_HEADER_SIZE + MRDUMP_MINI_DATA_SIZE)
-#define IPANIC_MRDUMP_OFFSET (0x400000)
+typedef int (*mrdump_write)(void *buf, int off, int len, int encrypt);
+#if defined(CONFIG_MTK_AEE_IPANIC)
+int mrdump_mini_create_oops_dump(AEE_REBOOT_MODE reboot_mode, mrdump_write write,
+				 loff_t sd_offset, const char *msg, va_list ap);
+void mrdump_mini_reserve_memory(void);
+#else
+static inline int mrdump_mini_create_oops_dump(AEE_REBOOT_MODE reboot_mode, mrdump_write write,
+					       loff_t sd_offset, const char *msg, va_list ap)
+{
+	return 0;
+}
+
+static inline void mrdump_mini_reserve_memory(void)
+{
+}
+#endif
 
 #endif

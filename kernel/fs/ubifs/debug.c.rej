@@ -1,0 +1,30 @@
+--- fs/ubifs/debug.c
++++ fs/ubifs/debug.c
+@@ -34,8 +34,6 @@
+ #include <linux/random.h>
+ #include "ubifs.h"
+ 
+-#ifdef CONFIG_UBIFS_FS_DEBUG
+-
+ static DEFINE_SPINLOCK(dbg_lock);
+ 
+ static const char *get_key_fmt(int fmt)
+@@ -999,7 +997,7 @@ void dbg_dump_pnode(struct ubifs_info *c, struct ubifs_pnode *pnode,
+ 	}
+ }
+ 
+-void dbg_dump_tnc(struct ubifs_info *c)
++void ubifs_dump_tnc(struct ubifs_info *c)
+ {
+ 	struct ubifs_znode *znode;
+ 	int level;
+@@ -2920,6 +2918,9 @@ int dbg_debugfs_init_fs(struct ubifs_info *c)
+ 	struct dentry *dent;
+ 	struct ubifs_debug_info *d = c->dbg;
+ 
++	if (!IS_ENABLED(CONFIG_DEBUG_FS))
++		return 0;
++
+ 	n = snprintf(d->dfs_dir_name, UBIFS_DFS_DIR_LEN + 1, UBIFS_DFS_DIR_NAME,
+ 		     c->vi.ubi_num, c->vi.vol_id);
+ 	if (n == UBIFS_DFS_DIR_LEN) {

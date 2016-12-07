@@ -1,0 +1,15 @@
+--- fs/open.c
++++ fs/open.c
+@@ -397,10 +398,10 @@ SYSCALL_DEFINE1(fchdir, unsigned int, fd)
+ {
+ 	struct file *file;
+ 	struct inode *inode;
+-	int error;
++	int error, fput_needed;
+ 
+ 	error = -EBADF;
+-	file = fget(fd);
++	file = fget_raw_light(fd, &fput_needed);
+ 	if (!file)
+ 		goto out;
+ 

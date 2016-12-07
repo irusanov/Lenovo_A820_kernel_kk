@@ -70,7 +70,7 @@ CUSTOM_HAL_MAIN_IMGSENSOR=ov8825_mipi_raw
 CUSTOM_HAL_MAIN_LENS=fm50af
 
 # M-sensor hal layer library including daemon
-CUSTOM_HAL_MSENSORLIB = 
+CUSTOM_HAL_MSENSORLIB =
 
 # sensor hal layer common part
 CUSTOM_HAL_SENSORS=sensor
@@ -220,7 +220,7 @@ HAVE_AACENCODE_FEATURE=yes
 HAVE_ADPCMENCODE_FEATURE=yes
 
 # AEE (Android Exception Engine) that designed by Mediatek is an exception catching and debugging information generation mechanism.It can collect and dump information to filesystem (/sdcard/mtklog/aee_exp) when fatel occur(E.g. kernel panic/android system server crash and ..) HAVE_AEE_FEATURE will decide this feature enable or not.
-HAVE_AEE_FEATURE=yes
+# HAVE_AEE_FEATURE is not set
 
 # In Audio record,  Enable/disable AWB encode, yes: enable
 # no:disable
@@ -1332,7 +1332,7 @@ MTK_WEATHER_WIDGET_APP = no
 MTK_WEB_NOTIFICATION_SUPPORT=yes
 
 # Define MTK weekly number(internal use only)
-MTK_WEEK_NO= 
+MTK_WEEK_NO=
 MTK_WFD_HDCP_TX_SUPPORT=no
 MTK_WFD_SINK_SUPPORT=yes
 MTK_WFD_SINK_UIBC_SUPPORT=yes

@@ -84,7 +84,7 @@ err:
 	sg = table->sgl;
 	for (i -= 1; i >= 0; i--) {
 		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
-			      sg_dma_len(sg));
+			      sg->length);
 		sg = sg_next(sg);
 	}
 	sg_free_table(table);
@@ -106,12 +106,13 @@ static void ion_chunk_heap_free(struct ion_buffer *buffer)
 
 	ion_heap_buffer_zero(buffer);
 
-	for_each_sg(table->sgl, sg, table->nents, i) {
 		if (ion_buffer_cached(buffer))
-			__dma_page_cpu_to_dev(sg_page(sg), 0, sg_dma_len(sg),
+		dma_sync_sg_for_device(NULL, table->sgl, table->nents,
 					      DMA_BIDIRECTIONAL);
+
+	for_each_sg(table->sgl, sg, table->nents, i) {
 		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
-			      sg_dma_len(sg));
+			      sg->length);
 	}
 	chunk_heap->allocated -= allocated_size;
 	sg_free_table(table);
@@ -179,9 +180,7 @@ struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data)
 		unmap_kernel_range((unsigned long)vm_struct->addr, PAGE_SIZE);
 	}
 	free_vm_area(vm_struct);
-
-	__dma_page_cpu_to_dev(phys_to_page(heap_data->base), 0, heap_data->size,
-			      DMA_BIDIRECTIONAL);
+	ion_pages_sync_for_device(NULL, phys_to_page(heap_data->base), heap_data->size, DMA_BIDIRECTIONAL);
 	gen_pool_add(chunk_heap->pool, chunk_heap->base, heap_data->size, -1);
 	chunk_heap->heap.ops = &chunk_heap_ops;
 	chunk_heap->heap.type = ION_HEAP_TYPE_CHUNK;

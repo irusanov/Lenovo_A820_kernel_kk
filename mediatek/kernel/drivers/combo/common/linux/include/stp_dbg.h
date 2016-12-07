@@ -46,7 +46,7 @@ typedef enum {
     STP_DBG_PKT_FIL_MAX
 } STP_DBG_PKT_FIL_T;
 
-static  char * const gStpDbgType[8]={
+static  char * const gStpDbgType[]={
     "< BT>",
     "< FM>",
     "<GPS>",

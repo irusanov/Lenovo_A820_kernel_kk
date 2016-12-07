@@ -1,0 +1,12 @@
+--- drivers/leds/ledtrig-timer.c
++++ drivers/leds/ledtrig-timer.c
+@@ -87,8 +79,7 @@ static void timer_trig_activate(struct led_classdev *led_cdev)
+ 
+ 	led_blink_set(led_cdev, &led_cdev->blink_delay_on,
+ 		      &led_cdev->blink_delay_off);
+-
+-	led_cdev->trigger_data = (void *)1;
++	led_cdev->activated = true;
+ 
+ 	return;
+ 

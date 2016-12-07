@@ -1,0 +1,66 @@
+--- sound/soc/soc-core.c
++++ sound/soc/soc-core.c
+@@ -1485,29 +1566,28 @@ static int snd_soc_init_codec_cache(struct snd_soc_codec *codec,
+ 	return 0;
+ }
+ 
+-static void snd_soc_instantiate_card(struct snd_soc_card *card)
++static int snd_soc_instantiate_card(struct snd_soc_card *card)
+ {
+ 	struct snd_soc_codec *codec;
+ 	struct snd_soc_codec_conf *codec_conf;
+ 	enum snd_soc_compress_type compress_type;
+ 	struct snd_soc_dai_link *dai_link;
+-	int ret, i, order;
++	int ret, i, order, dai_fmt;
+ 
+-	mutex_lock(&card->mutex);
+-
+-	if (card->instantiated) {
+-		mutex_unlock(&card->mutex);
+-		return;
+-	}
++	mutex_lock_nested(&card->mutex, SND_SOC_CARD_CLASS_INIT);
+ 
+ 	/* bind DAIs */
+-	for (i = 0; i < card->num_links; i++)
+-		soc_bind_dai_link(card, i);
++	for (i = 0; i < card->num_links; i++) {
++		ret = soc_bind_dai_link(card, i);
++		if (ret != 0)
++			goto base_error;
++	}
+ 
+-	/* bind completed ? */
+-	if (card->num_rtd != card->num_links) {
+-		mutex_unlock(&card->mutex);
+-		return;
++	/* check aux_devs too */
++	for (i = 0; i < card->num_aux_devs; i++) {
++		ret = soc_check_aux_dev(card, i);
++		if (ret != 0)
++			goto base_error;
+ 	}
+ 
+ 	/* initialize the register cache for each available codec */
+@@ -3392,15 +3660,13 @@ int snd_soc_register_card(struct snd_soc_card *card)
+ 	INIT_LIST_HEAD(&card->dapm_dirty);
+ 	card->instantiated = 0;
+ 	mutex_init(&card->mutex);
++	mutex_init(&card->dapm_mutex);
+ 
+-	mutex_lock(&client_mutex);
+-	list_add(&card->list, &card_list);
+-	snd_soc_instantiate_cards();
+-	mutex_unlock(&client_mutex);
+-
+-	dev_dbg(card->dev, "Registered card '%s'\n", card->name);
++	ret = snd_soc_instantiate_card(card);
++	if (ret != 0)
++		soc_cleanup_card_debugfs(card);
+ 
+-	return 0;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(snd_soc_register_card);
+ 

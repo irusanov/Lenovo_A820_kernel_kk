@@ -1,0 +1,38 @@
+--- net/ipv6/netfilter/ip6_tables.c
++++ net/ipv6/netfilter/ip6_tables.c
+@@ -2293,17 +2297,33 @@ static void __exit ip6_tables_fini(void)
+  * *offset is meaningless and fragment offset is stored in *fragoff if fragoff
+  * isn't NULL.
+  *
++ * if flags is not NULL and it's a fragment, then the frag flag IP6T_FH_F_FRAG
++ * will be set. If it's an AH header, the IP6T_FH_F_AUTH flag is set and
++ * target < 0, then this function will stop at the AH header.
+  */
+ int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
+-		  int target, unsigned short *fragoff)
++		  int target, unsigned short *fragoff, int *flags)
+ {
+ 	unsigned int start = skb_network_offset(skb) + sizeof(struct ipv6hdr);
+ 	u8 nexthdr = ipv6_hdr(skb)->nexthdr;
+-	unsigned int len = skb->len - start;
++	unsigned int len;
+ 
+ 	if (fragoff)
+ 		*fragoff = 0;
+ 
++	if (*offset) {
++		struct ipv6hdr _ip6, *ip6;
++
++		ip6 = skb_header_pointer(skb, *offset, sizeof(_ip6), &_ip6);
++		if (!ip6 || (ip6->version != 6)) {
++			printk(KERN_ERR "IPv6 header not found\n");
++			return -EBADMSG;
++		}
++		start = *offset + sizeof(struct ipv6hdr);
++		nexthdr = ip6->nexthdr;
++	}
++	len = skb->len - start;
++
+ 	while (nexthdr != target) {
+ 		struct ipv6_opt_hdr _hdr, *hp;
+ 		unsigned int hdrlen;

@@ -33,18 +33,6 @@
 #include "../base.h"
 #include "power.h"
 
-#define HIB_DPM_DEBUG 0
-extern bool console_suspend_enabled; // from printk.c
-#define _TAG_HIB_M "HIB/DPM"
-#if (HIB_DPM_DEBUG)
-#undef hib_log
-#define hib_log(fmt, ...)	if (!console_suspend_enabled) pr_warn("[%s][%s]" fmt, _TAG_HIB_M, __func__, ##__VA_ARGS__);
-#else
-#define hib_log(fmt, ...)
-#endif
-#undef hib_warn
-#define hib_warn(fmt, ...)   if (!console_suspend_enabled) pr_warn("[%s][%s]" fmt, _TAG_HIB_M, __func__, ##__VA_ARGS__);
-
 typedef int (*pm_callback_t)(struct device *);
 
 /*
@@ -383,7 +371,7 @@ static void dpm_show_time(ktime_t starttime, pm_message_t state, char *info)
 	usecs = usecs64;
 	if (usecs == 0)
 		usecs = 1;
-	hib_log("PM: %s%s%s of devices complete after %ld.%03ld msecs\n",
+	pr_info("PM: %s%s%s of devices complete after %ld.%03ld msecs\n",
 		info ?: "", info ? " " : "", pm_verb(state.event),
 		usecs / USEC_PER_MSEC, usecs % USEC_PER_MSEC);
 }
@@ -1106,7 +1094,7 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 	dpm_wait_for_children(dev, async);
 
 	if (async_error)
-		return 0;
+		goto Complete;
 
 	pm_runtime_get_noresume(dev);
 	if (pm_runtime_barrier(dev) && device_may_wakeup(dev))
@@ -1115,8 +1103,7 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 	if (pm_wakeup_pending()) {
 		pm_runtime_put_sync(dev);
 		async_error = -EBUSY;
-        hib_log("async_error(%d) not zero due pm_wakeup_pending return non zero!!\n", async_error);
-		return 0;
+		goto Complete;
 	}
 
 	dpm_wd_set(&wd, dev);
@@ -1178,6 +1165,7 @@ static int __device_suspend(struct device *dev, pm_message_t state, bool async)
 
 	dpm_wd_clear(&wd);
 
+ Complete:
 	complete_all(&dev->power.completion);
 
 	if (error) {
@@ -1210,7 +1198,6 @@ static int device_suspend(struct device *dev)
 
 	if (pm_async_enabled && dev->power.async_suspend) {
 		get_device(dev);
-        hib_log("using async mode (check value of \"/sys/power/pm_async\"\n");
 		async_schedule(async_suspend, dev);
 		return 0;
 	}
@@ -1245,17 +1232,14 @@ int dpm_suspend(pm_message_t state)
 			pm_dev_err(dev, state, "", error);
 			dpm_save_failed_dev(dev_name(dev));
 			put_device(dev);
-            hib_log("Device %s failed to %s: error %d\n", dev_name(dev), pm_verb(state.event), error);
 			break;
 		}
 		if (!list_empty(&dev->power.entry))
 			list_move(&dev->power.entry, &dpm_suspended_list);
 		put_device(dev);
-		if (async_error) {
-            hib_log("async_error(%d)\n", async_error);
+		if (async_error)
 			break;
-        }
-	}
+    }
 	mutex_unlock(&dpm_list_mtx);
 	async_synchronize_full();
 	if (!error)
@@ -1265,8 +1249,6 @@ int dpm_suspend(pm_message_t state)
 		dpm_save_failed_step(SUSPEND_SUSPEND);
 	} else
 		dpm_show_time(starttime, state, NULL);
-
-    hib_log("return error(%d)\n", error);
 	return error;
 }
 EXPORT_SYMBOL_GPL(dpm_suspend);

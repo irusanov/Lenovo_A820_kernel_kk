@@ -1853,8 +1853,10 @@ static int mtkfb_ioctl(struct file *file, struct fb_info *info, unsigned int cmd
                 {
                     MTKFB_ERR("in early suspend layer(0x%x),idx(%d)!\n", layerId<<16|layerInfo[i].layer_enable, layerInfo[i].next_buff_idx);
                     //mtkfb_release_layer_fence(layerInfo[i].layer_id);
-                }
+                    disp_sync_release(layerInfo[i].layer_id);
+                }else {
                 mtkfb_set_overlay_layer(info, &layerInfo[i], true);
+            	}
             }
             mutex_unlock(&OverlaySettingMutex);
             if (DISP_IsDecoupleMode()) 

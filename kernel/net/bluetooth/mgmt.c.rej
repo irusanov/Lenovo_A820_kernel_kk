@@ -1,0 +1,20 @@
+--- net/bluetooth/mgmt.c
++++ net/bluetooth/mgmt.c
+@@ -1915,12 +1940,12 @@ static int pair_device(struct sock *sk, struct hci_dev *hdev, void *data,
+ 	else
+ 		auth_type = HCI_AT_DEDICATED_BONDING_MITM;
+ 
+-	if (cp->addr.type == MGMT_ADDR_BREDR)
+-		conn = hci_connect(hdev, ACL_LINK, &cp->addr.bdaddr, sec_level,
+-				   auth_type);
++	if (cp->addr.type == BDADDR_BREDR)
++		conn = hci_connect(hdev, ACL_LINK, &cp->addr.bdaddr,
++				   cp->addr.type, sec_level, auth_type);
+ 	else
+-		conn = hci_connect(hdev, LE_LINK, &cp->addr.bdaddr, sec_level,
+-				   auth_type);
++		conn = hci_connect(hdev, LE_LINK, &cp->addr.bdaddr,
++				   cp->addr.type, sec_level, auth_type);
+ 
+ 	memset(&rp, 0, sizeof(rp));
+ 	bacpy(&rp.addr.bdaddr, &cp->addr.bdaddr);

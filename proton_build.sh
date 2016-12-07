@@ -9,9 +9,9 @@ if [ -f proton_kernel.conf ]
   else
 	echo "Kernel configuration file (kernel.conf) does not exist!"
 	echo "Using default configuration..."
-	VERSION=2.51
+	VERSION=2.55
 	DEVICE=lenovo_a820
-	UNDERVOLT=n
+	UNDERVOLT=no
 	TOOLCHAIN=linaro
 fi
 
@@ -43,8 +43,11 @@ case "$TOOLCHAIN" in
   sabermod)
 	TOOLCHAIN_PATH=$(pwd)/$SABERMOD_PATH
 	;;
-  ubertc)
-	TOOLCHAIN_PATH=$(pwd)/$UBERTC_PATH
+  ubertc4)
+	TOOLCHAIN_PATH=$(pwd)/$UBERTC4_PATH
+	;;
+  ubertc6)
+	TOOLCHAIN_PATH=$(pwd)/$UBERTC6_PATH
 	;;
   gcc)
 	TOOLCHAIN_PATH=$(pwd)/$GCC_PATH

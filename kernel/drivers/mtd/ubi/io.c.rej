@@ -1,0 +1,19 @@
+--- drivers/mtd/ubi/io.c
++++ drivers/mtd/ubi/io.c
+@@ -1427,14 +1416,12 @@ int ubi_dbg_check_all_ff(struct ubi_device *ubi, int pnum, int offset, int len)
+ 	return 0;
+ 
+ fail:
+-	ubi_err("paranoid check failed for PEB %d", pnum);
++	ubi_err("self-check failed for PEB %d", pnum);
+ 	ubi_msg("hex dump of the %d-%d region", offset, offset + len);
+ 	print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET, 32, 1, buf, len, 1);
+ 	err = -EINVAL;
+ error:
+-	ubi_dbg_dump_stack();
++	dump_stack();
+ 	vfree(buf);
+ 	return err;
+ }
+-
+-#endif /* CONFIG_MTD_UBI_DEBUG */

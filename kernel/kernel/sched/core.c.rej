@@ -1,0 +1,133 @@
+--- kernel/sched/core.c
++++ kernel/sched/core.c
+@@ -83,6 +83,7 @@
+ 
+ #include "sched.h"
+ #include "../workqueue_sched.h"
++#include "../smpboot.h"
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/sched.h>
+@@ -691,8 +691,6 @@ int tg_nop(struct task_group *tg, void *data)
+ }
+ #endif
+ 
+-void update_cpu_load(struct rq *this_rq);
+-
+ static void set_load_weight(struct task_struct *p)
+ {
+ 	int prio = p->static_prio - MAX_RT_PRIO;
+@@ -2517,12 +2648,7 @@ void calc_global_load(unsigned long ticks)
+ 	calc_load_update += LOAD_FREQ;
+ 
+ 	/*
+-	 * Account one period with whatever state we found before
+-	 * folding in the nohz state and ageing the entire idle period.
+-	 *
+-	 * This avoids loosing a sample when we go idle between 
+-	 * calc_load_account_active() (10 ticks ago) and now and thus
+-	 * under-accounting.
++	 * In case we idled for multiple LOAD_FREQ intervals, catch up in bulk.
+ 	 */
+ 	calc_global_nohz();
+ }
+@@ -6106,99 +6308,11 @@ static int __init isolated_cpu_setup(char *str)
+ 
+ __setup("isolcpus=", isolated_cpu_setup);
+ 
+-#ifdef CONFIG_NUMA
+-
+-/**
+- * find_next_best_node - find the next node to include in a sched_domain
+- * @node: node whose sched_domain we're building
+- * @used_nodes: nodes already in the sched_domain
+- *
+- * Find the next node to include in a given scheduling domain. Simply
+- * finds the closest node not already in the @used_nodes map.
+- *
+- * Should use nodemask_t.
+- */
+-static int find_next_best_node(int node, nodemask_t *used_nodes)
+-{
+-	int i, n, val, min_val, best_node = -1;
+-
+-	min_val = INT_MAX;
+-
+-	for (i = 0; i < nr_node_ids; i++) {
+-		/* Start at @node */
+-		n = (node + i) % nr_node_ids;
+-
+-		if (!nr_cpus_node(n))
+-			continue;
+-
+-		/* Skip already used nodes */
+-		if (node_isset(n, *used_nodes))
+-			continue;
+-
+-		/* Simple min distance search */
+-		val = node_distance(node, n);
+-
+-		if (val < min_val) {
+-			min_val = val;
+-			best_node = n;
+-		}
+-	}
+-
+-	if (best_node != -1)
+-		node_set(best_node, *used_nodes);
+-	return best_node;
+-}
+-
+-/**
+- * sched_domain_node_span - get a cpumask for a node's sched_domain
+- * @node: node whose cpumask we're constructing
+- * @span: resulting cpumask
+- *
+- * Given a node, construct a good cpumask for its sched_domain to span. It
+- * should be one that prevents unnecessary balancing, but also spreads tasks
+- * out optimally.
+- */
+-static void sched_domain_node_span(int node, struct cpumask *span)
+-{
+-	nodemask_t used_nodes;
+-	int i;
+-
+-	cpumask_clear(span);
+-	nodes_clear(used_nodes);
+-
+-	cpumask_or(span, span, cpumask_of_node(node));
+-	node_set(node, used_nodes);
+-
+-	for (i = 1; i < SD_NODES_PER_DOMAIN; i++) {
+-		int next_node = find_next_best_node(node, &used_nodes);
+-		if (next_node < 0)
+-			break;
+-		cpumask_or(span, span, cpumask_of_node(next_node));
+-	}
+-}
+-
+-static const struct cpumask *cpu_node_mask(int cpu)
+-{
+-	lockdep_assert_held(&sched_domains_mutex);
+-
+-	sched_domain_node_span(cpu_to_node(cpu), sched_domains_tmpmask);
+-
+-	return sched_domains_tmpmask;
+-}
+-
+-static const struct cpumask *cpu_allnodes_mask(int cpu)
+-{
+-	return cpu_possible_mask;
+-}
+-#endif /* CONFIG_NUMA */
+-
+ static const struct cpumask *cpu_cpu_mask(int cpu)
+ {
+ 	return cpumask_of_node(cpu_to_node(cpu));
+ }
+ 
+-int sched_smt_power_savings = 0, sched_mc_power_savings = 0;
+-
+ struct sd_data {
+ 	struct sched_domain **__percpu sd;
+ 	struct sched_group **__percpu sg;
