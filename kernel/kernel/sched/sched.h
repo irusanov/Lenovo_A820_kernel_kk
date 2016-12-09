@@ -81,7 +81,7 @@ extern struct mutex sched_domains_mutex;
 struct cfs_rq;
 struct rt_rq;
 
-static LIST_HEAD(task_groups);
+extern struct list_head task_groups;
 
 struct cfs_bandwidth {
 #ifdef CONFIG_CFS_BANDWIDTH
@@ -112,13 +112,9 @@ struct task_group {
 	struct cfs_rq **cfs_rq;
 	unsigned long shares;
 
-#ifdef CONFIG_MTK_SCHED_CMP
 #ifdef CONFIG_SMP
 	atomic_long_t load_avg;
 	atomic_t runnable_avg;
-#endif
-#else /* !CONFIG_MTK_SCHED_CMP */
-	atomic_t load_weight;
 #endif
 #endif
 
@@ -230,7 +226,6 @@ struct cfs_rq {
 	unsigned int nr_spread_over;
 #endif
 
-#ifdef CONFIG_MTK_SCHED_CMP
 #ifdef CONFIG_SMP
 	/*
 	 * CFS Load tracking
@@ -257,7 +252,6 @@ struct cfs_rq {
 	 */
 	unsigned long h_load;
 #endif /* CONFIG_SMP */
-#endif /* CONFIG_MTK_SCHED_CMP */
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
 	struct rq *rq;	/* cpu runqueue to which this cfs_rq is attached */
@@ -274,40 +268,14 @@ struct cfs_rq {
 	struct list_head leaf_cfs_rq_list;
 	struct task_group *tg;	/* group that "owns" this runqueue */
 
-#ifndef CONFIG_MTK_SCHED_CMP
-#ifdef CONFIG_SMP
-	/*
-	 *   h_load = weight * f(tg)
-	 *
-	 * Where f(tg) is the recursive weight fraction assigned to
-	 * this group.
-	 */
-	unsigned long h_load;
-
-	/*
-	 * Maintaining per-cpu shares distribution for group scheduling
-	 *
-	 * load_stamp is the last time we updated the load average
-	 * load_last is the last time we updated the load average and saw load
-	 * load_unacc_exec_time is currently unaccounted execution time
-	 */
-	u64 load_avg;
-	u64 load_period;
-	u64 load_stamp, load_last, load_unacc_exec_time;
-
-	unsigned long load_contribution;
-#endif /* CONFIG_SMP */
-#endif /* !CONFIG_MTK_SCHED_CMP */
 #ifdef CONFIG_CFS_BANDWIDTH
 	int runtime_enabled;
 	u64 runtime_expires;
 	s64 runtime_remaining;
 
 	u64 throttled_timestamp;
-# ifdef CONFIG_MTK_SCHED_CMP
 	u64 throttled_clock_task;
 	u64 throttled_clock_task_time;
-# endif
 
 	int throttled, throttle_count;
 	struct list_head throttled_list;
@@ -509,9 +477,7 @@ struct rq {
 	struct llist_head wake_list;
 #endif
 
-#ifdef CONFIG_MTK_SCHED_CMP
 	struct sched_avg avg;
-#endif
 };
 
 static inline int cpu_of(struct rq *rq)
@@ -600,22 +566,19 @@ DECLARE_PER_CPU(int, sd_llc_id);
 /*
  * Return the group to which this tasks belongs.
  *
- * We use task_subsys_state_check() and extend the RCU verification with
- * pi->lock and rq->lock because cpu_cgroup_attach() holds those locks for each
- * task it moves into the cgroup. Therefore by holding either of those locks,
- * we pin the task to the current cgroup.
+ * We cannot use task_subsys_state() and friends because the cgroup
+ * subsystem changes that value before the cgroup_subsys::attach() method
+ * is called, therefore we cannot pin it and might observe the wrong value.
+ *
+ * The same is true for autogroup's p->signal->autogroup->tg, the autogroup
+ * core changes this before calling sched_move_task().
+ *
+ * Instead we use a 'copy' which is updated from sched_move_task() while
+ * holding both task_struct::pi_lock and rq::lock.
  */
 static inline struct task_group *task_group(struct task_struct *p)
 {
-	struct task_group *tg;
-	struct cgroup_subsys_state *css;
-
-	css = task_subsys_state_check(p, cpu_cgroup_subsys_id,
-			lockdep_is_held(&p->pi_lock) ||
-			lockdep_is_held(&task_rq(p)->lock));
-	tg = container_of(css, struct task_group, css);
-
-	return autogroup_task_group(p, tg);
+	return p->sched_task_group;
 }
 
 /* Change a task's cfs_rq and parent entity if it moves across CPUs/groups */
@@ -664,10 +627,10 @@ static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
  * Tunables that become constants when CONFIG_SCHED_DEBUG is off:
  */
 #ifdef CONFIG_SCHED_DEBUG
-# include <linux/static_key.h>
-# define const_debug __read_mostly
+#include <linux/static_key.h>
+#define const_debug __read_mostly
 #else
-# define const_debug const
+#define const_debug const
 #endif
 
 extern const_debug unsigned int sysctl_sched_features;
@@ -740,13 +703,13 @@ static inline int task_running(struct rq *rq, struct task_struct *p)
 
 
 #ifndef prepare_arch_switch
-# define prepare_arch_switch(next)	do { } while (0)
+#define prepare_arch_switch(next)	do { } while (0)
 #endif
 #ifndef finish_arch_switch
-# define finish_arch_switch(prev)	do { } while (0)
+#define finish_arch_switch(prev)	do { } while (0)
 #endif
 #ifndef finish_arch_post_lock_switch
-# define finish_arch_post_lock_switch()	do { } while (0)
+#define finish_arch_post_lock_switch()	do { } while (0)
 #endif
 
 #ifndef __ARCH_WANT_UNLOCKED_CTXSW
@@ -769,8 +732,10 @@ static inline void finish_lock_switch(struct rq *rq, struct task_struct *prev)
 	 * After ->on_cpu is cleared, the task can be moved to a different CPU.
 	 * We must ensure this doesn't happen until the switch is completely
 	 * finished.
+	 *
+	 * Pairs with the control dependency and rmb in try_to_wake_up().
 	 */
-	smp_wmb();
+	smp_mb();
 	prev->on_cpu = 0;
 #endif
 #ifdef CONFIG_DEBUG_SPINLOCK
@@ -920,13 +885,11 @@ extern void update_group_power(struct sched_domain *sd, int cpu);
 extern void trigger_load_balance(struct rq *rq, int cpu);
 extern void idle_balance(int this_cpu, struct rq *this_rq);
 
-# ifdef CONFIG_MTK_SCHED_CMP
 extern void idle_enter_fair(struct rq *this_rq);
 extern void idle_exit_fair(struct rq *this_rq);
-#  ifdef CONFIG_MTK_SCHED_CMP_TGS 
+#ifdef CONFIG_MTK_SCHED_CMP_TGS
 extern int group_leader_is_empty(struct task_struct *p);
-#  endif 
-# endif
+#endif
 #else	/* CONFIG_SMP */
 
 static inline void idle_balance(int cpu, struct rq *rq)
@@ -951,13 +914,9 @@ extern void resched_cpu(int cpu);
 extern struct rt_bandwidth def_rt_bandwidth;
 extern void init_rt_bandwidth(struct rt_bandwidth *rt_b, u64 period, u64 runtime);
 
-#ifdef CONFIG_MTK_SCHED_CMP
-extern void update_idle_cpu_load(struct rq *this_rq);
-
 extern void init_task_runnable_average(struct task_struct *p);
-#else
-extern void update_cpu_load(struct rq *this_rq);
-#endif
+
+extern void update_idle_cpu_load(struct rq *this_rq);
 
 #ifdef CONFIG_CGROUP_CPUACCT
 #include <linux/cgroup.h>
@@ -1077,8 +1036,6 @@ static inline u64 sched_avg_period(void)
 {
 	return (u64)sysctl_sched_time_avg * NSEC_PER_MSEC / 2;
 }
-
-void calc_load_account_idle(struct rq *this_rq);
 
 #ifdef CONFIG_SCHED_HRTICK
 
@@ -1282,9 +1239,8 @@ extern void print_rt_stats(struct seq_file *m, int cpu);
 extern void init_cfs_rq(struct cfs_rq *cfs_rq);
 extern void init_rt_rq(struct rt_rq *rt_rq, struct rq *rq);
 extern void unthrottle_offline_rt_rqs(struct rq *rq);
-extern void unthrottle_offline_cfs_rqs(struct rq *rq);
-
-extern void account_cfs_bandwidth_used(int enabled, int was_enabled);
+extern void cfs_bandwidth_usage_inc(void);
+extern void cfs_bandwidth_usage_dec(void);
 
 #ifdef CONFIG_NO_HZ
 enum rq_nohz_flag_bits {

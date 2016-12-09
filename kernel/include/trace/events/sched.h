@@ -759,7 +759,6 @@ TRACE_EVENT(sched_lbprof_log,
 
 #endif
 
-#ifdef CONFIG_MTK_SCHED_CMP
 TRACE_EVENT(sched_task_entity_avg,
 
 	TP_PROTO(struct task_struct *tsk, struct sched_avg *avg),
@@ -788,7 +787,6 @@ TRACE_EVENT(sched_task_entity_avg,
 		  __entry->comm, __entry->tgid, __entry->pid,
 		  __entry->contrib, __entry->ratio, __entry->usage_sum)
 );
-#endif
 #endif /* _TRACE_SCHED_H */
 
 /* This part must be outside protection */

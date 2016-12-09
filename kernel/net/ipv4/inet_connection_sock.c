@@ -659,6 +659,22 @@ void inet_csk_destroy_sock(struct sock *sk)
 }
 EXPORT_SYMBOL(inet_csk_destroy_sock);
 
+/* This function allows to force a closure of a socket after the call to
+ * tcp/dccp_create_openreq_child().
+ */
+void inet_csk_prepare_forced_close(struct sock *sk)
+{
+	/* sk_clone_lock locked the socket and set refcnt to 2 */
+	bh_unlock_sock(sk);
+	sock_put(sk);
+
+	/* The below has to be done to allow calling inet_csk_destroy_sock */
+	sock_set_flag(sk, SOCK_DEAD);
+	percpu_counter_inc(sk->sk_prot->orphan_count);
+	inet_sk(sk)->inet_num = 0;
+}
+EXPORT_SYMBOL(inet_csk_prepare_forced_close);
+
 int inet_csk_listen_start(struct sock *sk, const int nr_table_entries)
 {
 	struct inet_sock *inet = inet_sk(sk);
@@ -680,9 +696,7 @@ int inet_csk_listen_start(struct sock *sk, const int nr_table_entries)
 	sk->sk_state = TCP_LISTEN;
 	if (!sk->sk_prot->get_port(sk, inet->inet_num)) {
 		inet->inet_sport = htons(inet->inet_num);
-		#ifdef CONFIG_MTK_NET_LOGGING 
-        printk(KERN_WARNING "[mtk_net][socket] inet_csk_listen_start inet->inet_sport:%d,inet->inet_num:%d",inet->inet_sport,inet->inet_num);
-        #endif
+
 		sk_dst_reset(sk);
 		sk->sk_prot->hash(sk);
 

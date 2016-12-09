@@ -17,7 +17,6 @@
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/utsname.h>
-#include <linux/xlog.h>
 
 #include <linux/usb/composite.h>
 #include <asm/unaligned.h>
@@ -211,9 +210,6 @@ int usb_add_function(struct usb_configuration *config,
 		struct usb_function *function)
 {
 	int	value = -EINVAL;
-
-	xlog_printk(ANDROID_LOG_DEBUG, "USB", "%s: \n", __func__);
-
 
 	DBG(config->cdev, "adding '%s'/%p to config '%s'/%p\n",
 			function->name, function,
@@ -602,10 +598,7 @@ static void reset_config(struct usb_composite_dev *cdev)
 		bitmap_zero(f->endpoints, 32);
 	}
 	cdev->config = NULL;
-
-	//ALPS00802402
 	cdev->delayed_status = 0;
-	//ALPS00802402
 }
 
 static int set_config(struct usb_composite_dev *cdev,
@@ -764,7 +757,6 @@ int usb_add_config(struct usb_composite_dev *cdev,
 	status = bind(config);
 	if (status < 0) {
 		list_del(&config->list);
-		xlog_printk(ANDROID_LOG_DEBUG, "USB","%s: bind fialed and the list should be init because there is one entry only");
 		config->cdev = NULL;
 	} else {
 		unsigned	i;
@@ -1389,9 +1381,8 @@ static void composite_disconnect(struct usb_gadget *gadget)
 		composite->disconnect(cdev);
 
 	/* ALPS00235316 and ALPS00234976 */
-	/* reset the complet function */
+	/* reset the complete function */
 	if(cdev->req->complete)	{
-		xlog_printk(ANDROID_LOG_DEBUG, "USB", "%s:  reassign the complete function!!\n", __func__);
 		cdev->req->complete = composite_setup_complete;
 	}
 
@@ -1656,8 +1647,6 @@ int usb_composite_probe(struct usb_composite_driver *driver,
 {
 	if (!driver || !driver->dev || !bind || composite)
 		return -EINVAL;
-
-	xlog_printk(ANDROID_LOG_DEBUG, "USB", "%s: driver->name = %s", __func__, driver->name);
 
 	if (!driver->name)
 		driver->name = "composite";

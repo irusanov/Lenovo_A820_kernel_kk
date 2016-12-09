@@ -216,9 +216,6 @@ typedef enum {
 #define NAND_SUBPAGE_READ(chip) ((chip->ecc.mode == NAND_ECC_SOFT) \
 					&& (chip->page_shift > 9))
 
-/* Mask to zero out the chip options, which come from the id table */
-#define NAND_CHIPOPTIONS_MSK	(0x0000ffff & ~NAND_NO_AUTOINCR)
-
 /* Non chip related options */
 /* This option skips the bbt scan during initialization. */
 #define NAND_SKIP_BBTSCAN	0x00010000
@@ -695,16 +692,5 @@ struct platform_nand_chip *get_platform_nandchip(struct mtd_info *mtd)
 
 	return chip->priv;
 }
-/* MTK MTD Monitor*/
-#ifdef CONFIG_MTK_MTD_NAND
-struct mtd_perf_log
-{
-    unsigned int read_size_0_512;
-    unsigned int read_size_512_1K;
-    unsigned int read_size_1K_2K;
-    unsigned int read_size_2K_3K;
-    unsigned int read_size_3K_4K;
-    unsigned int read_size_Above_4K;
-};
-#endif
+
 #endif /* __LINUX_MTD_NAND_H */

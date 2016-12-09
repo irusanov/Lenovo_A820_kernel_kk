@@ -3,9 +3,6 @@
 
 #ifdef CONFIG_MMU
 
-/*
- * apply kernel patch: b5466f8728527a05a493cc4abe9e6f034a1bbaab
- */
 typedef struct {
 #ifdef CONFIG_CPU_HAS_ASID
 	u64 id;
@@ -13,9 +10,6 @@ typedef struct {
 	unsigned int kvm_seq;
 } mm_context_t;
 
-/*
- * apply kernel patch: b5466f8728527a05a493cc4abe9e6f034a1bbaab
- */
 #ifdef CONFIG_CPU_HAS_ASID
 #define ASID_BITS	8
 #define ASID_MASK	((~0ULL) << ASID_BITS)

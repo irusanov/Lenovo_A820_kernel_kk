@@ -274,14 +274,6 @@ static int __mmc_start_req(struct mmc_host *host, struct mmc_request *mrq)
 static void mmc_wait_for_req_done(struct mmc_host *host,
 				  struct mmc_request *mrq)
 {
-#if 0
-    struct scatterlist *sg;
-    unsigned int  num;
-    unsigned int  left;
-    unsigned int  *ptr;
-    unsigned int  i;
-#endif
-
 	struct mmc_command *cmd;
 
 	while (1) {
@@ -297,35 +289,6 @@ static void mmc_wait_for_req_done(struct mmc_host *host,
 
             printk(KERN_ERR "MSDC wait request timeout DAT<%d>\n",(mrq->data->blocks) * (mrq->data->blksz));
         }
-
-#if 0
-    if ((mrq->cmd->arg == 0) && (mrq->data) && 
-            ((mrq->cmd->opcode == 17)||(mrq->cmd->opcode == 18))){ 
-        printk("read MBR  cmd%d: blocks %d arg %08x, sg_len = %d\n", mrq->cmd->opcode, mrq->data->blocks, mrq->cmd->arg, mrq->data->sg_len);
-            sg = mrq->data->sg;
-            num = mrq->data->sg_len;
-
-            while (num) {
-                left = sg_dma_len(sg);
-                ptr = sg_virt(sg);
-
-                printk("====left: %d\n===\n", left);
-                for (i = 0; i <= left/4; i++){
-                    printk("0x%x ", *(ptr + i));
-                    if (0 == (i + 1)%16)
-                        printk("\n");
-                }
-
-                //page = sg_to_page(sg);
-
-                /* physic addr */
-                //paddr = page_to_phys(page);
-
-                sg = sg_next(sg); 
-                num--;
-            }; 
-    }
-#endif
 
         cmd = mrq->cmd;
         if (!cmd->error || !cmd->retries ||
@@ -401,117 +364,27 @@ struct mmc_async_req *mmc_start_req(struct mmc_host *host,
 {
 	int err = 0;
 	int start_err = 0;
-	int retry_times = 0;
-
 	struct mmc_async_req *data = host->areq;
 
 	/* Prepare a new request */
-    if (areq){
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-        if ((1 == g_mtk_mmc_perf_dbg) && (2 == g_mtk_mmc_dbg_range)){
-            if ((areq->mrq->cmd->arg >= g_dbg_range_start) && (areq->mrq->cmd->arg <= g_dbg_range_end) && (areq->mrq->data) && (areq->mrq->cmd->opcode == g_check_read_write)){ 
-                g_mmcqd_buf[g_dbg_req_count][2] = sched_clock();   /* request DMA map start */ 
-           	}
-        }
-#endif
+	if (areq)
         mmc_pre_req(host, areq->mrq, !host->areq);
-
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-        if ((1 == g_mtk_mmc_perf_dbg) && (2 == g_mtk_mmc_dbg_range)){
-            if ((areq->mrq->cmd->arg >= g_dbg_range_start) && (areq->mrq->cmd->arg <= g_dbg_range_end) && (areq->mrq->data) && (areq->mrq->cmd->opcode == g_check_read_write)){ 
-                g_mmcqd_buf[g_dbg_req_count][3] = sched_clock();   /* request DMA map end */
-            }
-        }
-#endif
-    }
 
 	if (host->areq) {
 		mmc_wait_for_req_done(host, host->areq->mrq);
 		host->ops->send_stop(host,host->areq->mrq); //add for MTK msdc host <Yuchi Xu>
 		do{
 			host->ops->tuning(host, host->areq->mrq);	//add for MTK msdc host <Yuchi Xu>
-			retry_times++;
-		}while((host->ops->check_written_data(host,host->areq->mrq))&&(retry_times<10));
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-        if ((1 == g_mtk_mmc_perf_dbg) && (2 == g_mtk_mmc_dbg_range)){
-            if ((host->areq->mrq->cmd->arg >= g_dbg_range_start) && (host->areq->mrq->cmd->arg <= g_dbg_range_end) && (host->areq->mrq->data) && (host->areq->mrq->cmd->opcode == g_check_read_write)){ 
-				if(areq)
-					g_mmcqd_buf[g_dbg_req_count - 1][6] = sched_clock(); 
-				else
-                	g_mmcqd_buf[g_dbg_req_count][6] = sched_clock(); 
+		}while(host->ops->check_written_data(host,host->areq->mrq));
                 
-                g_mtk_mmc_dbg_flag = 0; /* notify high level after send next cmd */
-            }
-        }
-#endif
 		err = host->areq->err_check(host->card, host->areq);
 	}
 
-	if (!err && areq) {
-		trace_mmc_blk_rw_start(areq->mrq->cmd->opcode,
-				       areq->mrq->cmd->arg,
-				       areq->mrq->data);
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-        if (1 == g_mtk_mmc_perf_dbg){
-            if (2 == g_mtk_mmc_dbg_range){
-                if ((areq->mrq->cmd->arg >= g_dbg_range_start) && (areq->mrq->cmd->arg <= g_dbg_range_end) && (areq->mrq->data) && (areq->mrq->cmd->opcode == g_check_read_write)){ 
-                    g_mmcqd_buf[g_dbg_req_count][4] = sched_clock();   /* request start time */
-
-                    /* record the max page index in this request */
-                    //if (g_dbg_req_count > 0)
-                    g_mmcqd_buf[g_dbg_req_count][296] = (unsigned long long)(g_dbg_raw_count - g_dbg_raw_count_old); 
-
-                    /* record the page ahead index with this request */
-                    g_mmcqd_buf[g_dbg_req_count][297] = (unsigned long long)g_dbg_raw_count; 
-                    g_mmcqd_buf[g_dbg_req_count][298] = (unsigned long long)areq->mrq->cmd->arg;
-                    g_mmcqd_buf[g_dbg_req_count][299] = (unsigned long long)areq->mrq->data->blocks;
-                    g_mtk_mmc_dbg_flag = 1;
-                    g_dbg_raw_count_old = g_dbg_raw_count;
-                }
-            } else {
-                if (areq->mrq->data) {
-                    printk("cmd%d: blocks %d arg %08x\n", areq->mrq->cmd->opcode, areq->mrq->data->blocks, areq->mrq->cmd->arg);
-                }
-            }
-        }
-#endif
-
+	if (!err && areq)
 		start_err = __mmc_start_req(host, areq->mrq);
 
-
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-			if ((1 == g_mtk_mmc_perf_dbg) && (2 == g_mtk_mmc_dbg_range)){
-				if ((areq->mrq->cmd->arg >= g_dbg_range_start) && (areq->mrq->cmd->arg <= g_dbg_range_end) && (areq->mrq->data) && (areq->mrq->cmd->opcode == g_check_read_write)){ 
-					g_mmcqd_buf[g_dbg_req_count][5] = sched_clock(); 
-					
-				}
-			}
-#endif
-
-    }
-	if (host->areq){
-		#ifdef MTK_IO_PERFORMANCE_DEBUG
-        if ((1 == g_mtk_mmc_perf_dbg) && (2 == g_mtk_mmc_dbg_range)){
-            if ((host->areq->mrq->cmd->arg >= g_dbg_range_start) && (host->areq->mrq->cmd->arg <= g_dbg_range_end) && (host->areq->mrq->data) && (host->areq->mrq->cmd->opcode == g_check_read_write)){
-				if(areq)
-					g_mmcqd_buf[g_dbg_req_count - 1][7] = sched_clock();   /* request DMA unmap start */                             
-				else
-                    g_mmcqd_buf[g_dbg_req_count][7] = sched_clock();   
-                }
-        	}
-#endif
+	if (host->areq)
 		mmc_post_req(host, host->areq->mrq, 0);
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-				if ((1 == g_mtk_mmc_perf_dbg) && (2 == g_mtk_mmc_dbg_range)){
-					if ((host->areq->mrq->cmd->arg >= g_dbg_range_start) && (host->areq->mrq->cmd->arg <= g_dbg_range_end) && (host->areq->mrq->data) && (host->areq->mrq->cmd->opcode == g_check_read_write)){
-						if(areq)
-							g_mmcqd_buf[g_dbg_req_count - 1][8] = sched_clock();	/* request DMA unmap end if exist */
-						else
-							g_mmcqd_buf[g_dbg_req_count][8] = sched_clock();
-					}
-				}
-#endif	
-		}
 
 	 /* Cancel a prepared request if it was not started. */
 	if ((err || start_err) && areq)
@@ -539,17 +412,6 @@ EXPORT_SYMBOL(mmc_start_req);
  */
 void mmc_wait_for_req(struct mmc_host *host, struct mmc_request *mrq)
 {
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-        if (1 == g_mtk_mmc_perf_dbg){
-            if (2 == g_mtk_mmc_dbg_range){
-            } else {
-                if (mrq->data) {
-                    printk("cmd%d: blocks %d arg %08x\n", mrq->cmd->opcode, mrq->data->blocks, mrq->cmd->arg);
-                }
-            }
-        }
-#endif
-
 	__mmc_start_req(host, mrq);
 	mmc_wait_for_req_done(host, mrq);
 }
@@ -1815,10 +1677,7 @@ static int mmc_do_erase(struct mmc_card *card, unsigned int from,
 
 	} while (!(cmd.resp[0] & R1_READY_FOR_DATA) ||
 		 R1_CURRENT_STATE(cmd.resp[0]) == R1_STATE_PRG);
-
 out:
-
-	trace_mmc_blk_erase_end(arg, fr, nr);
 	return err;
 }
 
@@ -1902,7 +1761,6 @@ int mmc_can_trim(struct mmc_card *card)
 {
 	if ((card->ext_csd.sec_feature_support & EXT_CSD_SEC_GB_CL_EN) && !(card->quirks & MMC_QUIRK_TRIM_UNSTABLE))
 		return 1;
-	//printk(KERN_ERR "[%s]: quirks=0x%x, MMC_QUIRK_TRIM_UNSTABLE=0x%x\n", __func__, card->quirks, MMC_QUIRK_TRIM_UNSTABLE); 
 	return 0;
 }
 EXPORT_SYMBOL(mmc_can_trim);
@@ -2623,6 +2481,7 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 	switch (mode) {
 	case PM_HIBERNATION_PREPARE:
 	case PM_SUSPEND_PREPARE:
+	case PM_RESTORE_PREPARE:
 
 		spin_lock_irqsave(&host->lock, flags);
 		if (mmc_bus_needs_resume(host)) {

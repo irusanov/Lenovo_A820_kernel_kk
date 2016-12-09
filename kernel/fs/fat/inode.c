@@ -133,27 +133,6 @@ static int fat_writepages(struct address_space *mapping,
 
 static int fat_readpage(struct file *file, struct page *page)
 {
-#if 0
-	struct page_pid_logger *tmp_logger;
-	extern unsigned char *page_logger;
-	extern spinlock_t g_locker;
-	if( page_logger && page) {
-		int page_index;
-		//printk(KERN_INFO"fat read hank logger count:%d init %x currentpid:%d page:%x mem_map:%x pfn:%d\n", num_physpages, page_logger, current->pid, page, mem_map, (unsigned)((page) - mem_map));
-
-		page_index = (unsigned long)((page) - mem_map) ;
-		tmp_logger =((struct page_pid_logger *)page_logger) + page_index;
-		spin_lock(&g_locker);
-		if( page_index < num_physpages) {
-			if( tmp_logger->pid1 == 0XFFFF)
-				tmp_logger->pid1 = current->pid;
-			else if( tmp_logger->pid1 != current->pid )
-				tmp_logger->pid2 = current->pid;
-		}
-		spin_unlock(&g_locker);
-		//printk(KERN_INFO"tmp logger pid1:%u pid2:%u pfn:%d \n", tmp_logger->pid1, tmp_logger->pid2, (unsigned long)((page) - mem_map) );
-	}
-#endif
 	return mpage_readpage(page, fat_get_block);
 }
 
@@ -178,36 +157,11 @@ static int fat_write_begin(struct file *file, struct address_space *mapping,
 			struct page **pagep, void **fsdata)
 {
 	int err;
-#if defined(FEATURE_STORAGE_PID_LOGGER)
-	extern unsigned char *page_logger;
-	struct page_pid_logger *tmp_logger;
-	unsigned long page_index;
-	extern spinlock_t g_locker;
-	unsigned long g_flags;
-#endif
 
 	*pagep = NULL;
 	err = cont_write_begin(file, mapping, pos, len, flags,
 				pagep, fsdata, fat_get_block,
 				&MSDOS_I(mapping->host)->mmu_private);
-#if defined(FEATURE_STORAGE_PID_LOGGER)
-	if( page_logger && (*pagep)) {
-		//printk(KERN_INFO"fat write_begin hank logger count:%d init %x currentpid:%d page:%x mem_map:%x pfn:%d page->index:%d\n", num_physpages, page_logger, current->pid, *pagep, mem_map, (unsigned)((*pagep) - mem_map), (*pagep)->index);
-		//printk(KERN_INFO"page_logger_lock:%x %d", page_logger_lock, ((num_physpages+(1<<PAGE_LOCKER_SHIFT)-1)>>PAGE_LOCKER_SHIFT));
-		
-		page_index = (unsigned long)((*pagep) - mem_map) ;
-		tmp_logger =((struct page_pid_logger *)page_logger) + page_index;
-		spin_lock_irqsave(&g_locker, g_flags);
-		if( page_index < num_physpages) {
-			if( tmp_logger->pid1 == 0XFFFF)
-				tmp_logger->pid1 = current->pid;
-			else if( tmp_logger->pid1 != current->pid)
-				tmp_logger->pid2 = current->pid;
-		}
-		spin_unlock_irqrestore(&g_locker, g_flags);
-		//printk(KERN_INFO"tmp logger pid1:%u pid2:%u pfn:%d page:%x pos:%x host:%x max_mapnr:%x\n", tmp_logger->pid1, tmp_logger->pid2, (unsigned long)((*pagep) - mem_map),(*pagep), pos, mapping->host, max_mapnr );
-	}
-#endif
 	if (err < 0)
 		fat_write_failed(mapping, pos + len);
 	return err;
@@ -477,8 +431,6 @@ struct inode *fat_build_inode(struct super_block *sb,
 		inode = ERR_PTR(-ENOMEM);
 		goto out;
 	}
-
-
 	inode->i_ino = iunique(sb, MSDOS_ROOT_INO);
 	inode->i_version = 1;
 	err = fat_fill_inode(inode, de);
@@ -703,15 +655,7 @@ retry:
 	mark_buffer_dirty(bh);
 	err = 0;
 	if (wait)
-	{
 		err = sync_dirty_buffer(bh);
-	}else
-	{
-#ifdef FEATURE_STORAGE_META_LOG
-		if( bh && bh->b_bdev && bh->b_bdev->bd_disk)
-			set_metadata_rw_status(bh->b_bdev->bd_disk->first_minor, NOWAIT_WRITE_CNT);
-#endif
-	}
 	brelse(bh);
 	return err;
 }
@@ -1294,6 +1238,19 @@ static int fat_read_root(struct inode *inode)
 	return 0;
 }
 
+static unsigned long calc_fat_clusters(struct super_block *sb)
+{
+	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+
+	/* Divide first to avoid overflow */
+	if (sbi->fat_bits != 12) {
+		unsigned long ent_per_sec = sb->s_blocksize * 8 / sbi->fat_bits;
+		return ent_per_sec * sbi->fat_length;
+	}
+
+	return sbi->fat_length * sb->s_blocksize * 8 / sbi->fat_bits;
+}
+
 /*
  * Read the super block of an MS-DOS FS.
  */
@@ -1502,7 +1459,7 @@ int fat_fill_super(struct super_block *sb, void *data, int silent, int isvfat,
 		sbi->fat_bits = (total_clusters > MAX_FAT12) ? 16 : 12;
 
 	/* check that FAT table does not overflow */
-	fat_clusters = sbi->fat_length * sb->s_blocksize * 8 / sbi->fat_bits;
+	fat_clusters = calc_fat_clusters(sb);
 	total_clusters = min(total_clusters, fat_clusters - FAT_START_ENT);
 	if (total_clusters > MAX_FAT(sb)) {
 		if (!silent)

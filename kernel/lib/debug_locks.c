@@ -24,7 +24,7 @@
 #ifdef CONFIG_PROVE_LOCKING
 int debug_locks = 1;
 #else
-int debug_locks = 1;
+int debug_locks = 0;
 #endif
 EXPORT_SYMBOL_GPL(debug_locks);
 

@@ -1008,14 +1008,14 @@ service drvbd /system/bin/drvbd
 service debuggerd /system/bin/debuggerd
     class main
 
-service mobile_log_d /system/bin/mobile_log_d
-    class main
+#service mobile_log_d /system/bin/mobile_log_d
+#    class main
 
 # bugreport is triggered by ctl.start bugreport
-service bugreport /system/bin/bugmailer.sh -v
-	class main
-	disabled
-	oneshot
+#service bugreport /system/bin/bugmailer.sh -v
+#	class main
+#	disabled
+#	oneshot
 
 # SGX init
 service pvrsrvctl /system/vendor/bin/pvrsrvctl --no-module --start
