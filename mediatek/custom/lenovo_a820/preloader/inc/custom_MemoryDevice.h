@@ -20,7 +20,7 @@
     Auto-Gen tool will show error and stop.
     3.1.  any conditional keyword such as #if , #ifdef , #ifndef , #elif , #else detected.
           execpt this #ifndef __CUSTOM_MEMORYDEVICE__
-    3.2.  any duplicated MACRO_NAME parsed. For example auto-gen tool got 
+    3.2.  any duplicated MACRO_NAME parsed. For example auto-gen tool got
           2nd MEMORY_DEVICE_TYPE macro value.
  ****************************************************************************
 */
@@ -35,5 +35,10 @@
 #define BOARD_ID                MT6589_EVB
 
 #define CS_PART_NUMBER[0]       KMKJS000VM_B309
+/* I.nfraR.ed: modify to support HYNIX memory */
+//#define CS_PART_NUMBER[0]       KMK7U000VM_B309
+#define CS_PART_NUMBER[1]       H9TP32A8JDMCPR_KGM
+
+#define CS_PART_NUMBER[2]       H9TP32A8JDACPR_KGM
 
 #endif /* __CUSTOM_MEMORYDEVICE__ */
