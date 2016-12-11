@@ -11,10 +11,9 @@ if [ -f ../proton_kernel.conf ]
 	DEVICE=lenovo_a820
 fi
 
-./mkbootfs ./"$DEVICE"/boot.img-ramdisk/ | gzip > ramdisk.gz
-./mkimage ramdisk.gz ROOTFS > ramdisk.img
-./mkbootimg --kernel ../out/target/product/"$DEVICE"/kernel_"$DEVICE".bin --ramdisk ramdisk.img -o boot.img
+../mediatek/build/tools/images/mkbootfs ./"$DEVICE"/boot.img-ramdisk/ | ../mediatek/build/tools/images/minigzip > ramdisk.gz
+../mediatek/build/tools/images/mkimage ramdisk.gz ROOTFS > ramdisk.img
+../mediatek/build/tools/images/mkbootimg --kernel ../out/target/product/"$DEVICE"/kernel_"$DEVICE".bin --ramdisk ramdisk.img -o boot.img
 
 rm ramdisk.gz
 rm ramdisk.img
-
