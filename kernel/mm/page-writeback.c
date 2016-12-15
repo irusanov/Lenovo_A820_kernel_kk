@@ -220,8 +220,6 @@ static unsigned long highmem_dirtyable_memory(unsigned long total)
                     x += tmp - z->dirty_balance_reserve;
                 else 
                     continue;
-		//x += zone_page_state(z, NR_FREE_PAGES) +
-		//     zone_reclaimable_pages(z) - z->dirty_balance_reserve;
 	}
 	/*
 	 * Unreclaimable memory (kernel memory or anonymous memory

@@ -342,12 +342,6 @@ static int alarmtimer_suspend(struct device *dev)
 	/* XXX - Should we enforce a minimum sleep time? */
 //	WARN_ON(min.tv64 < NSEC_PER_SEC);
 
-//	if(min.tv64 < NSEC_PER_SEC)
-//	{
-//		pr_alarm(SUSPEND, "min.tv64 < 1S, give up suspend\n");
-//		wake_lock_timeout(&alarmtimer_wake_lock, 2 * HZ);
-//		return -EBUSY;
-//	}
 	if (ktime_to_ns(min) < 2 * NSEC_PER_SEC) 
 	{
 		pr_alarm(SUSPEND, "min.tv64 < 2S, give up suspend\n");

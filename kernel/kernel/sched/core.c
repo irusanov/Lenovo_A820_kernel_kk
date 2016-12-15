@@ -2339,53 +2339,6 @@ unsigned long get_cpu_load(int cpu)
 }
 EXPORT_SYMBOL(get_cpu_load);
 
-/*
- * Global load-average calculations
- *
- * We take a distributed and async approach to calculating the global load-avg
- * in order to minimize overhead.
- *
- * The global load average is an exponentially decaying average of nr_running +
- * nr_uninterruptible.
- *
- * Once every LOAD_FREQ:
- *
- *   nr_active = 0;
- *   for_each_possible_cpu(cpu)
- *   	nr_active += cpu_of(cpu)->nr_running + cpu_of(cpu)->nr_uninterruptible;
- *
- *   avenrun[n] = avenrun[0] * exp_n + nr_active * (1 - exp_n)
- *
- * Due to a number of reasons the above turns in the mess below:
- *
- *  - for_each_possible_cpu() is prohibitively expensive on machines with
- *    serious number of cpus, therefore we need to take a distributed approach
- *    to calculating nr_active.
- *
- *        \Sum_i x_i(t) = \Sum_i x_i(t) - x_i(t_0) | x_i(t_0) := 0
- *                      = \Sum_i { \Sum_j=1 x_i(t_j) - x_i(t_j-1) }
- *
- *    So assuming nr_active := 0 when we start out -- true per definition, we
- *    can simply take per-cpu deltas and fold those into a global accumulate
- *    to obtain the same result. See calc_load_fold_active().
- *
- *    Furthermore, in order to avoid synchronizing all per-cpu delta folding
- *    across the machine, we assume 10 ticks is sufficient time for every
- *    cpu to have completed this task.
- *
- *    This places an upper-bound on the IRQ-off latency of the machine. Then
- *    again, being late doesn't loose the delta, just wrecks the sample.
- *
- *  - cpu_rq()->nr_uninterruptible isn't accurately tracked per-cpu because
- *    this would add another cross-cpu cacheline miss and atomic operation
- *    to the wakeup path. Instead we increment on whatever cpu the task ran
- *    when it went into uninterruptible state and decrement on whatever cpu
- *    did the wakeup. This means that only the sum of nr_uninterruptible over
- *    all cpus yields the correct result.
- *
- *  This covers the NO_HZ=n code, for extra head-aches, see the comment below.
- */
- 
 #ifdef CONFIG_INTELLI_PLUG
 unsigned long avg_nr_running(void)
 {
@@ -2440,6 +2393,53 @@ unsigned long avg_cpu_nr_running(unsigned int cpu)
 }
 EXPORT_SYMBOL(avg_cpu_nr_running);
 #endif
+
+/*
+ * Global load-average calculations
+ *
+ * We take a distributed and async approach to calculating the global load-avg
+ * in order to minimize overhead.
+ *
+ * The global load average is an exponentially decaying average of nr_running +
+ * nr_uninterruptible.
+ *
+ * Once every LOAD_FREQ:
+ *
+ *   nr_active = 0;
+ *   for_each_possible_cpu(cpu)
+ *   	nr_active += cpu_of(cpu)->nr_running + cpu_of(cpu)->nr_uninterruptible;
+ *
+ *   avenrun[n] = avenrun[0] * exp_n + nr_active * (1 - exp_n)
+ *
+ * Due to a number of reasons the above turns in the mess below:
+ *
+ *  - for_each_possible_cpu() is prohibitively expensive on machines with
+ *    serious number of cpus, therefore we need to take a distributed approach
+ *    to calculating nr_active.
+ *
+ *        \Sum_i x_i(t) = \Sum_i x_i(t) - x_i(t_0) | x_i(t_0) := 0
+ *                      = \Sum_i { \Sum_j=1 x_i(t_j) - x_i(t_j-1) }
+ *
+ *    So assuming nr_active := 0 when we start out -- true per definition, we
+ *    can simply take per-cpu deltas and fold those into a global accumulate
+ *    to obtain the same result. See calc_load_fold_active().
+ *
+ *    Furthermore, in order to avoid synchronizing all per-cpu delta folding
+ *    across the machine, we assume 10 ticks is sufficient time for every
+ *    cpu to have completed this task.
+ *
+ *    This places an upper-bound on the IRQ-off latency of the machine. Then
+ *    again, being late doesn't loose the delta, just wrecks the sample.
+ *
+ *  - cpu_rq()->nr_uninterruptible isn't accurately tracked per-cpu because
+ *    this would add another cross-cpu cacheline miss and atomic operation
+ *    to the wakeup path. Instead we increment on whatever cpu the task ran
+ *    when it went into uninterruptible state and decrement on whatever cpu
+ *    did the wakeup. This means that only the sum of nr_uninterruptible over
+ *    all cpus yields the correct result.
+ *
+ *  This covers the NO_HZ=n code, for extra head-aches, see the comment below.
+ */
 
 /* Variables and functions for calc_load */
 static atomic_long_t calc_load_tasks;
@@ -3666,7 +3666,6 @@ void __kprobes sub_preempt_count(int val)
 #endif
 
 	//if (preempt_count() == val)
-	//	trace_preempt_on(CALLER_ADDR0, get_parent_ip(CALLER_ADDR1));
     if (preempt_count() == (val & ~PREEMPT_ACTIVE)){
 #ifdef CONFIG_PREEMPT_TRACER
         trace_preempt_on(CALLER_ADDR0, get_parent_ip(CALLER_ADDR1));
@@ -3674,21 +3673,6 @@ void __kprobes sub_preempt_count(int val)
 #ifdef CONFIG_PREEMPT_MONITOR
         if(unlikely(__raw_get_cpu_var(mtsched_mon_enabled) & 0x1)){
             MT_trace_preempt_on();
-#if 0
-            unsigned long long t;
-            current->t_sub_prmpt = sched_clock();
-            t = current->t_sub_prmpt - current->t_add_prmpt;    
-            if(unlikely(t > 30000000 && current->t_add_prmpt!=0 ))
-            {
-                if(t > 55000000){
-                    //aee_kernel_exception( "preempt disable > 55ms\n","sched monitor\n");
-                    printk("[Sched Latency:Preempt Monitor][%d:%s] Duration: %llu ns > 55 ms \n",current->pid, current->comm, t);
-                }else{
-                    printk("[Sched Latency:Preempt Monitor][%d:%s] Duration: %llu ns > 30 ms \n",current->pid, current->comm, t);
-                }
-                dump_stack();
-            }
-#endif
         }    
 #endif
     }
@@ -7316,7 +7300,6 @@ static int build_sched_domains(const struct cpumask *cpu_map,
 	struct s_data d;
 	int i, ret = -ENOMEM;
 
-	printk("[Sched] build_sched_domains\n");
 	alloc_state = __visit_domain_allocation_hell(&d, cpu_map);
 	if (alloc_state != sa_rootdomain)
 		goto error;
@@ -7694,7 +7677,6 @@ static int cpuset_cpu_active(struct notifier_block *nfb, unsigned long action,
 
 	case CPU_ONLINE:
 	case CPU_DOWN_FAILED:
-		printk("[Sched] cpuset_cpu_active %lu\n", action);
 		cpuset_update_active_cpus();
 		break;
 	default:

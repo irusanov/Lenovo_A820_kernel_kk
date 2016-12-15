@@ -5,7 +5,7 @@
  *
  *   Copyright(C) 2005, Thomas Gleixner <tglx@linutronix.de>
  *   Copyright(C) 2005, Red Hat, Inc., Ingo Molnar
- *  Copyright (C) 2014, NVIDIA CORPORATION. All rights reserved.
+ *   Copyright(C) 2014, NVIDIA CORPORATION. All rights reserved.
  *
  *  data type definitions, declarations, prototypes
  *

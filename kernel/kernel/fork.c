@@ -1446,7 +1446,6 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	mt_init_thread_group(p);
 #endif
 
-
 	/* Need tasklist lock for parent etc handling! */
 	write_lock_irq(&tasklist_lock);
 
