@@ -237,8 +237,7 @@ struct cpumask *get_domain_cpus(int cluster_id, bool exclusiveOffline)
 	struct	cpu_domain *cluster;
 	struct list_head *pos;
 	
-	if(!list_empty(&cpu_domains))
-	{
+	if(!list_empty(&cpu_domains)) {
 		list_for_each(pos, &cpu_domains) {
 			cluster = list_entry(pos, struct cpu_domain, cpu_domains);
 			if(cluster->cluster_id == cluster_id) //Found
