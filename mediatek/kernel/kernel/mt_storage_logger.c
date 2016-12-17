@@ -29,7 +29,7 @@
 #include <linux/proc_fs.h>
 #include <linux/string.h>
 #include <mach/mt_storage_logger.h>
-#include <linux/unistd.h> 
+#include <linux/unistd.h>
 #include <linux/file.h>
 #include <linux/vmalloc.h>
 #include <fs/proc/internal.h>
@@ -128,15 +128,6 @@ static bool enable_mthermal_dump = false;
 static int fs_rectime_threshold = 1000;	// default is 1s
 /*==========================*/
 
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-static int mtk_io_osd_config = 0;
-static int mtk_io_osd_latency = 0;
-extern unsigned int mmcqd_work_percent[];
-extern unsigned int mmcqd_w_throughput[];
-extern unsigned int mmcqd_r_throughput[];
-extern unsigned int mmcqd_read_clear[];
-extern pid_t mmcqd[];
-#endif
 #ifdef DRV_MOUDLE_READY
 static int storage_logger_probe(struct platform_device *pdev);
 static void storage_logger_remove(struct platform_device *pdev);
@@ -344,7 +335,7 @@ static struct platform_driver storage_logger_driver = {
 	.remove		= storage_logger_remove,
 	.driver  = {
 		.name	= "storage_logger_driver",
-		.owner = THIS_MODULE,			
+		.owner = THIS_MODULE,
 	}
 };
 #endif
@@ -358,7 +349,7 @@ static int storage_logger_dump_write_proc(struct file *file, const char *buffer,
   mm_segment_t old_fs;
   ssize_t ret;
   char  *tempBufPtr;
-  
+
   tempBufPtr = (char *)storage_logger_mem_pool;
   logSize = storage_logger_bufsize;
   u4CopySize = (count < (sizeof(tmpBuf) - 1)) ? count : (sizeof(tmpBuf) - 1);
@@ -366,7 +357,7 @@ static int storage_logger_dump_write_proc(struct file *file, const char *buffer,
   if(copy_from_user(tmpBuf, buffer, u4CopySize))
   {
     goto error;
-  } 
+  }
   tmpBuf[u4CopySize] = '\0';
 
   if ( 0 == sscanf(tmpBuf, "%d", &trigger) )
@@ -376,7 +367,7 @@ static int storage_logger_dump_write_proc(struct file *file, const char *buffer,
   }
 
   if(NULL == storage_logger_mem_pool)
-  { 
+  {
     goto error;
   }
   STORAGE__LOGGER_PRE_WRITE_DATE_TEST();
@@ -384,9 +375,9 @@ static int storage_logger_dump_write_proc(struct file *file, const char *buffer,
   if(1 == trigger)
   {
     fp=filp_open(dump_filename, O_WRONLY|O_CREAT|O_TRUNC, 0);
-      
-    if (!IS_ERR (fp)) 
-    { 
+
+    if (!IS_ERR (fp))
+    {
       PERFORMANCE_FILE_CLEAR_STATUS_FLAG(statusFlag, FAIL_TO_OPEN_FILE);
       old_fs = get_fs();
       set_fs(KERNEL_DS);
@@ -396,7 +387,7 @@ static int storage_logger_dump_write_proc(struct file *file, const char *buffer,
         ret = do_sync_write(fp, tempBufPtr, logSize, &fp->f_pos);
         if (ret <= 0)
 			    goto end;
-		    
+
 		    logSize -= ret;
 		    tempBufPtr += ret;
 		    wrote += ret;
@@ -428,9 +419,9 @@ error:
 
 static int storage_logger_bufsize_show_proc(struct seq_file *m, void *data)
 {
-	  
+
     seq_printf(m, "%d, %dMB\n", storage_logger_bufsize, storage_logger_bufsize/(1024*1024));
-    
+
     return 0;
 }
 
@@ -477,15 +468,15 @@ static int storage_logger_filename_write_proc(struct file *file, const char *buf
 {
 	char tmpBuf[MAX_FILENAME_TOTAL_LENGTH+1];
 	unsigned long u4CopySize = 0;
-  
+
 	u4CopySize = (count < (sizeof(tmpBuf) - 1)) ? count : (sizeof(tmpBuf) - 1);
-	    
+
   if(copy_from_user(tmpBuf, buffer, u4CopySize))
   {
     printk(KERN_INFO "Fail to copy buffer from user space, %s, %d\n", __FUNCTION__, __LINE__);
     return 0;
   }
-  
+
 	if(count > MAX_FILENAME_TOTAL_LENGTH)
 	{
 	  BUG_ON(count > MAX_FILENAME_TOTAL_LENGTH);
@@ -556,11 +547,11 @@ static int storage_logger_status_show_proc( struct seq_file *m, void *data)
 
     seq_printf( m, "[Storage logger status]\nFile name:%s\n", dump_filename);
 
-  
+
 	if(NULL == storage_logger_mem_pool)
 		seq_printf( m, "Storage memory pool is NULL\n");
 	else
-		seq_printf( m, "Storage memory pool addr:0x%p, size:%d, %dMB\n", 
+		seq_printf( m, "Storage memory pool addr:0x%p, size:%d, %dMB\n",
 				storage_logger_mem_pool, storage_logger_bufsize, storage_logger_bufsize/(1024*1024));
 
 	if(PERFORMANCE_FILE_TEST_STATUS_FLAG(statusFlag, FAIL_TO_OPEN_FILE))
@@ -594,9 +585,9 @@ int dumpFsRecTime(void)
 
 static int storage_logger_fs_rectime_threshold_show_proc( struct seq_file *m, void *data)
 {
-	  
+
     seq_printf(m, "%d ms\n", fs_rectime_threshold);
-    
+
 
     return 0;
 }
@@ -620,8 +611,8 @@ static int storage_logger_fs_rectime_threshold_write_proc(struct file *file, con
     if ( 0 == sscanf(tmpBuf, "%d", &local_logger_bs) )
         return count;
 
-    if(0 != local_logger_bs) {		
-        fs_rectime_threshold = local_logger_bs;		
+    if(0 != local_logger_bs) {
+        fs_rectime_threshold = local_logger_bs;
     }
     //printk(KERN_INFO " %s, %d - write file system threshold to fs_rectime with %d ms\n", __FUNCTION__, __LINE__, fs_rectime_threshold);
     return count;
@@ -718,7 +709,7 @@ static inline void __add_trace(enum logger_type type, unsigned int msg_id,
 
 	/* Enabel in RT printk storage logger */
 	if (unlikely(enable_printk))
-	{		
+	{
 		vsnprintf(printkbuffer, MAX_SINGLE_LINE_SIZE, \
 				info->logger_format[msg_id-info->msg_id_start].DispFmt, ap);
 
@@ -729,7 +720,7 @@ static inline void __add_trace(enum logger_type type, unsigned int msg_id,
 
 	/* Enabel in memory storage logger */
 	if (likely(enable_inMem))
-	{	
+	{
 #ifdef CONFIG_BINARY_PRINTF
 		bin_len = vbin_printf(payload,MAX_SINGLE_LINE_SIZE_INT,fmt,ap);
 #endif
@@ -746,8 +737,8 @@ static inline void __add_trace(enum logger_type type, unsigned int msg_id,
 			lastwriteIndex = writeIndex; /* Keep the last */
 			writeIndex = 0;
 			readIndex = 0;
-		}		
-		
+		}
+
 		if (iswrapped)
 		{
 			err_count = 0;
@@ -756,12 +747,12 @@ static inline void __add_trace(enum logger_type type, unsigned int msg_id,
 				if (writeIndex >=  ((storage_logger_bufsize>>2) - (storage_logger_bufsize>>6) ) ) {
 						readIndex = 0;
 						//printk(KERN_INFO"Holmes Wrapped Wx: %d\n",writeIndex);
-						break;						
+						break;
 				}
 
 				if (unlikely(readIndex >= lastwriteIndex)) {
 					readIndex = 0;
-					break;					
+					break;
 				}
 
 				if ((readIndex == 0)  &&  (writeIndex != 0)) {
@@ -769,7 +760,7 @@ static inline void __add_trace(enum logger_type type, unsigned int msg_id,
 					break;
 				}
 				if(unlikely(err_count > MAX_WHILE_LOOP)) {
-					readIndex = 0;				
+					readIndex = 0;
 					break;
 				}
 				BUG_ON(readIndex > (storage_logger_bufsize>>2));
@@ -821,7 +812,7 @@ static int storage_logger_probe(struct platform_device *pdev)
 #endif
 
 	return ret;
-	
+
 }
 
 static void storage_logger_remove(struct platform_device *pdev)
@@ -861,7 +852,7 @@ static int storage_logger_open_proc(struct inode *inode, struct file *file)
 
 static int storage_logger_write_proc(struct file *file, const char *buffer, unsigned long count, void *data)
 {
-	char acBuf[32]; 
+	char acBuf[32];
 	char cmd[32];
 	unsigned long CopySize = 0;
 	int tmp;
@@ -889,7 +880,7 @@ static int storage_logger_write_proc(struct file *file, const char *buffer, unsi
 				lastwriteIndex = 0;
 			}
 		}
-	} 
+	}
 	return count;
 }
 
@@ -903,98 +894,6 @@ void storage_logger_switch( bool enabled)
         lastwriteIndex = 0;
     }
 }
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-
-static int mtk_io_osd_show_proc( struct seq_file *m, void *data)
-{
-    seq_printf( m, "%d\n%d\n", mtk_io_osd_config, mtk_io_osd_latency);
-
-    return 0;
-}
-
-static int mtk_io_osd_open_proc( struct inode *inode, struct file *file)
-{
-    return single_open( file, mtk_io_osd_show_proc, NULL);
-}
-
-static int mtk_io_osd_write_proc(struct file *file, const char *buffer, unsigned long count, void *data)
-{
-	char acBuf[32]; 
-	unsigned long CopySize = 0;
-	unsigned int p1,p2;
-
-	CopySize = (count < (sizeof(acBuf) - 1)) ? count : (sizeof(acBuf) - 1);
-	if(copy_from_user(acBuf, buffer, CopySize))
-		return 0;
-
-	acBuf[CopySize] = '\0';
-
-	if ( 2 == sscanf(acBuf, "%d %d", &p1,&p2) ) {
-		mtk_io_osd_config = p1;
-		mtk_io_osd_latency = p2;		
-	} 
-	return count;
-}
-
-static int mtk_io_osd_mmcqd1_show_proc( struct seq_file *m, void *data)
-{
-
-	if(mmcqd_read_clear[0] == 2) {
-		seq_printf(m, "mmcqd1= %d %% \t", mmcqd_work_percent[0]);
-		seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", mmcqd_w_throughput[0],mmcqd_r_throughput[0]);
-		mmcqd_read_clear[0] = 1;
-	}else if(mmcqd_read_clear[0] == 1) {
-		seq_printf(m, "mmcqd1= %d %% \t", mmcqd_work_percent[0]);
-		seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", mmcqd_w_throughput[0],mmcqd_r_throughput[0]);
-		mmcqd_read_clear[0] = 0;
-	}else {		
-		mmcqd_work_percent[0] = 0;
-		seq_printf(m, "mmcqd1= %d %% \t", mmcqd_work_percent[0]);
-		seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", 0,0);
-		mmcqd_read_clear[0] = 0;
-	}
-
-    return 0;
-}
-
-static int mtk_io_osd_mmcqd1_open_proc( struct inode *inode, struct file *file)
-{
-    return single_open( file, mtk_io_osd_mmcqd1_show_proc, NULL);
-}
-
-static int mtk_io_osd_mmcqd2_show_proc( struct seq_file *m, void *data)
-{
-	if(0 == mmcqd[3]) {
-		seq_printf(m, " ");		
-	}else {
-
-		if(mmcqd_read_clear[3] == 2) {
-			seq_printf(m, "mmcqd2= %d %% \t", mmcqd_work_percent[3]);
-			seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", mmcqd_w_throughput[3],mmcqd_r_throughput[3]);
-			mmcqd_read_clear[3] = 1;
-		}else if(mmcqd_read_clear[3] == 1) {
-			seq_printf(m, "mmcqd2= %d %% \t", mmcqd_work_percent[3]);
-			seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", mmcqd_w_throughput[3],mmcqd_r_throughput[3]);
-			mmcqd_read_clear[3] = 0;
-		}else {		
-			mmcqd_work_percent[3] = 0;
-			seq_printf(m, "mmcqd2= %d %% \t", mmcqd_work_percent[3]);
-			seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", 0,0);
-			mmcqd_read_clear[3] = 0;
-		}
-	}
-
-
-	return 0;
-}
-
-
-static int mtk_io_osd_mmcqd2_open_proc( struct inode *inode, struct file *file)
-{
-    return single_open( file, mtk_io_osd_mmcqd2_show_proc, NULL);
-}
-
-#endif
 
 static int storage_logger_show_flag( struct seq_file *m, void *data)
 {
@@ -1124,7 +1023,7 @@ static int thermal_logger_open_flag( struct inode *inode, struct file *file)
 
 static int thermal_logger_write_flag
 (
-    struct file *file, const char *buffer, 
+    struct file *file, const char *buffer,
     unsigned long count, void *data
 )
 {
@@ -1163,13 +1062,13 @@ static inline struct logger_type_info *find_type_info(unsigned int msg_id)
 }
 #if 1
 static int storage_logger_proc_show(struct seq_file *m, void *v)
-{	
+{
 	SLog_MSG("storage_logger_proc_show");
 	//seq_buf_ptr = m->buf;
 	m->buf = (char*) storage_logger_mem_pool;
 	m->count = writeIndex << 2;
 	m->size = storage_logger_bufsize;
-	return 0;	
+	return 0;
 }
 #endif
 
@@ -1313,7 +1212,7 @@ Eoverflow:
 ssize_t  storage_logger_proc_read(struct file *file, char __user *buf, size_t size, loff_t *ppos)
 {
 	struct seq_file *m = file->private_data;
-	size_t copied = 0;	
+	size_t copied = 0;
 	size_t n;
 	int err = 0;
 
@@ -1345,7 +1244,7 @@ ssize_t  storage_logger_proc_read(struct file *file, char __user *buf, size_t si
 		m->size = storage_logger_bufsize;
 		m->index = 0;
 	}
-	
+
 
 	m->version = file->f_version;
 	/* grab buffer if we didn't have one */
@@ -1365,11 +1264,11 @@ ssize_t  storage_logger_proc_read(struct file *file, char __user *buf, size_t si
 		if (!size)
 			goto Done;
 		if(!iswrapped)
-			goto Done;					
+			goto Done;
 	}
 
 	if (m->index)
-		goto Done;	
+		goto Done;
 
 	/* we put the bottom record into buffer */
 	if( writeIndex < readIndex) {
@@ -1412,13 +1311,13 @@ ssize_t  storage_logger_proc_read(struct file *file, char __user *buf, size_t si
 	}
 	printk(KERN_INFO"Holmes storage_logger_proc_read: %d %Lu %Lu\n",size,*ppos,m->read_pos);
 	mutex_lock(&m->lock);
-	
+
 	/* Don't assume *ppos is where we left it */
 	if (unlikely(*ppos != m->read_pos)) {
 		m->read_pos = *ppos;
 		while ((err = straverse(m, *ppos)) == -EAGAIN)
-			;	
-		
+			;
+
 		if (err) {
 			/* With prejudice... */
 			m->read_pos = 0;
@@ -1575,7 +1474,7 @@ int storage_logger_proc_release(struct inode *inode, struct file *file)
 	int res = __storage_logger_proc_release(inode, file);
 	kfree(op);
 
-	spin_lock_irqsave(&logger_lock, flags);	
+	spin_lock_irqsave(&logger_lock, flags);
 	atomic_dec(&external_read_counter);
 	spin_unlock_irqrestore(&logger_lock, flags);
 
@@ -1698,29 +1597,6 @@ static const struct file_operations driver_thermal_config_proc_fops = {
 	.open       = thermal_logger_open_flag,
 };
 
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-
-static const struct file_operations mtk_io_osd_config_proc_fops = {
-	.owner		= THIS_MODULE,
-	.write		= mtk_io_osd_write_proc,
-	.read		= seq_read,
-	.open       = mtk_io_osd_open_proc,
-};
-
-static const struct file_operations mtk_io_osd_mmcqd1_proc_fops = {
-	.owner		= THIS_MODULE,
-	.read		= seq_read,
-	.open       = mtk_io_osd_mmcqd1_open_proc,
-};
-
-static const struct file_operations mtk_io_osd_mmcqd2_proc_fops = {
-	.owner		= THIS_MODULE,
-	.read		= seq_read,
-	.open       = mtk_io_osd_mmcqd2_open_proc,
-};
-
-#endif
-
 static const struct file_operations driver_dump_proc_fops = {
 	.owner		= THIS_MODULE,
 	.write		= storage_logger_dump_write_proc,
@@ -1798,30 +1674,9 @@ static int __init storage_logger_init(void)
 	} else
 		SLog_MSG("add /proc/driver/storage_logger entry fail");
 
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-
-	CREATE_PROC_ENTRY(procEntry,"driver/mtk_io_osd_config", ACCESS_PERMISSION, NULL, &mtk_io_osd_config_proc_fops);
-	if (procEntry) {
-		procEntry->gid = 1000;
-	} else
-		SLog_MSG("add /proc/driver/mtk_io_osd entry fail");
-
-	CREATE_PROC_ENTRY(procEntry,"driver/mtk_io_osd_mmcqd1", ACCESS_PERMISSION, NULL, &mtk_io_osd_mmcqd1_proc_fops);
-	if (procEntry) {
-		procEntry->gid = 1000;
-	} else
-		SLog_MSG("add /proc/driver/mtk_io_osd entry fail");
-
-	CREATE_PROC_ENTRY(procEntry,"driver/mtk_io_osd_mmcqd2", ACCESS_PERMISSION, NULL, &mtk_io_osd_mmcqd2_proc_fops);
-	if (procEntry) {
-		procEntry->gid = 1000;
-	} else
-		SLog_MSG("add /proc/driver/mtk_io_osd entry fail");	
-
-#endif
 	//Initialize the variable used in this module
 	writeIndex = 0;
-	readIndex = 0;	
+	readIndex = 0;
 	lastwriteIndex = 0;
 	readMax = LCA_MAX_SHOW;
 	iswrapped = false;
@@ -1873,12 +1728,12 @@ static int __init storage_logger_init(void)
 	CREATE_PROC_ENTRY(procEntry,"driver/storage_logger_filename", ACCESS_PERMISSION, NULL, &driver_filename_proc_fops);
 	CREATE_PROC_ENTRY(procEntry,"driver/storage_logger_status", ACCESS_PERMISSION, NULL, &driver_status_proc_fops);
 	CREATE_PROC_ENTRY(procEntry, "driver/storage_logger_iosched", ACCESS_PERMISSION, NULL, &driver_iosched_proc_fops);
-		
+
     // Add for File system directory file check
     CREATE_PROC_ENTRY(procEntry,"driver/fs_rectime", ACCESS_PERMISSION, NULL, &driver_fs_rectime_proc_fops);
 	if (!procEntry)
 	    SLog_MSG("add /proc/driver/fs_rectime entry fail");
-	
+
 	SLog_MSG("storage_logger_init success\n");
 	return ret;
 }
