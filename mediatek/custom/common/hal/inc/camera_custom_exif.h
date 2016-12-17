@@ -30,7 +30,7 @@ getParamSensorExif()
 /*******************************************************************************
 * Custom EXIF
 ******************************************************************************/
-#define EN_CUSTOM_EXIF_INFO
+//#define EN_CUSTOM_EXIF_INFO
 #define SET_EXIF_TAG_STRING(tag,str) \
     if (strlen((const char*)str) <= 32) { \
         strcpy((char *)pexifApp1Info->tag, (const char*)str); }
@@ -42,6 +42,7 @@ typedef struct customExifInfo_s {
 } customExifInfo_t;
 
 /*Lenovo-sw chenglong1 add for exif info*/
+#define EN_CUSTOM_EXIF_INFO
 extern "C" int property_get(const char *key, char *value, const char *default_value);
 /*Lenovo-sw add end*/
 
@@ -53,11 +54,10 @@ MINT32 custom_SetExif(void **ppCustomExifTag)
 #define CUSTOM_EXIF_STRING_SOFTWARE "custom software"
 static customExifInfo_t exifTag = {CUSTOM_EXIF_STRING_MAKE,CUSTOM_EXIF_STRING_MODEL,CUSTOM_EXIF_STRING_SOFTWARE};
 
-
     /*Lenovo-sw chenglong1 add for exif info*/    
     property_get("ro.product.brand", (char *)exifTag.strMake, "Lenovo");	
-    property_get("ro.product.model", (char *)exifTag.strModel, "A820");	
-    property_get("ro.build.product", (char *)exifTag.strSoftware, "Lenovo");
+    property_get("ro.build.product", (char *)exifTag.strModel, "Phone");
+    property_get("ro.product.model", (char *)exifTag.strSoftware, "Lenovo");
     /*Lenovo-sw add end*/
   
     if (0 != ppCustomExifTag) {
