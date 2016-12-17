@@ -7,7 +7,6 @@
 #include <linux/topology.h>
 #include <linux/mmdebug.h>
 #include <linux/hardirq.h>
-#include <linux/kmempagerecorder.h>
 struct vm_area_struct;
 
 /* Plain integer GFP bitmasks. Do not use this directly. */
@@ -348,50 +347,16 @@ extern struct page *alloc_pages_vma(gfp_t gfp_mask, int order,
 			struct vm_area_struct *vma, unsigned long addr,
 			int node);
 #else
-
-#ifndef CONFIG_MTK_PAGERECORDER
-
 #define alloc_pages(gfp_mask, order) \
 		alloc_pages_node(numa_node_id(), gfp_mask, order)
 #ifndef CONFIG_MTKPASR
 #define alloc_pages_vma(gfp_mask, order, vma, addr, node)	\
-	alloc_pages(gfp_mask, order);
+	alloc_pages(gfp_mask, order)
 #else
 #define alloc_pages_vma(gfp_mask, order, vma, addr, node)	\
 	alloc_pages(gfp_mask|GFP_MTKPASR_HIGHUSER, order)
 #endif
 
-#else // CONFIG_MTK_PAGERECORDER
-static inline struct page *
-alloc_pages(gfp_t gfp_mask, unsigned int order)
-{
-	/* Hook to ION Debugger - for Casper */
-	struct page *tmp_page = alloc_pages_node(numa_node_id(), gfp_mask, order);
-	if(!in_interrupt())
-	{
-		record_page_record((void *)tmp_page,order);
-	}
-	else if(gfp_mask & __GFP_HIGH)
-	{
-		printk("[WARNING]can't use alloc_pages function without GFP_ATOMIC mask in interruption function!!!\n");
-	}
-	return tmp_page;
-}
-
-#ifndef CONFIG_MTKPASR
-#define alloc_pages_vma(gfp_mask, order, vma, addr, node)	\
-		alloc_pages_nopagedebug(gfp_mask, order)
-#else
-#define alloc_pages_vma(gfp_mask, order, vma, addr, node)	\
-		alloc_pages_nopagedebug(gfp_mask|GFP_MTKPASR_HIGHUSER, order)
-#endif
-
-#define alloc_pages_nopagedebug(gfp_mask, order) \
-		alloc_pages_node(numa_node_id(), gfp_mask, order)
-#define alloc_page_nopagedebug(gfp_mask) alloc_pages_nopagedebug(gfp_mask, 0)		
-#endif // CONFIG_MTK_PAGERECORDER
-
-#endif
 #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
 #define alloc_page_vma(gfp_mask, vma, addr)			\
 	alloc_pages_vma(gfp_mask, 0, vma, addr, numa_node_id())
@@ -399,10 +364,6 @@ alloc_pages(gfp_t gfp_mask, unsigned int order)
 	alloc_pages_vma(gfp_mask, 0, vma, addr, node)
 
 extern unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order);
-#ifdef CONFIG_MTK_PAGERECORDER
-extern unsigned long __get_free_pages_nopagedebug(gfp_t gfp_mask, unsigned int order);
-extern unsigned long get_zeroed_page_nopagedebug(gfp_t gfp_mask);
-#endif
 extern unsigned long get_zeroed_page(gfp_t gfp_mask);
 
 void *alloc_pages_exact(size_t size, gfp_t gfp_mask);
@@ -412,25 +373,15 @@ void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask);
 
 #define __get_free_page(gfp_mask) \
 		__get_free_pages((gfp_mask), 0)
-#ifdef CONFIG_MTK_PAGERECORDER
-#define __get_free_page_nopagedebug(gfp_mask) \
-		__get_free_pages_nopagedebug((gfp_mask), 0)
-#endif
+
 #define __get_dma_pages(gfp_mask, order) \
 		__get_free_pages((gfp_mask) | GFP_DMA, (order))
 
 extern void __free_pages(struct page *page, unsigned int order);
 extern void free_pages(unsigned long addr, unsigned int order);
-#ifdef CONFIG_MTK_PAGERECORDER
-extern void __free_pages_nopagedebug(struct page *page, unsigned int order);
-extern void free_pages_nopagedebug(unsigned long addr, unsigned int order);
-#endif
 extern void free_hot_cold_page(struct page *page, int cold);
 extern void free_hot_cold_page_list(struct list_head *list, int cold);
-#ifdef CONFIG_MTK_PAGERECORDER
-#define __free_page_nopagedebug(page) __free_pages_nopagedebug((page), 0)
-#define free_page_nopagedebug(addr) free_pages_nopagedebug((addr), 0)
-#endif
+
 #define __free_page(page) __free_pages((page), 0)
 #define free_page(addr) free_pages((addr), 0)
 

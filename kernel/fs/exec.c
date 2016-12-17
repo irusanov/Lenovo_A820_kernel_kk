@@ -1483,10 +1483,6 @@ static int do_execve_common(const char *filename,
 	bool clear_in_exec;
 	int retval;
 	const struct cred *cred = current_cred();
-#ifdef CONFIG_MT_ENG_BUILD
-    int *argv_p0;
-//    int argv0;
-#endif
 
 	/*
 	 * We move the actual failure in case of RLIMIT_NPROC excess from
@@ -1559,12 +1555,6 @@ static int do_execve_common(const char *filename,
 	if (retval < 0)
 		goto out;
 
-#ifdef CONFIG_MT_ENG_BUILD
-    argv_p0 = (int *)get_user_arg_ptr(argv, 0);
-//    if(argv_p0 != 0)
- //       argv0 = *argv_p0;
-#endif
-
 	retval = copy_strings(bprm->argc, argv, bprm);
 	if (retval < 0)
 		goto out;
@@ -1616,13 +1606,7 @@ int do_execve(const char *filename,
 {
 	struct user_arg_ptr argv = { .ptr.native = __argv };
 	struct user_arg_ptr envp = { .ptr.native = __envp };
-    /* exec mt_debug*/
-    int ret;
-    int retry = 3;
-    do{
-        ret = do_execve_common(filename, argv, envp, regs);
-    }while( -999 == ret && retry-- > 0);
-	return ret;
+	return do_execve_common(filename, argv, envp, regs);
 }
 
 #ifdef CONFIG_COMPAT
@@ -2139,23 +2123,14 @@ void do_coredump(long signr, int exit_code, struct pt_regs *regs)
 	audit_core_dumps(signr);
 
 	binfmt = mm->binfmt;
-	if (!binfmt || !binfmt->core_dump) {
-		printk(KERN_WARNING "Skip process %d(%s) core dump(!binfmt?%s)\n",
-			task_tgid_vnr(current), current->comm, (!binfmt) ? "yes":"no");
+	if (!binfmt || !binfmt->core_dump)
 		goto fail;
-	}
-	if (!__get_dumpable(cprm.mm_flags)) {
-		printk(KERN_WARNING "Skip process %d(%s) core dump(mm_flags:%x)\n",
-			task_tgid_vnr(current), current->comm, (unsigned int)cprm.mm_flags);
+	if (!__get_dumpable(cprm.mm_flags))
 		goto fail;
-	}
 
 	cred = prepare_creds();
-	if (!cred) {
-		printk(KERN_WARNING "Skip process %d(%s) core dump(prepare_creds failed)\n",
-			task_tgid_vnr(current), current->comm);
+	if (!cred)
 		goto fail;
-	}
 	/*
 	 *	We cannot trust fsuid as being the "true" uid of the
 	 *	process nor do we know its entire history. We only know it
@@ -2315,11 +2290,8 @@ int dump_seek(struct file *file, loff_t off)
 		if (file->f_op->llseek(file, off, SEEK_CUR) < 0)
 			return 0;
 	} else {
-#ifndef CONFIG_MTK_PAGERECORDER
 		char *buf = (char *)get_zeroed_page(GFP_KERNEL);
-#else
-		char *buf = (char *)get_zeroed_page_nopagedebug(GFP_KERNEL);
-#endif
+
 		if (!buf)
 			return 0;
 		while (off > 0) {
@@ -2333,11 +2305,7 @@ int dump_seek(struct file *file, loff_t off)
 			}
 			off -= n;
 		}
-#ifndef CONFIG_MTK_PAGERECORDER
 		free_page((unsigned long)buf);
-#else
-		free_page_nopagedebug((unsigned long)buf);
-#endif
 	}
 	return ret;
 }

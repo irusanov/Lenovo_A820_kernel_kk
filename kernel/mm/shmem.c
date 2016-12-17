@@ -850,11 +850,7 @@ static inline struct page *shmem_swapin(swp_entry_t swap, gfp_t gfp,
 static inline struct page *shmem_alloc_page(gfp_t gfp,
 			struct shmem_inode_info *info, pgoff_t index)
 {
-#ifndef CONFIG_MTK_PAGERECORDER
 	return alloc_page(gfp);
-#else
-	return alloc_page_nopagedebug(gfp);
-#endif
 }
 #endif /* CONFIG_NUMA */
 

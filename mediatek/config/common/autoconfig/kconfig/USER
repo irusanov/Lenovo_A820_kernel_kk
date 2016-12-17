@@ -22,7 +22,6 @@
 
 # CONFIG_MTK_MEMCFG is not set
 # CONFIG_MTK_ION_DEBUG is not set
-# CONFIG_MTK_PAGERECORDER is not set
 # CONFIG_MT_PRIO_TRACER is not set
 
 #
