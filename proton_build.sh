@@ -9,9 +9,9 @@ if [ -f proton_kernel.conf ]
   else
 	echo "Kernel configuration file (kernel.conf) does not exist!"
 	echo "Using default configuration..."
-	VERSION=2.51
+	VERSION=2.56
 	DEVICE=lenovo_a820
-	UNDERVOLT=n
+	UNDERVOLT=no
 	TOOLCHAIN=linaro
 fi
 

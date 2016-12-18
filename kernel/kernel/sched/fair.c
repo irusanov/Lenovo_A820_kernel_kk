@@ -1069,12 +1069,12 @@ account_entity_dequeue(struct cfs_rq *cfs_rq, struct sched_entity *se)
  */
 /* we need this in update_cfs_load and load-balance functions below */
 static inline int throttled_hierarchy(struct cfs_rq *cfs_rq);
-# ifdef CONFIG_SMP
-#  ifdef CONFIG_MTK_SCHED_CMP
+#ifdef CONFIG_SMP
+#ifdef CONFIG_MTK_SCHED_CMP
 static inline void update_cfs_load(struct cfs_rq *cfs_rq, int global_update)
 {
 }
-#  else
+#else
 static void update_cfs_rq_load_contribution(struct cfs_rq *cfs_rq,
 					    int global_update)
 {
@@ -1137,7 +1137,7 @@ static void update_cfs_load(struct cfs_rq *cfs_rq, int global_update)
 	if (!cfs_rq->curr && !cfs_rq->nr_running && !cfs_rq->load_avg)
 		list_del_leaf_cfs_rq(cfs_rq);
 }
-#  endif /* CONFIG_MTK_SCHED_CMP */ 
+#endif /* CONFIG_MTK_SCHED_CMP */ 
 
 static inline long calc_tg_weight(struct task_group *tg, struct cfs_rq *cfs_rq)
 {
@@ -1148,13 +1148,13 @@ static inline long calc_tg_weight(struct task_group *tg, struct cfs_rq *cfs_rq)
 	 * to gain a more accurate current total weight. See
 	 * update_cfs_rq_load_contribution().
 	 */
-#  ifdef CONFIG_MTK_SCHED_CMP
+#ifdef CONFIG_MTK_SCHED_CMP
 	tg_weight = atomic_long_read(&tg->load_avg);
 	tg_weight -= cfs_rq->tg_load_contrib;
-#  else
+#else
 	tg_weight = atomic_read(&tg->load_weight);
 	tg_weight -= cfs_rq->load_contribution;
-#  endif
+#endif
 	tg_weight += cfs_rq->load.weight;
 
 	return tg_weight;
@@ -1179,11 +1179,11 @@ static long calc_cfs_shares(struct cfs_rq *cfs_rq, struct task_group *tg)
 	return shares;
 }
 
-#  ifdef CONFIG_MTK_SCHED_CMP
+#ifdef CONFIG_MTK_SCHED_CMP
 static inline void update_entity_shares_tick(struct cfs_rq *cfs_rq)
 {
 }
-#  else
+#else
 static void update_entity_shares_tick(struct cfs_rq *cfs_rq)
 {
 	if (cfs_rq->load_unacc_exec_time > sysctl_sched_shares_window) {
@@ -1191,8 +1191,8 @@ static void update_entity_shares_tick(struct cfs_rq *cfs_rq)
 		update_cfs_shares(cfs_rq);
 	}
 }
-#  endif
-# else /* CONFIG_SMP */
+#endif
+#else /* CONFIG_SMP */
 static void update_cfs_load(struct cfs_rq *cfs_rq, int global_update)
 {
 }
@@ -2526,7 +2526,7 @@ static int tg_unthrottle_up(struct task_group *tg, void *data)
 	cfs_rq->throttle_count--;
 #ifdef CONFIG_SMP
 	if (!cfs_rq->throttle_count) {
-# ifndef CONFIG_MTK_SCHED_CMP
+#ifndef CONFIG_MTK_SCHED_CMP
 		u64 delta = rq->clock_task - cfs_rq->load_stamp;
 
 		/* leaving throttled state, advance shares averaging windows */
@@ -2535,11 +2535,11 @@ static int tg_unthrottle_up(struct task_group *tg, void *data)
 
 		/* update entity weight now that we are on_rq again */
 		update_cfs_shares(cfs_rq);
-# else
+#else
 		/* adjust cfs_rq_clock_task() */
 		cfs_rq->throttled_clock_task_time += rq->clock_task -
 					     cfs_rq->throttled_clock_task;
-# endif
+#endif
 	}
 #endif
 
@@ -3043,12 +3043,12 @@ static void unthrottle_offline_cfs_rqs(struct rq *rq)
 }
 
 #else /* CONFIG_CFS_BANDWIDTH */
-# ifdef CONFIG_MTK_SCHED_CMP
+#ifdef CONFIG_MTK_SCHED_CMP
 static inline u64 cfs_rq_clock_task(struct cfs_rq *cfs_rq)
 {
 	return rq_of(cfs_rq)->clock_task;
 }
-# endif /* CONFIG_MTK_SCHED_CMP */
+#endif /* CONFIG_MTK_SCHED_CMP */
 static __always_inline
 void account_cfs_rq_runtime(struct cfs_rq *cfs_rq, unsigned long delta_exec) {}
 static void check_cfs_rq_runtime(struct cfs_rq *cfs_rq) {}
@@ -4942,7 +4942,7 @@ static int need_lazy_balance(int dst_cpu, int src_cpu, struct task_struct *p)
 /*
  * update tg->load_weight by folding this cpu's load_avg
  */
-# ifdef CONFIG_MTK_SCHED_CMP
+#ifdef CONFIG_MTK_SCHED_CMP
 static void __update_blocked_averages_cpu(struct task_group *tg, int cpu)
 {
 	struct sched_entity *se = tg->se[cpu];
@@ -5037,7 +5037,7 @@ static unsigned long task_h_load(struct task_struct *p)
 	return div64_ul(p->se.avg.load_avg_contrib * cfs_rq->h_load,
 			cfs_rq->runnable_load_avg + 1);
 }
-# else /* !CONFIG_MTK_SCHED_CMP */
+#else /* !CONFIG_MTK_SCHED_CMP */
 static int update_shares_cpu(struct task_group *tg, int cpu)
 {
 	struct cfs_rq *cfs_rq;
@@ -5119,7 +5119,7 @@ static unsigned long task_h_load(struct task_struct *p)
 
 	return load;
 }
-# endif /* CONFIG_MTK_SCHED_CMP */
+#endif /* CONFIG_MTK_SCHED_CMP */
 
 static void update_h_load(long cpu)
 {
@@ -5129,30 +5129,30 @@ static void update_h_load(long cpu)
 }
 
 #else /* !CONFIG_FAIR_GROUP_SCHED */
-# ifdef CONFIG_MTK_SCHED_CMP
+#ifdef CONFIG_MTK_SCHED_CMP
 static void update_blocked_averages(int cpu)
 {
 }
-# else
+#else
 static inline void update_shares(int cpu)
 {
 }
-# endif
+#endif
 
 static inline void update_h_load(long cpu)
 {
 }
-# ifdef CONFIG_MTK_SCHED_CMP
+#ifdef CONFIG_MTK_SCHED_CMP
 static unsigned long task_h_load(struct task_struct *p)
 {
 	return p->se.avg.load_avg_contrib;
 }
-# else
+#else
 static unsigned long task_h_load(struct task_struct *p)
 {
 	return p->se.load.weight;
 }
-# endif
+#endif
 #endif
 
 /********** Helpers for find_busiest_group ************************/
@@ -7321,9 +7321,9 @@ void init_cfs_rq(struct cfs_rq *cfs_rq)
 #ifdef CONFIG_FAIR_GROUP_SCHED
 static void task_move_group_fair(struct task_struct *p, int on_rq)
 {
-# ifdef CONFIG_MTK_SCHED_CMP
+#ifdef CONFIG_MTK_SCHED_CMP
 	struct cfs_rq *cfs_rq;
-# endif
+#endif
 	/*
 	 * If the task was not on the rq at the time of this cgroup movement
 	 * it must have been asleep, sleeping tasks keep their ->vruntime
