@@ -1,10 +1,55 @@
-export PATH=$PATH:$(pwd)/../arm-eabi-4.8/bin
 
+# Get kernel configuration
+if [ -f proton_kernel.conf ]
+  then
+    source "proton_kernel.conf"
+  else
+	echo "Kernel configuration file (kernel.conf) does not exist!"
+	echo "Using default configuration..."
+	VERSION=2.53
+	DEVICE=lenovo_a820
+	UNDERVOLT=no
+	TOOLCHAIN=linaro
+fi
+
+# Get toolchain path
+if [ -f proton_toolchains.conf ]
+  then
+    source "proton_toolchains.conf"
+  else
+	echo "Toolchains configuration file (toolchains.conf) does not exist!"
+	echo "Using linaro as default"
+	TOOLCHAIN=linaro
+fi
+
+case "$TOOLCHAIN" in
+  linaro)
+	TOOLCHAIN_PATH=$(pwd)/$LINARO_PATH
+	;;
+  sabermod)
+	TOOLCHAIN_PATH=$(pwd)/$SABERMOD_PATH
+	;;
+  ubertc4)
+	TOOLCHAIN_PATH=$(pwd)/$UBERTC4_PATH
+	;;
+  ubertc6)
+	TOOLCHAIN_PATH=$(pwd)/$UBERTC6_PATH
+	;;
+  gcc)
+	TOOLCHAIN_PATH=$(pwd)/$GCC_PATH
+	;;
+  *)
+	echo "No toolchain selected. Abort."
+	;;
+esac
+
+# Export toolchain variables
+export PATH=$PATH:$TOOLCHAIN_PATH
 export ARCH=arm
 export CROSS_COMPILE=arm-eabi-
 
-DEVICE_TREE="`cat DEVICE_TREE`"
+# Set target to user
+export TARGET_BUILD_VARIANT=user
 
-./makeMtk -t "$DEVICE_TREE" mrproper k
-./makeMtk -t "$DEVICE_TREE" c k
-
+./makeMtk -t "$DEVICE" mrproper k
+./makeMtk -t "$DEVICE" c k

@@ -20,7 +20,6 @@
 #include <linux/statfs.h>
 #endif
 
-
 #ifdef CONFIG_DYNAMIC_FSYNC
 extern bool early_suspend_active;
 extern bool dyn_fsync_active;
@@ -45,14 +44,8 @@ struct fsync_work {
  * wait == 1 case since in that case write_inode() functions do
  * sync_dirty_buffer() and thus effectively write one block at a time.
  */
-
-
-
-
-
 static int __sync_filesystem(struct super_block *sb, int wait)
 {
-
 	/*
 	 * This should be safe, as we require bdi backing to actually
 	 * write out data in the first place
@@ -70,7 +63,6 @@ static int __sync_filesystem(struct super_block *sb, int wait)
 
 	if (sb->s_op->sync_fs)
 		sb->s_op->sync_fs(sb, wait);
-
 
 	return __sync_blockdev(sb->s_bdev, wait);
 }
@@ -251,8 +243,6 @@ SYSCALL_DEFINE1(syncfs, int, fd)
  */
 int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 {
-
-
 #ifdef CONFIG_DYNAMIC_FSYNC
 	if (likely(dyn_fsync_active && !early_suspend_active))
 		return 0;

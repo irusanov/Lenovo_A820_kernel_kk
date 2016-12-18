@@ -147,28 +147,6 @@ int battery_cali_start_status = 0;
 #define SPM_WAKE_PERIOD         600     /* sec . need to modify as SPM_WAKE_PERIOD in mt_spm_sleep.c*/
 unsigned int battery_period = SPM_WAKE_PERIOD;
 
-
-
-/*lenovo-sw weiweij remove green led operation in seine 20130918*/
-#if 0 //defined(LENOVO_PROJECT_SEINE)
-static int charging_led_state = 0;
-
-static void charging_led_opt(int state) 
-{
-    mt_set_gpio_mode(GPIO149,GPIO_MODE_GPIO);  
-    mt_set_gpio_dir(GPIO149, GPIO_DIR_OUT);    
-
-	if(state==0)
-	{
-		charging_led_state = 0;
-		mt_set_gpio_out(GPIO149,GPIO_OUT_ZERO);
-	}else
-	{
-		charging_led_state = 1;
-		mt_set_gpio_out(GPIO149,GPIO_OUT_ONE);
-	}
-}
-#endif
 /*lenovo-sw weiweij added 2013-2-20 end*/
 
 
@@ -2001,16 +1979,8 @@ void ChargerHwInit_fan5405(void)
         }
         else
             fan5405_config_interface_liao(0x06,0x70);
-#if 0
-/*lenovo-sw weiweij modified for keep led state as some as ui soc*/
-		if(g_bat_full_user_view)
-    	fan5405_config_interface_liao(0x00,0x80);   
-		else
-			fan5405_config_interface_liao(0x00,0xc0);
-/*lenovo-sw weiweij modified for keep led state as some as ui soc end*/
-#else		     
+
         fan5405_config_interface_liao(0x00,0x80);
-#endif		
         fan5405_config_interface_liao(0x01,0xb9);
 
         if(g_enable_high_vbat_spec == 1)

@@ -711,8 +711,8 @@ service drvbd /system/bin/drvbd
 service debuggerd /system/bin/debuggerd
     class main
 
-service mobile_log_d /system/bin/mobile_log_d
-    class main
+#service mobile_log_d /system/bin/mobile_log_d
+#    class main
 
 service servicemanager /system/bin/servicemanager
     class core

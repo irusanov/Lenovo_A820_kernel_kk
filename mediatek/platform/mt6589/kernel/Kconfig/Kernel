@@ -1,6 +1,44 @@
 # TODO naming refine
 menu "Kernel Configurations"
 
+menu "MTK Cluster MultiProcessor Scheduler"
+config MTK_SCHED_CMP
+        bool "Enable CMP scheduler"
+        depends on SMP && SCHED_MC
+        default n
+        help
+          CMP Scheduler Enhancement for MTK SoC.
+          Attempts to introspectively select tasks to optimize
+          energy and performance.
+          say no if not sure.
+
+config MTK_SCHED_CMP_TGS
+        bool "Enable thread group scheduling"
+        depends on MTK_SCHED_CMP
+        default n
+
+config MTK_SCHED_CMP_TGS_WAKEUP
+        bool "Enable thread group scheduling"
+        depends on MTK_SCHED_CMP_TGS
+        default n
+
+config MTK_SCHED_CMP_PACK_SMALL_TASK
+        bool "Packing small task"
+        depends on MTK_SCHED_CMP && MTK_SCHED_CMP_TGS
+        default n
+
+config MTK_SCHED_CMP_LAZY_BALANCE
+        bool "Enable CMP lazy balance"
+        depends on MTK_SCHED_CMP_PACK_SMALL_TASK
+        default n
+
+config MTK_SCHED_CMP_POWER_AWARE_CONTROLLER
+	bool "(EXPERIMENTAL) Power-aware Scheduler for MP Controller"
+	depends on MTK_SCHED_CMP_PACK_SMALL_TASK && MTK_SCHED_CMP_LAZY_BALANCE
+	help
+		Power-aware scheduler for MP controller and status interface
+endmenu
+
 menu "Tracer Related"
 config MTK_SCHED_TRACERS
         bool "MTK Sched Tracers"
@@ -183,6 +221,17 @@ config MT_LOAD_BALANCE_PROFILER
 	bool "mt load balance profiler"
 	depends on SCHEDSTATS && SMP
 
+config MT_SCHED_NOTICE
+        bool "mt scheduling log, output important log into FTRACE, ftrace event: sched_log, default ENABLE"
+
+config MT_SCHED_INFO
+        bool "mt scheduling log, output detail flow info info FTRACE, ftrace event: sched_log"
+        depends on MT_SCHED_NOTICE
+
+config MT_SCHED_DEBUG
+        bool "mt scheduling log, also output the scheduling log into Kernel log"
+        depends on MT_SCHED_NOTICE
+
 config MT_SCHED_DEBUG_ONLY
         bool "mt scheduler debug only"
 endmenu
@@ -203,20 +252,26 @@ config MTK_FORCE_CPU_89T
        default n
        help
 
+config MTK_SCHED_RQAVG_KS
+       bool "Enable runqueue staticsic calculation used in kernel space operation"
+       depends on SMP
+       default n
+       help
+        TLP estimation for kernel space CPUfreq governors, e.g., hotplug
+
 config HAS_MEMUTILS
 		bool "Motorola MSM memcpy enhancements"
         default n
         help
         faster memcpy performance for 64 bytes cache line
-endmenu
-
-config VFP_OPT
-    bool "VFP OPT"
-    default y
-	help
 
 config PVR_TIMER_HIGHPRIO
 	bool "PVR timer high priority workqueue"
 	default n
 	help
 	high priority for PVR workqueue (ALPS01435516)
+endmenu
+
+config VFP_OPT
+    bool "VFP OPT"
+    default y

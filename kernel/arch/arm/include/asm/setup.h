@@ -196,12 +196,12 @@ struct tag {
 		 * DC21285 specific
 		 */
 		struct tag_memclk	memclk;
-                struct tag_boot         boot;
-                struct tag_meta_com     meta_com;
-                struct tag_devinfo_data devinfo_data;
-                tag_dfo_boot     dfo_data;
-                struct tag_mdinfo_data mdinfo_data;
-                struct tag_ddr_dfs_info_data dfs_data;
+        struct tag_boot         boot;
+        struct tag_meta_com     meta_com;
+        struct tag_devinfo_data devinfo_data;
+        tag_dfo_boot     dfo_data;
+        struct tag_mdinfo_data mdinfo_data;
+        struct tag_ddr_dfs_info_data dfs_data;
 	} u;
 };
 

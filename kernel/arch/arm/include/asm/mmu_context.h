@@ -24,9 +24,6 @@ void __check_kvm_seq(struct mm_struct *mm);
 
 #ifdef CONFIG_CPU_HAS_ASID
 
-/*
- * apply kernel patch: b5466f8728527a05a493cc4abe9e6f034a1bbaab
- */
 void check_and_switch_context(struct mm_struct *mm, struct task_struct *tsk);
 #define init_new_context(tsk,mm)	({ mm->context.id = 0; })
 
@@ -69,9 +66,6 @@ static inline void finish_arch_post_lock_switch(void)
 
 #endif	/* CONFIG_CPU_HAS_ASID */
 
-/*
- * apply kernel patch: b5466f8728527a05a493cc4abe9e6f034a1bbaab
- */
 #define destroy_context(mm)		do { } while(0)
 #define activate_mm(prev,next)		switch_mm(prev, next, NULL)
 
@@ -117,8 +111,5 @@ switch_mm(struct mm_struct *prev, struct mm_struct *next,
 }
 
 #define deactivate_mm(tsk,mm)	do { } while (0)
-/*
- * apply kernel patch: b5466f8728527a05a493cc4abe9e6f034a1bbaab
- */
 
 #endif

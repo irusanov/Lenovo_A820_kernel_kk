@@ -92,6 +92,7 @@ static struct inode *fuse_alloc_inode(struct super_block *sb)
 	fi->attr_version = 0;
 	fi->writectr = 0;
 	fi->orig_ino = 0;
+	fi->state = 0;
 	INIT_LIST_HEAD(&fi->write_files);
 	INIT_LIST_HEAD(&fi->queued_writes);
 	INIT_LIST_HEAD(&fi->writepages);
@@ -199,7 +200,8 @@ void fuse_change_attributes(struct inode *inode, struct fuse_attr *attr,
 	loff_t oldsize;
 
 	spin_lock(&fc->lock);
-	if (attr_version != 0 && fi->attr_version > attr_version) {
+	if ((attr_version != 0 && fi->attr_version > attr_version) ||
+	    test_bit(FUSE_I_SIZE_UNSTABLE, &fi->state)) {
 		spin_unlock(&fc->lock);
 		return;
 	}
@@ -374,21 +376,6 @@ static void convert_fuse_statfs(struct kstatfs *stbuf, struct fuse_kstatfs *attr
 	stbuf->f_files   = attr->files;
 	stbuf->f_ffree   = attr->ffree;
 	stbuf->f_namelen = attr->namelen;
-//#ifdef LIMIT_SDCARD_SIZE
-#if 0
-	stbuf->f_blocks  -= (u32)data_free_size_th/attr->bsize;
-	
-	if(stbuf->f_bfree < ((u32)data_free_size_th/attr->bsize)){
-		stbuf->f_bfree = 0;
-	}else{
-		stbuf->f_bfree	 -= (u32)data_free_size_th/attr->bsize;
-	}
-	if(stbuf->f_bavail < ((u32)data_free_size_th/attr->bsize)){
-		stbuf->f_bavail = 0;
-	}else{
-		stbuf->f_bavail	 -= (u32)data_free_size_th/attr->bsize;
-	}
-#endif
 	/* fsid is left zero */
 }
 
@@ -998,6 +985,7 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
 		goto err_fput;
 
 	fuse_conn_init(fc);
+	fc->release = fuse_free_conn;
 
 	fc->dev = sb->s_dev;
 	fc->sb = sb;
@@ -1012,7 +1000,6 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
 		fc->dont_mask = 1;
 	sb->s_flags |= MS_POSIXACL;
 
-	fc->release = fuse_free_conn;
 	fc->flags = d.flags;
 	fc->user_id = d.user_id;
 	fc->group_id = d.group_id;

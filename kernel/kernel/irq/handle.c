@@ -186,7 +186,7 @@ handle_irq_event_percpu(struct irq_desc *desc, struct irqaction *action)
 				mtk_isr_point = mtk_isr_point -> next;
 			}
 
-			if((isr_find == 0) && (proc_count < MAX_THREAD_COUNT))
+			if((current->se.mtk_isr!= NULL) && (isr_find == 0) && (proc_count < MAX_THREAD_COUNT))
 			{
 				mtk_isr_point =  kmalloc(sizeof(struct mtk_isr_info), GFP_ATOMIC);
 				if(mtk_isr_point == NULL)

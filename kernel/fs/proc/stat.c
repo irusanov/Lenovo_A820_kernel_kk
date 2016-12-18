@@ -54,7 +54,6 @@ static u64 get_idle_time(int cpu)
 #else
     idle_time = get_cpu_idle_time_us(cpu, NULL);
 #endif
-
 	if (idle_time == -1ULL)
 		/* !NO_HZ or cpu offline so we can rely on cpustat.idle */
 		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
@@ -168,7 +167,7 @@ static int show_stat(struct seq_file *p, void *v)
 
 	/* sum again ? it could be updated? */
 	for_each_irq_nr(j)
-		seq_put_decimal_ull(p, ' ', kstat_irqs(j));
+		seq_put_decimal_ull(p, ' ', kstat_irqs_usr(j));
 
 	seq_printf(p,
 		"\nctxt %llu\n"

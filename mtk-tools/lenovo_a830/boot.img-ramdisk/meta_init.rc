@@ -322,7 +322,7 @@ service drvbd /system/bin/drvbd
     user system
     group system
 
-service mobile_log_d /system/bin/mobile_log_d
+#service mobile_log_d /system/bin/mobile_log_d
 
 service vold /system/bin/vold
     class core

@@ -263,7 +263,9 @@ void debuggerd_init() {
     action.sa_flags |= SA_ONSTACK;
 
     sigaction(SIGABRT, &action, NULL);
+#ifndef HAVE_AEE_FEATURE
     sigaction(SIGBUS, &action, NULL);
+#endif
     sigaction(SIGFPE, &action, NULL);
     sigaction(SIGILL, &action, NULL);
     sigaction(SIGPIPE, &action, NULL);

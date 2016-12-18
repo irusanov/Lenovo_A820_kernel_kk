@@ -802,7 +802,7 @@ set_rcvbuf:
 
 	case SO_PEEK_OFF:
 		if (sock->ops->set_peek_off)
-			sock->ops->set_peek_off(sk, val);
+			ret = sock->ops->set_peek_off(sk, val);
 		else
 			ret = -EOPNOTSUPP;
 		break;
@@ -1431,8 +1431,8 @@ void __init sk_init(void)
 		sysctl_wmem_default = 32767;
 		sysctl_rmem_default = 32767;
 	} else if (totalram_pages >= 131072) {
-		sysctl_wmem_max = 2097152;
-		sysctl_rmem_max = 2097152;
+		sysctl_wmem_max = 1048568;
+		sysctl_rmem_max = 1048568;
 	}
 }
 
@@ -1773,17 +1773,17 @@ struct sk_buff *sock_alloc_send_pskb(struct sock *sk, unsigned long header_len,
 			goto failure;
 		if (signal_pending(current))
 			goto interrupted;
-
-        sock_dump_info(sk);
-        #ifdef CONFIG_MTK_NET_LOGGING  
+       
+#ifdef CONFIG_MTK_NET_LOGGING
+		sock_dump_info(sk); 
 		printk(KERN_INFO "[mtk_net][sock]sockdbg: wait_for_wmem, timeo =%ld, wmem =%d, snd buf =%d \n",
 			 timeo, atomic_read(&sk->sk_wmem_alloc), sk->sk_sndbuf); 
-        #endif
+#endif
 		timeo = sock_wait_for_wmem(sk, timeo);
-		#ifdef CONFIG_MTK_NET_LOGGING  
+#ifdef CONFIG_MTK_NET_LOGGING  
 		printk(KERN_INFO "[mtk_net][sock]sockdbg: wait_for_wmem done, header_len=0x%lx, data_len=0x%lx,timeo =%ld \n",
 			 header_len, data_len ,timeo);
-	    #endif
+#endif
 	}
 
 	skb_set_owner_w(skb, sk);

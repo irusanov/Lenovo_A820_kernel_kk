@@ -1767,7 +1767,6 @@ int mmc_can_trim(struct mmc_card *card)
 {
 	if ((card->ext_csd.sec_feature_support & EXT_CSD_SEC_GB_CL_EN) && !(card->quirks & MMC_QUIRK_TRIM_UNSTABLE))
 		return 1;
-	//printk(KERN_ERR "[%s]: quirks=0x%x, MMC_QUIRK_TRIM_UNSTABLE=0x%x\n", __func__, card->quirks, MMC_QUIRK_TRIM_UNSTABLE); 
 	return 0;
 }
 EXPORT_SYMBOL(mmc_can_trim);
@@ -2488,6 +2487,7 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 	switch (mode) {
 	case PM_HIBERNATION_PREPARE:
 	case PM_SUSPEND_PREPARE:
+	case PM_RESTORE_PREPARE:
 
 		spin_lock_irqsave(&host->lock, flags);
 		if (mmc_bus_needs_resume(host)) {

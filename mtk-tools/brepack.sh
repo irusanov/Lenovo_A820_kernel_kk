@@ -2,9 +2,9 @@
 #Stop script if something is broken
 set -e
 
-if [ -f kernel.conf ]
+if [ -f ../proton_kernel.conf ]
   then
-    source "kernel.conf"
+    source "../proton_kernel.conf"
   else
 	echo "Kernel configuration file (kernel.conf) does not exist!"
 	echo "Using default configuration..."
