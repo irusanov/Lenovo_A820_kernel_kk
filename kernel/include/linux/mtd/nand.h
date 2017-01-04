@@ -692,5 +692,16 @@ struct platform_nand_chip *get_platform_nandchip(struct mtd_info *mtd)
 
 	return chip->priv;
 }
-
+/* MTK MTD Monitor*/
+#ifdef CONFIG_MTK_MTD_NAND
+struct mtd_perf_log
+{
+    unsigned int read_size_0_512;
+    unsigned int read_size_512_1K;
+    unsigned int read_size_1K_2K;
+    unsigned int read_size_2K_3K;
+    unsigned int read_size_3K_4K;
+    unsigned int read_size_Above_4K;
+};
+#endif
 #endif /* __LINUX_MTD_NAND_H */

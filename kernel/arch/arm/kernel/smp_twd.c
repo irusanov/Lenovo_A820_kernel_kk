@@ -72,6 +72,8 @@ static int twd_set_next_event(unsigned long evt,
 
 	__raw_writel(evt, twd_base + TWD_TIMER_COUNTER);
 	__raw_writel(ctrl, twd_base + TWD_TIMER_CONTROL);
+	return 0;
+}
 
 int localtimer_set_next_event(unsigned long evt)
 {

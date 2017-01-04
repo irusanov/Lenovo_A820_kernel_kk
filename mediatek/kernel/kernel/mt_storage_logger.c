@@ -128,15 +128,6 @@ static bool enable_mthermal_dump = false;
 static int fs_rectime_threshold = 1000;	// default is 1s
 /*==========================*/
 
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-static int mtk_io_osd_config = 0;
-static int mtk_io_osd_latency = 0;
-extern unsigned int mmcqd_work_percent[];
-extern unsigned int mmcqd_w_throughput[];
-extern unsigned int mmcqd_r_throughput[];
-extern unsigned int mmcqd_read_clear[];
-extern pid_t mmcqd[];
-#endif
 #ifdef DRV_MOUDLE_READY
 static int storage_logger_probe(struct platform_device *pdev);
 static void storage_logger_remove(struct platform_device *pdev);
@@ -903,98 +894,6 @@ void storage_logger_switch( bool enabled)
         lastwriteIndex = 0;
     }
 }
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-
-static int mtk_io_osd_show_proc( struct seq_file *m, void *data)
-{
-    seq_printf( m, "%d\n%d\n", mtk_io_osd_config, mtk_io_osd_latency);
-
-    return 0;
-}
-
-static int mtk_io_osd_open_proc( struct inode *inode, struct file *file)
-{
-    return single_open( file, mtk_io_osd_show_proc, NULL);
-}
-
-static int mtk_io_osd_write_proc(struct file *file, const char *buffer, unsigned long count, void *data)
-{
-	char acBuf[32]; 
-	unsigned long CopySize = 0;
-	unsigned int p1,p2;
-
-	CopySize = (count < (sizeof(acBuf) - 1)) ? count : (sizeof(acBuf) - 1);
-	if(copy_from_user(acBuf, buffer, CopySize))
-		return 0;
-
-	acBuf[CopySize] = '\0';
-
-	if ( 2 == sscanf(acBuf, "%d %d", &p1,&p2) ) {
-		mtk_io_osd_config = p1;
-		mtk_io_osd_latency = p2;		
-	} 
-	return count;
-}
-
-static int mtk_io_osd_mmcqd1_show_proc( struct seq_file *m, void *data)
-{
-
-	if(mmcqd_read_clear[0] == 2) {
-		seq_printf(m, "mmcqd1= %d %% \t", mmcqd_work_percent[0]);
-		seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", mmcqd_w_throughput[0],mmcqd_r_throughput[0]);
-		mmcqd_read_clear[0] = 1;
-	}else if(mmcqd_read_clear[0] == 1) {
-		seq_printf(m, "mmcqd1= %d %% \t", mmcqd_work_percent[0]);
-		seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", mmcqd_w_throughput[0],mmcqd_r_throughput[0]);
-		mmcqd_read_clear[0] = 0;
-	}else {		
-		mmcqd_work_percent[0] = 0;
-		seq_printf(m, "mmcqd1= %d %% \t", mmcqd_work_percent[0]);
-		seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", 0,0);
-		mmcqd_read_clear[0] = 0;
-	}
-
-    return 0;
-}
-
-static int mtk_io_osd_mmcqd1_open_proc( struct inode *inode, struct file *file)
-{
-    return single_open( file, mtk_io_osd_mmcqd1_show_proc, NULL);
-}
-
-static int mtk_io_osd_mmcqd2_show_proc( struct seq_file *m, void *data)
-{
-	if(0 == mmcqd[3]) {
-		seq_printf(m, " ");		
-	}else {
-
-		if(mmcqd_read_clear[3] == 2) {
-			seq_printf(m, "mmcqd2= %d %% \t", mmcqd_work_percent[3]);
-			seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", mmcqd_w_throughput[3],mmcqd_r_throughput[3]);
-			mmcqd_read_clear[3] = 1;
-		}else if(mmcqd_read_clear[3] == 1) {
-			seq_printf(m, "mmcqd2= %d %% \t", mmcqd_work_percent[3]);
-			seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", mmcqd_w_throughput[3],mmcqd_r_throughput[3]);
-			mmcqd_read_clear[3] = 0;
-		}else {		
-			mmcqd_work_percent[3] = 0;
-			seq_printf(m, "mmcqd2= %d %% \t", mmcqd_work_percent[3]);
-			seq_printf(m, "Write= %d kB/s Read= %d kB/s\n", 0,0);
-			mmcqd_read_clear[3] = 0;
-		}
-	}
-
-
-	return 0;
-}
-
-
-static int mtk_io_osd_mmcqd2_open_proc( struct inode *inode, struct file *file)
-{
-    return single_open( file, mtk_io_osd_mmcqd2_show_proc, NULL);
-}
-
-#endif
 
 static int storage_logger_show_flag( struct seq_file *m, void *data)
 {
@@ -1698,29 +1597,6 @@ static const struct file_operations driver_thermal_config_proc_fops = {
 	.open       = thermal_logger_open_flag,
 };
 
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-
-static const struct file_operations mtk_io_osd_config_proc_fops = {
-	.owner		= THIS_MODULE,
-	.write		= mtk_io_osd_write_proc,
-	.read		= seq_read,
-	.open       = mtk_io_osd_open_proc,
-};
-
-static const struct file_operations mtk_io_osd_mmcqd1_proc_fops = {
-	.owner		= THIS_MODULE,
-	.read		= seq_read,
-	.open       = mtk_io_osd_mmcqd1_open_proc,
-};
-
-static const struct file_operations mtk_io_osd_mmcqd2_proc_fops = {
-	.owner		= THIS_MODULE,
-	.read		= seq_read,
-	.open       = mtk_io_osd_mmcqd2_open_proc,
-};
-
-#endif
-
 static const struct file_operations driver_dump_proc_fops = {
 	.owner		= THIS_MODULE,
 	.write		= storage_logger_dump_write_proc,
@@ -1798,27 +1674,6 @@ static int __init storage_logger_init(void)
 	} else
 		SLog_MSG("add /proc/driver/storage_logger entry fail");
 
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-
-	CREATE_PROC_ENTRY(procEntry,"driver/mtk_io_osd_config", ACCESS_PERMISSION, NULL, &mtk_io_osd_config_proc_fops);
-	if (procEntry) {
-		procEntry->gid = 1000;
-	} else
-		SLog_MSG("add /proc/driver/mtk_io_osd entry fail");
-
-	CREATE_PROC_ENTRY(procEntry,"driver/mtk_io_osd_mmcqd1", ACCESS_PERMISSION, NULL, &mtk_io_osd_mmcqd1_proc_fops);
-	if (procEntry) {
-		procEntry->gid = 1000;
-	} else
-		SLog_MSG("add /proc/driver/mtk_io_osd entry fail");
-
-	CREATE_PROC_ENTRY(procEntry,"driver/mtk_io_osd_mmcqd2", ACCESS_PERMISSION, NULL, &mtk_io_osd_mmcqd2_proc_fops);
-	if (procEntry) {
-		procEntry->gid = 1000;
-	} else
-		SLog_MSG("add /proc/driver/mtk_io_osd entry fail");	
-
-#endif
 	//Initialize the variable used in this module
 	writeIndex = 0;
 	readIndex = 0;	

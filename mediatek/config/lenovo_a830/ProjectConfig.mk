@@ -121,7 +121,6 @@ CUSTOM_KERNEL_IMGSENSOR=ov8825_mipi_raw mt9v113_yuv
 
 # key pad driver to report key event
 CUSTOM_KERNEL_KPD=kpd
-CUSTOM_KERNEL_LCM=nt35516_qhd_dsi_cmd_ipsboe otm9608a_qhd_cmd
 
 # leds driver including green/red/blue
 CUSTOM_KERNEL_LEDS=mt65xx
@@ -172,7 +171,7 @@ CUSTOM_KERNEL_USB=mt6577
 CUSTOM_KERNEL_VIBRATOR=vibrator
 
 # To choose LK LCM driver name
-CUSTOM_LK_LCM=nt35516_qhd_dsi_cmd_ipsboe otm9608a_qhd_cmd
+CUSTOM_LK_LCM=nt35516_qhd_dsi_cmd_ipsboe
 
 # Support customer to implement and apply their own RSA security functions
 CUSTOM_SEC_AUTH_SUPPORT=no
@@ -1506,7 +1505,7 @@ MTK_WLAN_SUPPORT=yes
 #CREATE_PROJECT_INFO=20140326971
 MTK_BUILD_VERNO=PROTON.KK.V1.2
 
-LENOVO_PRODUCT_DEVICE = A830
+LENOVO_PRODUCT_DEVICE=A830
 LENOVO_FLASH_ADP1650=yes
 LENOVO_PROJECT_A830=yes
 LENOVO_NEON_OPTIMIZATION=yes

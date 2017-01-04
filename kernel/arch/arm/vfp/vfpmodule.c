@@ -20,7 +20,6 @@
 #include <linux/init.h>
 #include <linux/uaccess.h>
 #include <linux/user.h>
-#include <linux/export.h>
 
 #include <asm/cp15.h>
 #include <asm/cputype.h>

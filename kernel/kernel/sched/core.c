@@ -749,18 +749,6 @@ static void sched_tg_enqueue(struct rq *rq, struct task_struct *p)
 	raw_spin_lock_irqsave(&tg->thread_group_info_lock, flags);
 	tg->thread_group_info[id].nr_running++;
 	raw_spin_unlock_irqrestore(&tg->thread_group_info_lock, flags);
-
-#if 0 
-     	mt_sched_printf("enqueue %d:%s %d:%s %d %lu %lu %lu, %lu %lu %lu",
-			tg->pid, tg->comm, p->pid, p->comm, id, rq->cpu,
-			tg->thread_group_info[0].nr_running,
-			tg->thread_group_info[0].cfs_nr_running,
-			tg->thread_group_info[0].load_avg_ratio,
-			tg->thread_group_info[1].nr_running,
-			tg->thread_group_info[1].cfs_nr_running,
-			tg->thread_group_info[1].load_avg_ratio);
-#endif
-	//tgs_log(rq, p);
 }
 
 static void sched_tg_dequeue(struct rq *rq, struct task_struct *p)
@@ -777,18 +765,6 @@ static void sched_tg_dequeue(struct rq *rq, struct task_struct *p)
 	//WARN_ON(!tg->thread_group_info[id].nr_running);
 	tg->thread_group_info[id].nr_running--;
 	raw_spin_unlock_irqrestore(&tg->thread_group_info_lock, flags);
-
-#if 0 
-     	mt_sched_printf("dequeue %d:%s %d:%s %d %d %lu %lu %lu, %lu %lu %lu",
-			tg->pid, tg->comm, p->pid, p->comm, id, rq->cpu,
-			tg->thread_group_info[0].nr_running,
-			tg->thread_group_info[0].cfs_nr_running,
-			tg->thread_group_info[0].load_avg_ratio,
-			tg->thread_group_info[1].nr_running,
-			tg->thread_group_info[1].cfs_nr_running,
-			tg->thread_group_info[1].load_avg_ratio);
-#endif
-	//tgs_log(rq, p);
 }
 
 #endif
@@ -1546,8 +1522,8 @@ static void ttwu_activate(struct rq *rq, struct task_struct *p, int en_flags)
 static void
 ttwu_do_wakeup(struct rq *rq, struct task_struct *p, int wake_flags)
 {
-	check_preempt_curr(rq, p, wake_flags);
 	trace_sched_wakeup(p, true);
+	check_preempt_curr(rq, p, wake_flags);
 
 	p->state = TASK_RUNNING;
 #ifdef CONFIG_SMP
@@ -2844,13 +2820,11 @@ decay_load_missed(unsigned long load, unsigned long missed_updates, int idx)
 	return load;
 }
 
-#ifdef CONFIG_MTK_SCHED_CMP
 /*
  * Update rq->cpu_load[] statistics. This function is usually called every
  * scheduler tick (TICK_NSEC). With tickless idle this will not be called
  * every tick. We fix it up based on jiffies.
  */
-/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
 static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
 			      unsigned long pending_updates)
 {
@@ -2882,18 +2856,22 @@ static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
 	sched_avg_update(this_rq);
 }
 
-# ifdef CONFIG_SMP
+#ifdef CONFIG_SMP
 /* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
 static inline unsigned long get_rq_runnable_load(struct rq *rq)
 {
+#ifdef CONFIG_MTK_SCHED_CMP
 	return rq->cfs.runnable_load_avg;
+#else 
+	return rq->load.weight;
+#endif
 }
-# else
+#else
 static inline unsigned long get_rq_runnable_load(struct rq *rq)
 {
 	return rq->load.weight;
 }
-# endif
+#endif
 
 #ifdef CONFIG_NO_HZ
 /*
@@ -2913,7 +2891,6 @@ static inline unsigned long get_rq_runnable_load(struct rq *rq)
  * Called from nohz_idle_balance() to update the load ratings before doing the
  * idle balance.
  */
-/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
 void update_idle_cpu_load(struct rq *this_rq)
 {
 	unsigned long curr_jiffies = ACCESS_ONCE(jiffies);
@@ -2935,7 +2912,6 @@ void update_idle_cpu_load(struct rq *this_rq)
 /*
  * Called from tick_nohz_idle_exit() -- try and fix up the ticks we missed.
  */
-/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
 void update_cpu_load_nohz(void)
 {
 	struct rq *this_rq = this_rq();
@@ -2962,7 +2938,6 @@ void update_cpu_load_nohz(void)
 /*
  * Called from scheduler_tick()
  */
-/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
 static void update_cpu_load_active(struct rq *this_rq)
 {
 	unsigned long load = get_rq_runnable_load(this_rq);
@@ -2974,120 +2949,6 @@ static void update_cpu_load_active(struct rq *this_rq)
 
 	calc_load_account_active(this_rq);
 }
-#else /* !CONFIG_MTK_SCHED_CMP */
-/*
- * Update rq->cpu_load[] statistics. This function is usually called every
- * scheduler tick (TICK_NSEC). With tickless idle this will not be called
- * every tick. We fix it up based on jiffies.
- */
-/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
-static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
-			      unsigned long pending_updates)
-{
-	int i, scale;
-
-	this_rq->nr_load_updates++;
-
-	/* Update our load: */
-	this_rq->cpu_load[0] = this_load; /* Fasttrack for idx 0 */
-	for (i = 1, scale = 2; i < CPU_LOAD_IDX_MAX; i++, scale += scale) {
-		unsigned long old_load, new_load;
-
-		/* scale is effectively 1 << i now, and >> i divides by scale */
-
-		old_load = this_rq->cpu_load[i];
-		old_load = decay_load_missed(old_load, pending_updates - 1, i);
-		new_load = this_load;
-		/*
-		 * Round up the averaging division if load is increasing. This
-		 * prevents us from getting stuck on 9 if the load is 10, for
-		 * example.
-		 */
-		if (new_load > old_load)
-			new_load += scale - 1;
-
-		this_rq->cpu_load[i] = (old_load * (scale - 1) + new_load) >> i;
-	}
-
-	sched_avg_update(this_rq);
-}
-
-#ifdef CONFIG_NO_HZ
-/*
- * There is no sane way to deal with nohz on smp when using jiffies because the
- * cpu doing the jiffies update might drift wrt the cpu doing the jiffy reading
- * causing off-by-one errors in observed deltas; {0,2} instead of {1,1}.
- *
- * Therefore we cannot use the delta approach from the regular tick since that
- * would seriously skew the load calculation. However we'll make do for those
- * updates happening while idle (nohz_idle_balance) or coming out of idle
- * (tick_nohz_idle_exit).
- *
- * This means we might still be one tick off for nohz periods.
- */
-
-/*
- * Called from nohz_idle_balance() to update the load ratings before doing the
- * idle balance.
- */
-/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
-void update_idle_cpu_load(struct rq *this_rq)
-{
-	unsigned long curr_jiffies = ACCESS_ONCE(jiffies);
-	unsigned long load = this_rq->load.weight;
-	unsigned long pending_updates;
-
-	/*
-	 * bail if there's load or we're actually up-to-date.
-	 */
-	if (load || curr_jiffies == this_rq->last_load_update_tick)
-		return;
-
-	pending_updates = curr_jiffies - this_rq->last_load_update_tick;
-	this_rq->last_load_update_tick = curr_jiffies;
-
-	__update_cpu_load(this_rq, load, pending_updates);
-}
-
-/*
- * Called from tick_nohz_idle_exit() -- try and fix up the ticks we missed.
- */
-/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
-void update_cpu_load_nohz(void)
-{
-	struct rq *this_rq = this_rq();
-	unsigned long curr_jiffies = ACCESS_ONCE(jiffies);
-	unsigned long pending_updates;
-
-	if (curr_jiffies == this_rq->last_load_update_tick)
-		return;
-
-	raw_spin_lock(&this_rq->lock);
-	pending_updates = curr_jiffies - this_rq->last_load_update_tick;
-	if (pending_updates) {
-		this_rq->last_load_update_tick = curr_jiffies;
-		/*
-		 * We were idle, this means load 0, the current load might be
-		 * !0 due to remote wakeups and the sort.
-		 */
-		__update_cpu_load(this_rq, 0, pending_updates);
-	}
-	raw_spin_unlock(&this_rq->lock);
-}
-#endif /* CONFIG_NO_HZ */
-
-/*
- * Called from scheduler_tick()
- */
-/* moved to kernel/sched/proc.c at Linux 3.11-rc4 */
-static void update_cpu_load_active(struct rq *this_rq)
-{
-	this_rq->last_load_update_tick = jiffies;
-	__update_cpu_load(this_rq, this_rq->load.weight, 1);
-
-	calc_load_account_active(this_rq);
-}
-#endif
 
 #ifdef CONFIG_SMP
 
@@ -3588,8 +3449,8 @@ void scheduler_tick(void)
 
 	raw_spin_lock(&rq->lock);
 	update_rq_clock(rq);
-	curr->sched_class->task_tick(rq, curr, 0);
 	update_cpu_load_active(rq);
+	curr->sched_class->task_tick(rq, curr, 0);
 	raw_spin_unlock(&rq->lock);
 
 	perf_event_task_tick();

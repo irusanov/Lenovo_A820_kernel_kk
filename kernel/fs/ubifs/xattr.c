@@ -155,7 +155,6 @@ static int create_xattr(struct ubifs_info *c, struct inode *host,
 	inode->i_size = ui->ui_size = size;
 	ui->data_len = size;
 
-	mutex_lock(&host_ui->ui_mutex);
 	host->i_ctime = ubifs_current_time(host);
 	host_ui->xattr_cnt += 1;
 	host_ui->xattr_size += CALC_DENT_SIZE(nm->len);
@@ -165,7 +164,6 @@ static int create_xattr(struct ubifs_info *c, struct inode *host,
 	err = ubifs_jnl_update(c, host, nm, inode, 0, 1);
 	if (err)
 		goto out_cancel;
-	mutex_unlock(&host_ui->ui_mutex);
 
 	ubifs_release_budget(c, &req);
 	insert_inode_hash(inode);
@@ -176,7 +174,6 @@ out_cancel:
 	host_ui->xattr_cnt -= 1;
 	host_ui->xattr_size -= CALC_DENT_SIZE(nm->len);
 	host_ui->xattr_size -= CALC_XATTR_BYTES(size);
-	mutex_unlock(&host_ui->ui_mutex);
 out_free:
 	make_bad_inode(inode);
 	iput(inode);
@@ -218,11 +215,11 @@ static int change_xattr(struct ubifs_info *c, struct inode *host,
 		goto out_free;
 	}
 	inode->i_size = ui->ui_size = size;
-	ui->data_len = size;
 
 	mutex_lock(&host_ui->ui_mutex);
 	host->i_ctime = ubifs_current_time(host);
 	host_ui->xattr_size -= CALC_XATTR_BYTES(ui->data_len);
+	ui->data_len = size;
 	host_ui->xattr_size += CALC_XATTR_BYTES(size);
 
 	/*

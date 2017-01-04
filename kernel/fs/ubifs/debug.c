@@ -3093,6 +3093,26 @@ static ssize_t dfs_file_read(struct file *file, char __user *u, size_t count,
 	  return provide_lca_tnc_output(val, u, count, ppos,c);
 	  
 	}	
+	else if (dent == d->dfs_wbuf_count)
+	{	
+	  	char buf[100];
+	  	int i,len;
+		len = snprintf(buf, 100, "GC/BASE/DATA: ");
+		for(i = 0 ; i < c->jhead_cnt ; i++) {
+			len += snprintf(buf+len, 100-len, "%lld/", c->jheads[i].wbuf.w_count);
+		}
+		snprintf(buf+len-1, 100-len+1, "\n");
+	  	return simple_read_from_buffer(u, count, ppos, buf, len);
+	} 
+	else if (dent == d->dfs_host_wcount)
+	{
+	  	char buf[100];
+	  	int len;
+		len = snprintf(buf, 100, "host write: ");
+		len += snprintf(buf+len, 100-len, "%d\n", c->host_wcount);
+	  	return simple_read_from_buffer(u, count, ppos, buf, len);
+	
+	}
 	else
 		return -EINVAL;
 
@@ -3303,6 +3323,24 @@ int dbg_debugfs_init_fs(struct ubifs_info *c)
         goto out_remove;
 
     d->dfs_lca_show_tnc = dent;
+
+    fname = "wbuf_count";
+    dent = debugfs_create_file(fname, S_IRUSR , d->dfs_dir, c,
+                   &dfs_fops);
+
+    if (IS_ERR_OR_NULL(dent))
+        goto out_remove;
+
+    d->dfs_wbuf_count = dent;
+
+    fname = "host_wcount";
+    dent = debugfs_create_file(fname, S_IRUSR , d->dfs_dir, c,
+                   &dfs_fops);
+
+    if (IS_ERR_OR_NULL(dent))
+        goto out_remove;
+
+    d->dfs_host_wcount = dent;
 
 
     return 0;

@@ -26,55 +26,6 @@
 #include <mach/mt_clkmgr.h>
 #endif
 
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-unsigned int g_mtk_mmc_perf_dbg = 0;
-unsigned int g_mtk_mmc_dbg_range = 0;
-unsigned int g_dbg_range_start = 0;
-unsigned int g_dbg_range_end = 0;
-unsigned int g_mtk_mmc_dbg_flag = 0;
-unsigned int g_dbg_req_count = 0;
-unsigned int g_dbg_raw_count = 0;
-unsigned int g_dbg_write_count = 0;
-unsigned int g_dbg_raw_count_old = 0;
-unsigned int g_mtk_mmc_clear = 0;
-int g_check_read_write = 0;
-int g_i = 0;
-unsigned long long g_req_buf[4000][30] = {{0}};
-unsigned long long g_req_write_buf[4000][30] = {{0}};
-unsigned long long g_req_write_count[4000] = {0};
-
-unsigned long long g_mmcqd_buf[400][300] = {{0}};
-char *g_time_mark[] = {
-						"--start fetch request",
-						"--end fetch request",
-						"--start dma map this request",
-							"--end dma map this request",
-							"--start request",
-							"--DMA start",
-							"--DMA transfer done",
-							"--start dma unmap request",
-							"--end dma unmap request",
-							"--end of request",
-};
-char *g_time_mark_vfs_write[] = {"--in vfs_write",
-							"--before generic_segment_checks",
-							"--after generic_segment_checks",
-							"--after vfs_check_frozen",
-							"--after generic_write_checks",
-							"--after file_remove_suid",
-							"--after file_update_time",
-							"--after generic_file_direct_write",
-							"--after generic_file_buffered_write",
-							"--after filemap_write_and_wait_range",
-							"--after invalidate_mapping_pages",
-							"--after 2nd generic_file_buffered_write",
-							"--before generic_write_sync",
-							"--after generic_write_sync",
-							"--out vfs_write"
-};
-
-#endif
-
 /* for get transfer time with each trunk size, default not open */
 #ifdef MTK_MMC_PERFORMANCE_TEST
 unsigned int g_mtk_mmc_perf_test = 0;
@@ -1504,58 +1455,6 @@ static int msdc_debug_proc_write(struct file *file, const char *buf, unsigned lo
        sd_multi_rw_compare(id, COMPARE_ADDRESS_SD, 3);
 		}
 	}
-#ifdef MTK_IO_PERFORMANCE_DEBUG
-    else if (cmd == MMC_PERF_DEBUG){
-        /* 1 enable; 0 disable */
-        g_mtk_mmc_perf_dbg = p1;
-
-        g_mtk_mmc_dbg_range = p2;
-
-        if (2 == g_mtk_mmc_dbg_range){
-            g_dbg_range_start = p3;
-            g_dbg_range_end   = p3 + p4;
-			g_check_read_write = p5;
-        }
-        printk("g_mtk_mmc_perf_dbg = 0x%x, g_mtk_mmc_dbg_range = 0x%x, start = 0x%x, end = 0x%x\n", g_mtk_mmc_perf_dbg, g_mtk_mmc_dbg_range, g_dbg_range_start, g_dbg_range_end);
-    }  else if (cmd == MMC_PERF_DEBUG_PRINT){
-        int i, j, k, num = 0;
-
-        if (p1 == 0){
-            g_mtk_mmc_clear = 0;
-            return count;
-        }
-		printk(KERN_ERR "msdc g_dbg_req_count<%d>\n",g_dbg_req_count);
-        for (i = 1; i <= g_dbg_req_count; i++){
-            /* */
-            printk("anslysis: %s 0x%x %d block, PGh %d\n", (g_check_read_write == 18 ? "read" : "write"),(unsigned int)g_mmcqd_buf[i][298], (unsigned int)g_mmcqd_buf[i][299], (unsigned int)(g_mmcqd_buf[i][297] * 2));
-			if(g_check_read_write == 18){
-            for (j = 1; j <= g_mmcqd_buf[i][296] * 2; j++){
-                printk("page %d:\n", num+1);
-                for (k = 0; k < 5; k++){
-                    printk("%d %llu\n", k, g_req_buf[num][k]);
-                }
-                num += 1;
-            }
-			}
-			printk(KERN_ERR "-------------------------------------------\n");
-            for (j = 0; j < sizeof(g_time_mark)/sizeof(char*); j++){
-				printk(KERN_ERR "%d. %llu %s\n",j,g_mmcqd_buf[i][j],g_time_mark[j]);
-            }
-			printk(KERN_ERR "===========================================\n");
-        }
-		if(g_check_read_write == 25){
-			printk(KERN_ERR "msdc g_dbg_write_count<%d>\n",g_dbg_write_count);
-        	for(i = 1;i<=g_dbg_write_count;i++){
-				printk(KERN_ERR "********************************************\n");
-				printk(KERN_ERR "write count: %llu\n",g_req_write_count[i]);
-				for (j = 0; j < sizeof(g_time_mark_vfs_write)/sizeof(char*); j++)
-					printk(KERN_ERR "%d. %llu %s\n",j,g_req_write_buf[i][j],g_time_mark_vfs_write[j]);
-			}
-			printk(KERN_ERR "********************************************\n");
-		}
-        g_mtk_mmc_clear = 0;
-    }
-#endif
 
 #ifdef MTK_MMC_PERFORMANCE_TEST
     else if (cmd == MMC_PERF_TEST){

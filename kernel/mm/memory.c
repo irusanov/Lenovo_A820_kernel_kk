@@ -69,7 +69,7 @@
 
 #if defined(CONFIG_MTK_EXTMEM)
 extern bool extmem_in_mspace(struct vm_area_struct *vma);
-extern void * get_virt_from_mspace(void * pa);
+extern unsigned long get_virt_from_mspace(unsigned long pa);
 #endif
 
 #ifndef CONFIG_NEED_MULTIPLE_NODES
@@ -4144,7 +4144,7 @@ static int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
 				if (vma->vm_end < addr + len)
 					len = vma->vm_end - addr;
 				if (extmem_in_mspace(vma)) {
-					void *extmem_va = get_virt_from_mspace(vma->vm_pgoff << PAGE_SHIFT) + (addr - vma->vm_start);
+					void *extmem_va = (void *)get_virt_from_mspace(vma->vm_pgoff << PAGE_SHIFT) + (addr - vma->vm_start);
 					memcpy(buf, extmem_va, len);
 					buf += len;
 					break;

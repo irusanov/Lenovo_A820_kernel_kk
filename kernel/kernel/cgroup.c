@@ -385,6 +385,7 @@ static void free_css_set_work(struct work_struct *work)
 		struct cgroup *cgrp = link->cgrp;
 		list_del(&link->cg_link_list);
 		list_del(&link->cgrp_link_list);
+
 		/*
 		 * We may not be holding cgroup_mutex, and if cgrp->count is
 		 * dropped to 0 the cgroup can be destroyed at any time, hence

@@ -19,7 +19,7 @@
 #include <linux/mmc/card.h>
 #include <linux/mmc/host.h>
 #include "queue.h"
-#include <linux/mmc/mmc.h>
+
 #define MMC_QUEUE_BOUNCESZ	65536
 
 #define MMC_QUEUE_SUSPENDED	(1 << 0)

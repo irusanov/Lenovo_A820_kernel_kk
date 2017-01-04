@@ -936,6 +936,20 @@ static int do_sched_rt_period_timer(struct rt_bandwidth *rt_b, int overrun)
 	const struct cpumask *span;
 
 	span = sched_rt_period_mask();
+#ifdef CONFIG_RT_GROUP_SCHED
+	/*
+	 * FIXME: isolated CPUs should really leave the root task group,
+	 * whether they are isolcpus or were isolated via cpusets, lest
+	 * the timer run on a CPU which does not service all runqueues,
+	 * potentially leaving other CPUs indefinitely throttled.  If
+	 * isolation is really required, the user will turn the throttle
+	 * off to kill the perturbations it causes anyway.  Meanwhile,
+	 * this maintains functionality for boot and/or troubleshooting.
+	 */
+	if (rt_b == &root_task_group.rt_bandwidth)
+		span = cpu_online_mask;
+#endif
+
 #ifdef MTK_DEBUG_CGROUP
 	printk(KERN_EMERG " do_sched_rt_period_timer curr_cpu=%d \n", smp_processor_id());
 #endif
@@ -947,14 +961,10 @@ static int do_sched_rt_period_timer(struct rt_bandwidth *rt_b, int overrun)
 		raw_spin_lock(&rq->lock);
 		if (rt_rq->rt_time) {
 			u64 runtime;
-			u64 runtime_pre, rt_time_pre;
 
 			raw_spin_lock(&rt_rq->rt_runtime_lock);
-			if (rt_rq->rt_throttled) {
-				runtime_pre = rt_rq->rt_runtime;
+			if (rt_rq->rt_throttled)
 				balance_runtime(rt_rq);
-				rt_time_pre = rt_rq->rt_time;
-			}
 			runtime = rt_rq->rt_runtime;
 			rt_rq->rt_time -= min(rt_rq->rt_time, overrun*runtime);
 			if (rt_rq->rt_throttled && rt_rq->rt_time < runtime) {
@@ -1025,7 +1035,7 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
 
 	if (rt_rq->rt_time > runtime) {
 		struct rt_bandwidth *rt_b = sched_rt_bandwidth(rt_rq);
-		//int cpu = rq_cpu(rt_rq->rq);
+		int cpu = rq_cpu(rt_rq->rq);
 
 		/*
 		 * Don't actually throttle groups that have no runtime assigned
@@ -1039,8 +1049,8 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
 
 		//	if (!once) {
 		//		once = true;
-		//		printk_deferred("sched: RT throttling activated cpu=%d\n",
-		//			cpu);
+				printk_deferred("sched: RT throttling activated cpu=%d\n",
+					cpu);
 		//	}
 #ifdef CONFIG_MT_RT_SCHED_CRIT
 			trace_sched_rt_crit(cpu, rt_rq->rt_throttled);

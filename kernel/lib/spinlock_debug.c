@@ -77,7 +77,7 @@ static void spin_bug(raw_spinlock_t *lock, const char *msg)
 
 	spin_dump(lock, msg);
     snprintf( aee_str, 50, "Spinlock %s :%s\n", current->comm, msg);
-    aee_kernel_warning( aee_str,"spinlock debugger\n");
+    aee_kernel_warning_api(__FILE__, __LINE__, DB_OPT_DUMMY_DUMP | DB_OPT_FTRACE, aee_str,"spinlock debugger\n");
 }
 
 #define SPIN_BUG_ON(cond, lock, msg) if (unlikely(cond)) spin_bug(lock, msg)

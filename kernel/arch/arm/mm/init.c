@@ -32,7 +32,6 @@
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
-#include <mach/mtk_memcfg.h>
 
 #include "mm.h"
 

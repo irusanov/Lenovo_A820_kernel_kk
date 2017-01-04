@@ -1933,7 +1933,6 @@ __acquires(&gcwq->lock)
 	 * While we must be careful to not use "work" after this, the trace
 	 * point will only record its address.
 	 */
-
 	trace_workqueue_execute_end(work);
 #ifdef CONFIG_MTK_WQ_DEBUG
 	mttrace_workqueue_execute_end(work);

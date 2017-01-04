@@ -369,9 +369,7 @@ static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
 #ifdef CONFIG_MTK_HIBERNATION
     state = decode_state(buf, n);
     hib_log("entry (%d)\n", state);
-#endif
 
-#ifdef CONFIG_MTK_HIBERNATION
     if (len == 8 && !strncmp(buf, "hibabort", len)) {
         hib_log("abort hibernation...\n");
         error = mtk_hibernate_abort();

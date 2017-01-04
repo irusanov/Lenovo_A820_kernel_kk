@@ -147,9 +147,7 @@ extern unsigned long long mt_get_thread_cputime(pid_t pid);
 extern unsigned long long mt_get_cpu_idle(int cpu);
 extern unsigned long long mt_sched_clock(void);
 extern void calc_global_load(unsigned long ticks);
-#ifdef CONFIG_MTK_SCHED_CMP
 extern void update_cpu_load_nohz(void);
-#endif
 
 extern unsigned long get_parent_ip(unsigned long addr);
 

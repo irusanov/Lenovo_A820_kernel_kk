@@ -2,7 +2,7 @@
 #define _MT_GPUFREQ_H
 
 #include <linux/module.h>
- 
+
 /*********************
 * Clock Mux Register
 **********************/
@@ -122,7 +122,7 @@ enum mt_gpufreq_clock_ratio {
 #endif
 
 /*****************
-* extern function 
+* extern function
 ******************/
 extern int mt_gpufreq_state_set(int enabled);
 extern void mt_gpufreq_thermal_protect(unsigned int limited_power);

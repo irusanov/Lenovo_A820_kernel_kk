@@ -1441,7 +1441,6 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	 */
 	p->group_leader = p;
 	INIT_LIST_HEAD(&p->thread_group);
-    INIT_HLIST_HEAD(&p->task_works);
 #ifdef CONFIG_MTK_SCHED_CMP_TGS
 	mt_init_thread_group(p);
 #endif

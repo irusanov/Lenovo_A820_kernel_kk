@@ -304,10 +304,10 @@ struct cfs_rq {
 	s64 runtime_remaining;
 
 	u64 throttled_timestamp;
-# ifdef CONFIG_MTK_SCHED_CMP
+#ifdef CONFIG_MTK_SCHED_CMP
 	u64 throttled_clock_task;
 	u64 throttled_clock_task_time;
-# endif
+#endif
 
 	int throttled, throttle_count;
 	struct list_head throttled_list;
@@ -919,13 +919,13 @@ extern void update_group_power(struct sched_domain *sd, int cpu);
 extern void trigger_load_balance(struct rq *rq, int cpu);
 extern void idle_balance(int this_cpu, struct rq *this_rq);
 
-# ifdef CONFIG_MTK_SCHED_CMP
+#ifdef CONFIG_MTK_SCHED_CMP
 extern void idle_enter_fair(struct rq *this_rq);
 extern void idle_exit_fair(struct rq *this_rq);
-#  ifdef CONFIG_MTK_SCHED_CMP_TGS 
+#ifdef CONFIG_MTK_SCHED_CMP_TGS 
 extern int group_leader_is_empty(struct task_struct *p);
-#  endif 
-# endif
+#endif 
+#endif
 #else	/* CONFIG_SMP */
 
 static inline void idle_balance(int cpu, struct rq *rq)
@@ -950,9 +950,7 @@ extern void resched_cpu(int cpu);
 extern struct rt_bandwidth def_rt_bandwidth;
 extern void init_rt_bandwidth(struct rt_bandwidth *rt_b, u64 period, u64 runtime);
 
-#ifdef CONFIG_MTK_SCHED_CMP
 extern void init_task_runnable_average(struct task_struct *p);
-#endif
 
 extern void update_idle_cpu_load(struct rq *this_rq);
 

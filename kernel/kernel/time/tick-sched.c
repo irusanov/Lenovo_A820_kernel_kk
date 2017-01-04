@@ -704,9 +704,7 @@ void tick_nohz_idle_exit(void)
 	/* Update jiffies first */
 	select_nohz_load_balancer(0);
 	tick_do_update_jiffies64(now);
-#ifdef CONFIG_MTK_SCHED_CMP
 	update_cpu_load_nohz();
-#endif
 
 #ifndef CONFIG_VIRT_CPU_ACCOUNTING
 	/*

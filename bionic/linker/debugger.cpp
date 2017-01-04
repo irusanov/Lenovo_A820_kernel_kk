@@ -201,6 +201,13 @@ void debuggerd_signal_handler(int n, siginfo_t* info, void*) {
         msg.abort_msg_address = reinterpret_cast<uintptr_t>(gAbortMessage);
         int ret = TEMP_FAILURE_RETRY(write(s, &msg, sizeof(msg)));
         if (ret == sizeof(msg)) {
+		/*		lenovo-sw huangzhen6 masked @20140828 for ALPS01690883 	
+#ifdef HAVE_AEE_FEATURE
+            int tmppid = getpid();
+            __libc_format_log(ANDROID_LOG_FATAL, "libc", "Send stop signal to pid:%d in %s", tmppid, __func__);
+            kill(tmppid, SIGSTOP);
+#endif
+		*/
             // if the write failed, there is no point trying to read a response.
             ret = TEMP_FAILURE_RETRY(read(s, &tid, 1));
             int saved_errno = errno;

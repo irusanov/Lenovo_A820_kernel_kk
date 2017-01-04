@@ -42,6 +42,7 @@ int do_truncate(struct dentry *dentry, loff_t length, unsigned int time_attrs,
 {
 	int ret;
 	struct iattr newattrs;
+
 	/* Not pretty: "inode->i_size" shouldn't really be signed. But it is. */
 	if (length < 0)
 		return -EINVAL;

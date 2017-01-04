@@ -18,7 +18,7 @@
 #define __HWMSEN_CUSTOM_H__
 
 #ifdef CUSTOM_KERNEL_ACCELEROMETER
-	#define ACCELEROMETER 		"KXTIK 3-axis Accelerometer"
+	#define ACCELEROMETER 		"KXTIK1004 3-axis Accelerometer"
 	#define ACCELEROMETER_VENDER 	"Kionix"
 #endif
 

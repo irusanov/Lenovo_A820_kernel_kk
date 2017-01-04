@@ -63,6 +63,7 @@ static int __sync_filesystem(struct super_block *sb, int wait)
 
 	if (sb->s_op->sync_fs)
 		sb->s_op->sync_fs(sb, wait);
+
 	return __sync_blockdev(sb->s_bdev, wait);
 }
 
