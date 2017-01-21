@@ -1,4 +1,5 @@
 #include <linux/linkage.h>
+#include <asm/assembler.h>
 
 #if __LINUX_ARM_ARCH__ >= 6
 ENTRY(__bswapsi2)
