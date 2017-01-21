@@ -36,6 +36,7 @@ use Sys::Hostname;
 
 `prebuilts/misc/linux-x86/ccache/ccache -M 25G`; 
 $ENV{"USE_CCACHE"} = 1;
+#$ENV{"CCACHE_DIR"} = "/media/infrared/sources/.ccache";
 
 my $DEBUG = 0; # enable/disable script debugging message
 

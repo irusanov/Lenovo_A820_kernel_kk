@@ -32,12 +32,14 @@ TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE, OR REFUND ANY SOFTWARE LICE
 #include <sys/mman.h>
 #include <utils/threads.h>
 #include <cutils/atomic.h>
-//#include <cutils/pmem.h>
 #include <linux/cache.h>
 //
 #include "mtkcam/common.h"
 #include <mtkcam/drv/imem_drv.h>
 //
+#if defined (__ISP_USE_PMEM__)     //seanlin fix if using PMEM
+   #include <cutils/pmem.h>
+#endif
 #if defined (__ISP_USE_STD_M4U__) || defined (__ISP_USE_ION__)
     #include "m4u_lib.h"
 #endif

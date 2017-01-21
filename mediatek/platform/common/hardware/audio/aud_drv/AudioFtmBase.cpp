@@ -81,7 +81,6 @@ unsigned int AudioFtmBase::ATV_AudioWrite(void *buffer, unsigned int bytes) { re
 
 /// HDMI
 int AudioFtmBase::Audio_HDMI_Play(bool Enable, unsigned int Freq) { return true; }
-}
 
 int AudioFtmBase::HDMI_SineGenPlayback(bool bEnable, int dSamplingRate) 
 {

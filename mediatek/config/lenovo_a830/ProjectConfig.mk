@@ -807,7 +807,7 @@ MTK_INCALL_HANDSFREE_DMNR=no
 MTK_INCALL_NORMAL_DMNR=no
 
 # Support build modem database file into system image under the path: "system/etc/mddb".
-MTK_INCLUDE_MODEM_DB_IN_IMAGE=yes
+MTK_INCLUDE_MODEM_DB_IN_IMAGE=no
 MTK_INPUTMETHOD_COOTEKIME_TOUCHPAL=no
 
 # Whether or not the Pinyin IME application will be included in the system.
@@ -1509,7 +1509,7 @@ LENOVO_PRODUCT_DEVICE=A830
 LENOVO_FLASH_ADP1650=yes
 LENOVO_PROJECT_A830=yes
 LENOVO_NEON_OPTIMIZATION=yes
-# Kepp off to support stock Lenovo headset
+# Keep off to support stock Lenovo headset
 LENOVO_STD_LINECTL_EARPHONE=no
 LENOVO_BSP_SIDE_KEY_WAKEUP=yes
 HIGH_BATTERY_VOLTAGE_SUPPORT=no
