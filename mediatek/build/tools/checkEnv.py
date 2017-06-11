@@ -372,7 +372,7 @@ class JavaCheck(object):
 
     def checkJavaVersion(self):
         javaVersion = commands.getoutput("%s -version" % self.java)
-        pattern = re.compile("java\s*version\s*\"([\d\._]+)",re.S)
+        pattern = re.compile("openjdk\s*version\s*\"([\d\._]+)",re.S)
         match = pattern.match(javaVersion)
         if match:
             self.versionNo = match.group(1)
@@ -381,15 +381,14 @@ class JavaCheck(object):
                 self.info = "your jdk version is lower than recommendation"
             elif int(number[0]) == 1 and int(number[1]) == 6:
                self.flag = "OK"
+            elif int(number[0]) == 1 and int(number[1]) == 7:
+               self.flag = "OK"
+            elif int(number[0]) == 1 and int(number[1]) == 8:
+               self.flag = "OK"
             else:
                self.flag = "WARNING"
                self.info = "your jdk version is higher than recommendation"
         else: self.versionNo = "unknown"
-        pattern = re.compile("openjdk")
-        match = pattern.match(javaVersion)
-        if match:
-            self.info = "openjdk is not supported"
-            self.flag = "FAIL"
         jdkBit = commands.getoutput("file -bL %s" % self.java)
         pattern = re.compile("ELF\s*(\d+)-bit\s*LSB\s*executable.*")
         match = pattern.match(jdkBit)

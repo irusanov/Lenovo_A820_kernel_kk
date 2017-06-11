@@ -32,8 +32,9 @@ TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE, OR REFUND ANY SOFTWARE LICE
 #include <sys/mman.h>
 #include <utils/threads.h>
 #include <cutils/atomic.h>
-//#include <cutils/pmem.h>
-//
+#if defined (__ISP_USE_PMEM__)     //seanlin fix if using PMEM
+   #include <cutils/pmem.h>
+#endif
 #include "imem_drv_imp.h"
 //
 #include "camera_isp.h"
